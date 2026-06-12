@@ -1,0 +1,42 @@
+{
+  "id": "greenflow_archetype_spaces",
+  "projectId": "greenflow",
+  "metaObjects": [
+    {
+      "id": "model_spaces",
+      "name": "spaces",
+      "type": "Default",
+      "parent": null
+    },
+    {
+      "id": "zone_storey0_open_office",
+      "name": "Block open_office Storey 0",
+      "type": "IfcSpace",
+      "parent": "model_spaces"
+    },
+    {
+      "id": "zone_storey0_office",
+      "name": "Block office Storey 0",
+      "type": "IfcSpace",
+      "parent": "model_spaces"
+    },
+    {
+      "id": "zone_storey0_meeting",
+      "name": "Block meeting Storey 0",
+      "type": "IfcSpace",
+      "parent": "model_spaces"
+    },
+    {
+      "id": "zone_storey0_amenity",
+      "name": "Block amenity Storey 0",
+      "type": "IfcSpace",
+      "parent": "model_spaces"
+    },
+    {
+      "id": "zone_storey0_circulation",
+      "name": "Block circulation Storey 0",
+      "type": "IfcSpace",
+      "parent": "model_spaces"
+    }
+  ]
+}

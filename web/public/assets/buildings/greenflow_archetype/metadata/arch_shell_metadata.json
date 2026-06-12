@@ -1,0 +1,192 @@
+{
+  "id": "greenflow_archetype_arch_shell",
+  "projectId": "greenflow",
+  "metaObjects": [
+    {
+      "id": "model_arch_shell",
+      "name": "arch_shell",
+      "type": "Default",
+      "parent": null
+    },
+    {
+      "id": "surface_block_open_office_storey_0_wall_0001",
+      "name": "Block open_office Storey 0 Wall 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_open_office_storey_0_wall_0002",
+      "name": "Block open_office Storey 0 Wall 0002",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_open_office_storey_0_wall_0003",
+      "name": "Block open_office Storey 0 Wall 0003",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_open_office_storey_0_wall_0004",
+      "name": "Block open_office Storey 0 Wall 0004",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_open_office_storey_0_floor_0001",
+      "name": "Block open_office Storey 0 Floor 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_open_office_storey_0_roof_0001",
+      "name": "Block open_office Storey 0 Roof 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_office_storey_0_wall_0001",
+      "name": "Block office Storey 0 Wall 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_office_storey_0_wall_0002",
+      "name": "Block office Storey 0 Wall 0002",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_office_storey_0_wall_0003",
+      "name": "Block office Storey 0 Wall 0003",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_office_storey_0_wall_0004",
+      "name": "Block office Storey 0 Wall 0004",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_office_storey_0_floor_0001",
+      "name": "Block office Storey 0 Floor 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_office_storey_0_roof_0001",
+      "name": "Block office Storey 0 Roof 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_meeting_storey_0_wall_0001",
+      "name": "Block meeting Storey 0 Wall 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_meeting_storey_0_wall_0002",
+      "name": "Block meeting Storey 0 Wall 0002",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_meeting_storey_0_wall_0003",
+      "name": "Block meeting Storey 0 Wall 0003",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_meeting_storey_0_wall_0004",
+      "name": "Block meeting Storey 0 Wall 0004",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_meeting_storey_0_floor_0001",
+      "name": "Block meeting Storey 0 Floor 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_meeting_storey_0_roof_0001",
+      "name": "Block meeting Storey 0 Roof 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_amenity_storey_0_wall_0001",
+      "name": "Block amenity Storey 0 Wall 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_amenity_storey_0_wall_0002",
+      "name": "Block amenity Storey 0 Wall 0002",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_amenity_storey_0_wall_0003",
+      "name": "Block amenity Storey 0 Wall 0003",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_amenity_storey_0_wall_0004",
+      "name": "Block amenity Storey 0 Wall 0004",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_amenity_storey_0_floor_0001",
+      "name": "Block amenity Storey 0 Floor 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_amenity_storey_0_roof_0001",
+      "name": "Block amenity Storey 0 Roof 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_circulation_storey_0_wall_0001",
+      "name": "Block circulation Storey 0 Wall 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_circulation_storey_0_wall_0002",
+      "name": "Block circulation Storey 0 Wall 0002",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_circulation_storey_0_wall_0003",
+      "name": "Block circulation Storey 0 Wall 0003",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_circulation_storey_0_wall_0004",
+      "name": "Block circulation Storey 0 Wall 0004",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_circulation_storey_0_floor_0001",
+      "name": "Block circulation Storey 0 Floor 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    },
+    {
+      "id": "surface_block_circulation_storey_0_roof_0001",
+      "name": "Block circulation Storey 0 Roof 0001",
+      "type": "IfcWall",
+      "parent": "model_arch_shell"
+    }
+  ]
+}

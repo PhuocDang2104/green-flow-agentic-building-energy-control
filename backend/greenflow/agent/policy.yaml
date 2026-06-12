@@ -1,0 +1,37 @@
+# GreenFlow policy guardrails (REPO_BUILD_SPEC §14)
+auto_actions:
+  enabled: true
+  max_setpoint_delta_c: 1.5
+  min_occupancy_confidence: 0.8
+  min_forecast_confidence: 0.6
+  empty_zone_delay_minutes: 15
+  max_comfort_risk_after: 0.25
+  max_peak_risk_after: 0.4
+  max_zones_affected: 3
+  allowed_zone_types:
+    - open_office
+    - office
+    - meeting_room
+    - hallway
+    - amenity
+  blocked_zone_types:
+    - server_room
+    - electrical_room
+    - security_room
+    - utility_room
+  allowed_actions:
+    - lighting_reduction
+    - turn_off_non_critical_lighting
+    - hvac_eco_mode
+    - hvac_setback_light
+    - alert_or_ticket
+
+approval_required_actions:
+  - pre_cooling
+  - early_hvac_shutdown
+  - ventilation_adjustment
+  - peak_load_reduction
+  - demand_response
+
+rejected_actions:
+  - whole_building_hvac_shutdown

@@ -1,0 +1,15 @@
+# GreenFlow reverse proxy.
+# DOMAIN=:80 for local/IP-only deploys; set DOMAIN=twin.example.com on VNPT cloud
+# (with DNS pointed at the VM) to get automatic HTTPS.
+{$DOMAIN} {
+	encode gzip zstd
+
+	@backend path /api/* /ws/* /storage/* /docs /openapi.json
+	handle @backend {
+		reverse_proxy api:8000
+	}
+
+	handle {
+		reverse_proxy web:3000
+	}
+}

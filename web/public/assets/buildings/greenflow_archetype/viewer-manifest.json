@@ -1,0 +1,40 @@
+{
+  "building_key": "greenflow_archetype",
+  "building_name": "GreenFlow Archetype",
+  "viewer_stack": "xeokit",
+  "geometry_format": "xkt",
+  "geometry_json_src": "/assets/buildings/greenflow_archetype/geometry/geometry.json",
+  "object_map_src": "/assets/buildings/greenflow_archetype/mapping/xeokit_object_map.json",
+  "assets": [
+    {
+      "asset_id": "arch_shell",
+      "layer": "architecture",
+      "model_id": "model_arch_shell",
+      "src": "/assets/buildings/greenflow_archetype/xkt/arch_shell.xkt",
+      "glb_src": "/assets/buildings/greenflow_archetype/glb/arch_shell.glb",
+      "metadata_src": "/assets/buildings/greenflow_archetype/metadata/arch_shell_metadata.json",
+      "default_visible": true,
+      "pickable": false
+    },
+    {
+      "asset_id": "spaces",
+      "layer": "thermal_zones",
+      "model_id": "model_spaces",
+      "src": "/assets/buildings/greenflow_archetype/xkt/spaces.xkt",
+      "glb_src": "/assets/buildings/greenflow_archetype/glb/spaces.glb",
+      "metadata_src": "/assets/buildings/greenflow_archetype/metadata/spaces_metadata.json",
+      "default_visible": true,
+      "pickable": true
+    },
+    {
+      "asset_id": "fenestration",
+      "layer": "fenestration",
+      "model_id": "model_fenestration",
+      "src": "/assets/buildings/greenflow_archetype/xkt/fenestration.xkt",
+      "glb_src": "/assets/buildings/greenflow_archetype/glb/fenestration.glb",
+      "metadata_src": "/assets/buildings/greenflow_archetype/metadata/fenestration_metadata.json",
+      "default_visible": false,
+      "pickable": false
+    }
+  ]
+}

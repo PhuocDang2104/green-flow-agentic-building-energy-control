@@ -1,0 +1,497 @@
+[
+  {
+    "xeokit_object_id": "surface_block_open_office_storey_0_wall_0001",
+    "entity_key": "surface_block_open_office_storey_0_wall_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block open_office Storey 0 Wall 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_open_office_storey_0_wall_0002",
+    "entity_key": "surface_block_open_office_storey_0_wall_0002",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block open_office Storey 0 Wall 0002"
+  },
+  {
+    "xeokit_object_id": "surface_block_open_office_storey_0_wall_0003",
+    "entity_key": "surface_block_open_office_storey_0_wall_0003",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block open_office Storey 0 Wall 0003"
+  },
+  {
+    "xeokit_object_id": "surface_block_open_office_storey_0_wall_0004",
+    "entity_key": "surface_block_open_office_storey_0_wall_0004",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block open_office Storey 0 Wall 0004"
+  },
+  {
+    "xeokit_object_id": "surface_block_open_office_storey_0_floor_0001",
+    "entity_key": "surface_block_open_office_storey_0_floor_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block open_office Storey 0 Floor 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_open_office_storey_0_roof_0001",
+    "entity_key": "surface_block_open_office_storey_0_roof_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block open_office Storey 0 Roof 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_office_storey_0_wall_0001",
+    "entity_key": "surface_block_office_storey_0_wall_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block office Storey 0 Wall 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_office_storey_0_wall_0002",
+    "entity_key": "surface_block_office_storey_0_wall_0002",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block office Storey 0 Wall 0002"
+  },
+  {
+    "xeokit_object_id": "surface_block_office_storey_0_wall_0003",
+    "entity_key": "surface_block_office_storey_0_wall_0003",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block office Storey 0 Wall 0003"
+  },
+  {
+    "xeokit_object_id": "surface_block_office_storey_0_wall_0004",
+    "entity_key": "surface_block_office_storey_0_wall_0004",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block office Storey 0 Wall 0004"
+  },
+  {
+    "xeokit_object_id": "surface_block_office_storey_0_floor_0001",
+    "entity_key": "surface_block_office_storey_0_floor_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block office Storey 0 Floor 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_office_storey_0_roof_0001",
+    "entity_key": "surface_block_office_storey_0_roof_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block office Storey 0 Roof 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_meeting_storey_0_wall_0001",
+    "entity_key": "surface_block_meeting_storey_0_wall_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block meeting Storey 0 Wall 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_meeting_storey_0_wall_0002",
+    "entity_key": "surface_block_meeting_storey_0_wall_0002",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block meeting Storey 0 Wall 0002"
+  },
+  {
+    "xeokit_object_id": "surface_block_meeting_storey_0_wall_0003",
+    "entity_key": "surface_block_meeting_storey_0_wall_0003",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block meeting Storey 0 Wall 0003"
+  },
+  {
+    "xeokit_object_id": "surface_block_meeting_storey_0_wall_0004",
+    "entity_key": "surface_block_meeting_storey_0_wall_0004",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block meeting Storey 0 Wall 0004"
+  },
+  {
+    "xeokit_object_id": "surface_block_meeting_storey_0_floor_0001",
+    "entity_key": "surface_block_meeting_storey_0_floor_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block meeting Storey 0 Floor 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_meeting_storey_0_roof_0001",
+    "entity_key": "surface_block_meeting_storey_0_roof_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block meeting Storey 0 Roof 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_amenity_storey_0_wall_0001",
+    "entity_key": "surface_block_amenity_storey_0_wall_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block amenity Storey 0 Wall 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_amenity_storey_0_wall_0002",
+    "entity_key": "surface_block_amenity_storey_0_wall_0002",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block amenity Storey 0 Wall 0002"
+  },
+  {
+    "xeokit_object_id": "surface_block_amenity_storey_0_wall_0003",
+    "entity_key": "surface_block_amenity_storey_0_wall_0003",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block amenity Storey 0 Wall 0003"
+  },
+  {
+    "xeokit_object_id": "surface_block_amenity_storey_0_wall_0004",
+    "entity_key": "surface_block_amenity_storey_0_wall_0004",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block amenity Storey 0 Wall 0004"
+  },
+  {
+    "xeokit_object_id": "surface_block_amenity_storey_0_floor_0001",
+    "entity_key": "surface_block_amenity_storey_0_floor_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block amenity Storey 0 Floor 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_amenity_storey_0_roof_0001",
+    "entity_key": "surface_block_amenity_storey_0_roof_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block amenity Storey 0 Roof 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_circulation_storey_0_wall_0001",
+    "entity_key": "surface_block_circulation_storey_0_wall_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block circulation Storey 0 Wall 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_circulation_storey_0_wall_0002",
+    "entity_key": "surface_block_circulation_storey_0_wall_0002",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block circulation Storey 0 Wall 0002"
+  },
+  {
+    "xeokit_object_id": "surface_block_circulation_storey_0_wall_0003",
+    "entity_key": "surface_block_circulation_storey_0_wall_0003",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block circulation Storey 0 Wall 0003"
+  },
+  {
+    "xeokit_object_id": "surface_block_circulation_storey_0_wall_0004",
+    "entity_key": "surface_block_circulation_storey_0_wall_0004",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block circulation Storey 0 Wall 0004"
+  },
+  {
+    "xeokit_object_id": "surface_block_circulation_storey_0_floor_0001",
+    "entity_key": "surface_block_circulation_storey_0_floor_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block circulation Storey 0 Floor 0001"
+  },
+  {
+    "xeokit_object_id": "surface_block_circulation_storey_0_roof_0001",
+    "entity_key": "surface_block_circulation_storey_0_roof_0001",
+    "entity_type": "Surface",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "arch_shell",
+    "name": "Block circulation Storey 0 Roof 0001"
+  },
+  {
+    "xeokit_object_id": "zone_storey0_open_office",
+    "entity_key": "zone_storey0_open_office",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "spaces",
+    "name": "Block open_office Storey 0"
+  },
+  {
+    "xeokit_object_id": "zone_storey0_office",
+    "entity_key": "zone_storey0_office",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "spaces",
+    "name": "Block office Storey 0"
+  },
+  {
+    "xeokit_object_id": "zone_storey0_meeting",
+    "entity_key": "zone_storey0_meeting",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "spaces",
+    "name": "Block meeting Storey 0"
+  },
+  {
+    "xeokit_object_id": "zone_storey0_amenity",
+    "entity_key": "zone_storey0_amenity",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "spaces",
+    "name": "Block amenity Storey 0"
+  },
+  {
+    "xeokit_object_id": "zone_storey0_circulation",
+    "entity_key": "zone_storey0_circulation",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "spaces",
+    "name": "Block circulation Storey 0"
+  },
+  {
+    "xeokit_object_id": "window_block_open_office_storey_0_wall_0001_window",
+    "entity_key": "window_block_open_office_storey_0_wall_0001_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block open_office Storey 0 Wall 0001 window"
+  },
+  {
+    "xeokit_object_id": "window_block_open_office_storey_0_wall_0002_window",
+    "entity_key": "window_block_open_office_storey_0_wall_0002_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block open_office Storey 0 Wall 0002 window"
+  },
+  {
+    "xeokit_object_id": "window_block_open_office_storey_0_wall_0003_window",
+    "entity_key": "window_block_open_office_storey_0_wall_0003_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block open_office Storey 0 Wall 0003 window"
+  },
+  {
+    "xeokit_object_id": "window_block_open_office_storey_0_wall_0004_window",
+    "entity_key": "window_block_open_office_storey_0_wall_0004_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_open_office",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block open_office Storey 0 Wall 0004 window"
+  },
+  {
+    "xeokit_object_id": "window_block_office_storey_0_wall_0001_window",
+    "entity_key": "window_block_office_storey_0_wall_0001_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block office Storey 0 Wall 0001 window"
+  },
+  {
+    "xeokit_object_id": "window_block_office_storey_0_wall_0002_window",
+    "entity_key": "window_block_office_storey_0_wall_0002_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block office Storey 0 Wall 0002 window"
+  },
+  {
+    "xeokit_object_id": "window_block_office_storey_0_wall_0003_window",
+    "entity_key": "window_block_office_storey_0_wall_0003_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block office Storey 0 Wall 0003 window"
+  },
+  {
+    "xeokit_object_id": "window_block_office_storey_0_wall_0004_window",
+    "entity_key": "window_block_office_storey_0_wall_0004_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_office",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block office Storey 0 Wall 0004 window"
+  },
+  {
+    "xeokit_object_id": "window_block_meeting_storey_0_wall_0001_window",
+    "entity_key": "window_block_meeting_storey_0_wall_0001_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block meeting Storey 0 Wall 0001 window"
+  },
+  {
+    "xeokit_object_id": "window_block_meeting_storey_0_wall_0002_window",
+    "entity_key": "window_block_meeting_storey_0_wall_0002_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block meeting Storey 0 Wall 0002 window"
+  },
+  {
+    "xeokit_object_id": "window_block_meeting_storey_0_wall_0003_window",
+    "entity_key": "window_block_meeting_storey_0_wall_0003_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block meeting Storey 0 Wall 0003 window"
+  },
+  {
+    "xeokit_object_id": "window_block_meeting_storey_0_wall_0004_window",
+    "entity_key": "window_block_meeting_storey_0_wall_0004_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_meeting",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block meeting Storey 0 Wall 0004 window"
+  },
+  {
+    "xeokit_object_id": "window_block_amenity_storey_0_wall_0001_window",
+    "entity_key": "window_block_amenity_storey_0_wall_0001_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block amenity Storey 0 Wall 0001 window"
+  },
+  {
+    "xeokit_object_id": "window_block_amenity_storey_0_wall_0002_window",
+    "entity_key": "window_block_amenity_storey_0_wall_0002_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block amenity Storey 0 Wall 0002 window"
+  },
+  {
+    "xeokit_object_id": "window_block_amenity_storey_0_wall_0003_window",
+    "entity_key": "window_block_amenity_storey_0_wall_0003_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block amenity Storey 0 Wall 0003 window"
+  },
+  {
+    "xeokit_object_id": "window_block_amenity_storey_0_wall_0004_window",
+    "entity_key": "window_block_amenity_storey_0_wall_0004_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_amenity",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block amenity Storey 0 Wall 0004 window"
+  },
+  {
+    "xeokit_object_id": "window_block_circulation_storey_0_wall_0001_window",
+    "entity_key": "window_block_circulation_storey_0_wall_0001_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block circulation Storey 0 Wall 0001 window"
+  },
+  {
+    "xeokit_object_id": "window_block_circulation_storey_0_wall_0002_window",
+    "entity_key": "window_block_circulation_storey_0_wall_0002_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block circulation Storey 0 Wall 0002 window"
+  },
+  {
+    "xeokit_object_id": "window_block_circulation_storey_0_wall_0003_window",
+    "entity_key": "window_block_circulation_storey_0_wall_0003_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block circulation Storey 0 Wall 0003 window"
+  },
+  {
+    "xeokit_object_id": "window_block_circulation_storey_0_wall_0004_window",
+    "entity_key": "window_block_circulation_storey_0_wall_0004_window",
+    "entity_type": "Window",
+    "zone_key": "zone_storey0_circulation",
+    "floor_key": "storey_0",
+    "layer": "fenestration",
+    "name": "Block circulation Storey 0 Wall 0004 window"
+  }
+]

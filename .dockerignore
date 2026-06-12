@@ -1,0 +1,10 @@
+# context for backend/Dockerfile (root build context)
+web/node_modules
+web/.next
+tools/node_modules
+storage/processed
+.git
+docs
+data/ARCH
+data/HVAC
+data/STRUCTURAL

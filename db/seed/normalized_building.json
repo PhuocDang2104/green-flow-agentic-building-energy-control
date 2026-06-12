@@ -1,0 +1,2830 @@
+{
+  "building": {
+    "entity_key": "greenflow_archetype",
+    "name": "GreenFlow Archetype",
+    "location_name": "Hanoi-Noi.Bai.Intl.AP",
+    "latitude": 21.221,
+    "longitude": 105.807,
+    "timezone": "Asia/Ho_Chi_Minh",
+    "building_type": "office",
+    "source_dataset": "greenflow_archetype.idf",
+    "total_area_m2": 279.7,
+    "zone_count": 5
+  },
+  "floors": [
+    {
+      "entity_key": "storey_0",
+      "name": "Storey 0",
+      "floor_index": 0,
+      "elevation_m": 0.0
+    }
+  ],
+  "zones": [
+    {
+      "entity_key": "zone_storey0_open_office",
+      "name": "Block open_office Storey 0",
+      "floor_key": "storey_0",
+      "room_type": "open_office",
+      "comfort_profile": "office_standard",
+      "area_m2": 190.1,
+      "volume_m3": 665.35,
+      "height_m": 3.5,
+      "centroid": [
+        6.894,
+        6.894,
+        1.75
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 12.0,
+      "people_per_m2": 0.1,
+      "occupancy_schedule": "Occ_open_office",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "source_space_name": "Block open_office Storey 0"
+    },
+    {
+      "entity_key": "zone_storey0_office",
+      "name": "Block office Storey 0",
+      "floor_key": "storey_0",
+      "room_type": "office",
+      "comfort_profile": "office_standard",
+      "area_m2": 17.3,
+      "volume_m3": 60.55,
+      "height_m": 3.5,
+      "centroid": [
+        20.867,
+        2.08,
+        1.75
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 12.0,
+      "people_per_m2": 0.0833,
+      "occupancy_schedule": "Occ_office",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "source_space_name": "Block office Storey 0"
+    },
+    {
+      "entity_key": "zone_storey0_meeting",
+      "name": "Block meeting Storey 0",
+      "floor_key": "storey_0",
+      "room_type": "meeting_room",
+      "comfort_profile": "office_standard",
+      "area_m2": 16.0,
+      "volume_m3": 56.0,
+      "height_m": 3.5,
+      "centroid": [
+        29.947,
+        2.0,
+        1.75
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 8.0,
+      "people_per_m2": 0.3333,
+      "occupancy_schedule": "Occ_meeting",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "source_space_name": "Block meeting Storey 0"
+    },
+    {
+      "entity_key": "zone_storey0_amenity",
+      "name": "Block amenity Storey 0",
+      "floor_key": "storey_0",
+      "room_type": "amenity",
+      "comfort_profile": "relaxed",
+      "area_m2": 17.8,
+      "volume_m3": 62.3,
+      "height_m": 3.5,
+      "centroid": [
+        39.057,
+        2.11,
+        1.75
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 6.0,
+      "people_per_m2": 0.125,
+      "occupancy_schedule": "Occ_amenity",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "source_space_name": "Block amenity Storey 0"
+    },
+    {
+      "entity_key": "zone_storey0_circulation",
+      "name": "Block circulation Storey 0",
+      "floor_key": "storey_0",
+      "room_type": "hallway",
+      "comfort_profile": "relaxed",
+      "area_m2": 38.5,
+      "volume_m3": 134.75,
+      "height_m": 3.5,
+      "centroid": [
+        49.268,
+        3.102,
+        1.75
+      ],
+      "lights_w_m2": 5.0,
+      "equip_w_m2": 2.0,
+      "people_per_m2": 0.025,
+      "occupancy_schedule": "Occ_circulation",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "source_space_name": "Block circulation Storey 0"
+    }
+  ],
+  "surfaces": [
+    {
+      "entity_key": "surface_block_open_office_storey_0_wall_0001",
+      "name": "Block open_office Storey 0 Wall 0001",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_open_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          0.0,
+          0.0,
+          3.5
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          13.787675656179326,
+          0.0,
+          0.0
+        ],
+        [
+          13.787675656179326,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_open_office_storey_0_wall_0002",
+      "name": "Block open_office Storey 0 Wall 0002",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_open_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          13.787675656179326,
+          0.0,
+          3.5
+        ],
+        [
+          13.787675656179326,
+          0.0,
+          0.0
+        ],
+        [
+          13.787675656179326,
+          13.787675656179326,
+          0.0
+        ],
+        [
+          13.787675656179326,
+          13.787675656179326,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_open_office_storey_0_wall_0003",
+      "name": "Block open_office Storey 0 Wall 0003",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_open_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          13.787675656179326,
+          13.787675656179326,
+          3.5
+        ],
+        [
+          13.787675656179326,
+          13.787675656179326,
+          0.0
+        ],
+        [
+          0.0,
+          13.787675656179326,
+          0.0
+        ],
+        [
+          0.0,
+          13.787675656179326,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_open_office_storey_0_wall_0004",
+      "name": "Block open_office Storey 0 Wall 0004",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_open_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          0.0,
+          13.787675656179326,
+          3.5
+        ],
+        [
+          0.0,
+          13.787675656179326,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_open_office_storey_0_floor_0001",
+      "name": "Block open_office Storey 0 Floor 0001",
+      "surface_type": "floor",
+      "construction": "QCVN_Floor",
+      "zone_key": "zone_storey0_open_office",
+      "boundary": "ground",
+      "vertices": [
+        [
+          13.787675656179326,
+          13.787675656179326,
+          0.0
+        ],
+        [
+          13.787675656179326,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          0.0,
+          0.0
+        ],
+        [
+          0.0,
+          13.787675656179326,
+          0.0
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_open_office_storey_0_roof_0001",
+      "name": "Block open_office Storey 0 Roof 0001",
+      "surface_type": "roof",
+      "construction": "QCVN_Roof",
+      "zone_key": "zone_storey0_open_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          13.787675656179326,
+          0.0,
+          3.5
+        ],
+        [
+          13.787675656179326,
+          13.787675656179326,
+          3.5
+        ],
+        [
+          0.0,
+          13.787675656179326,
+          3.5
+        ],
+        [
+          0.0,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_office_storey_0_wall_0001",
+      "name": "Block office Storey 0 Wall 0001",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          18.787675656179324,
+          0.0,
+          3.5
+        ],
+        [
+          18.787675656179324,
+          0.0,
+          0.0
+        ],
+        [
+          22.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          22.94700252479641,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_office_storey_0_wall_0002",
+      "name": "Block office Storey 0 Wall 0002",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          22.94700252479641,
+          0.0,
+          3.5
+        ],
+        [
+          22.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          22.94700252479641,
+          4.159326868617084,
+          0.0
+        ],
+        [
+          22.94700252479641,
+          4.159326868617084,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_office_storey_0_wall_0003",
+      "name": "Block office Storey 0 Wall 0003",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          22.94700252479641,
+          4.159326868617084,
+          3.5
+        ],
+        [
+          22.94700252479641,
+          4.159326868617084,
+          0.0
+        ],
+        [
+          18.787675656179324,
+          4.159326868617084,
+          0.0
+        ],
+        [
+          18.787675656179324,
+          4.159326868617084,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_office_storey_0_wall_0004",
+      "name": "Block office Storey 0 Wall 0004",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          18.787675656179324,
+          4.159326868617084,
+          3.5
+        ],
+        [
+          18.787675656179324,
+          4.159326868617084,
+          0.0
+        ],
+        [
+          18.787675656179324,
+          0.0,
+          0.0
+        ],
+        [
+          18.787675656179324,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_office_storey_0_floor_0001",
+      "name": "Block office Storey 0 Floor 0001",
+      "surface_type": "floor",
+      "construction": "QCVN_Floor",
+      "zone_key": "zone_storey0_office",
+      "boundary": "ground",
+      "vertices": [
+        [
+          22.94700252479641,
+          4.159326868617084,
+          0.0
+        ],
+        [
+          22.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          18.787675656179324,
+          0.0,
+          0.0
+        ],
+        [
+          18.787675656179324,
+          4.159326868617084,
+          0.0
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_office_storey_0_roof_0001",
+      "name": "Block office Storey 0 Roof 0001",
+      "surface_type": "roof",
+      "construction": "QCVN_Roof",
+      "zone_key": "zone_storey0_office",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          22.94700252479641,
+          0.0,
+          3.5
+        ],
+        [
+          22.94700252479641,
+          4.159326868617084,
+          3.5
+        ],
+        [
+          18.787675656179324,
+          4.159326868617084,
+          3.5
+        ],
+        [
+          18.787675656179324,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_meeting_storey_0_wall_0001",
+      "name": "Block meeting Storey 0 Wall 0001",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_meeting",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          27.94700252479641,
+          0.0,
+          3.5
+        ],
+        [
+          27.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          31.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          31.94700252479641,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_meeting_storey_0_wall_0002",
+      "name": "Block meeting Storey 0 Wall 0002",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_meeting",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          31.94700252479641,
+          0.0,
+          3.5
+        ],
+        [
+          31.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          31.94700252479641,
+          4.0,
+          0.0
+        ],
+        [
+          31.94700252479641,
+          4.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_meeting_storey_0_wall_0003",
+      "name": "Block meeting Storey 0 Wall 0003",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_meeting",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          31.94700252479641,
+          4.0,
+          3.5
+        ],
+        [
+          31.94700252479641,
+          4.0,
+          0.0
+        ],
+        [
+          27.94700252479641,
+          4.0,
+          0.0
+        ],
+        [
+          27.94700252479641,
+          4.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_meeting_storey_0_wall_0004",
+      "name": "Block meeting Storey 0 Wall 0004",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_meeting",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          27.94700252479641,
+          4.0,
+          3.5
+        ],
+        [
+          27.94700252479641,
+          4.0,
+          0.0
+        ],
+        [
+          27.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          27.94700252479641,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_meeting_storey_0_floor_0001",
+      "name": "Block meeting Storey 0 Floor 0001",
+      "surface_type": "floor",
+      "construction": "QCVN_Floor",
+      "zone_key": "zone_storey0_meeting",
+      "boundary": "ground",
+      "vertices": [
+        [
+          31.94700252479641,
+          4.0,
+          0.0
+        ],
+        [
+          31.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          27.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          27.94700252479641,
+          4.0,
+          0.0
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_meeting_storey_0_roof_0001",
+      "name": "Block meeting Storey 0 Roof 0001",
+      "surface_type": "roof",
+      "construction": "QCVN_Roof",
+      "zone_key": "zone_storey0_meeting",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          31.94700252479641,
+          0.0,
+          3.5
+        ],
+        [
+          31.94700252479641,
+          4.0,
+          3.5
+        ],
+        [
+          27.94700252479641,
+          4.0,
+          3.5
+        ],
+        [
+          27.94700252479641,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_amenity_storey_0_wall_0001",
+      "name": "Block amenity Storey 0 Wall 0001",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_amenity",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          36.94700252479641,
+          0.0,
+          3.5
+        ],
+        [
+          36.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          41.16600714674221,
+          0.0,
+          0.0
+        ],
+        [
+          41.16600714674221,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_amenity_storey_0_wall_0002",
+      "name": "Block amenity Storey 0 Wall 0002",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_amenity",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          41.16600714674221,
+          0.0,
+          3.5
+        ],
+        [
+          41.16600714674221,
+          0.0,
+          0.0
+        ],
+        [
+          41.16600714674221,
+          4.219004621945797,
+          0.0
+        ],
+        [
+          41.16600714674221,
+          4.219004621945797,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_amenity_storey_0_wall_0003",
+      "name": "Block amenity Storey 0 Wall 0003",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_amenity",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          41.16600714674221,
+          4.219004621945797,
+          3.5
+        ],
+        [
+          41.16600714674221,
+          4.219004621945797,
+          0.0
+        ],
+        [
+          36.94700252479641,
+          4.219004621945797,
+          0.0
+        ],
+        [
+          36.94700252479641,
+          4.219004621945797,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_amenity_storey_0_wall_0004",
+      "name": "Block amenity Storey 0 Wall 0004",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_amenity",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          36.94700252479641,
+          4.219004621945797,
+          3.5
+        ],
+        [
+          36.94700252479641,
+          4.219004621945797,
+          0.0
+        ],
+        [
+          36.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          36.94700252479641,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_amenity_storey_0_floor_0001",
+      "name": "Block amenity Storey 0 Floor 0001",
+      "surface_type": "floor",
+      "construction": "QCVN_Floor",
+      "zone_key": "zone_storey0_amenity",
+      "boundary": "ground",
+      "vertices": [
+        [
+          41.16600714674221,
+          4.219004621945797,
+          0.0
+        ],
+        [
+          41.16600714674221,
+          0.0,
+          0.0
+        ],
+        [
+          36.94700252479641,
+          0.0,
+          0.0
+        ],
+        [
+          36.94700252479641,
+          4.219004621945797,
+          0.0
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_amenity_storey_0_roof_0001",
+      "name": "Block amenity Storey 0 Roof 0001",
+      "surface_type": "roof",
+      "construction": "QCVN_Roof",
+      "zone_key": "zone_storey0_amenity",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          41.16600714674221,
+          0.0,
+          3.5
+        ],
+        [
+          41.16600714674221,
+          4.219004621945797,
+          3.5
+        ],
+        [
+          36.94700252479641,
+          4.219004621945797,
+          3.5
+        ],
+        [
+          36.94700252479641,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_circulation_storey_0_wall_0001",
+      "name": "Block circulation Storey 0 Wall 0001",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_circulation",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          46.1660071467422,
+          0.0,
+          3.5
+        ],
+        [
+          46.1660071467422,
+          0.0,
+          0.0
+        ],
+        [
+          52.370843969737635,
+          0.0,
+          0.0
+        ],
+        [
+          52.370843969737635,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_circulation_storey_0_wall_0002",
+      "name": "Block circulation Storey 0 Wall 0002",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_circulation",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          52.370843969737635,
+          0.0,
+          3.5
+        ],
+        [
+          52.370843969737635,
+          0.0,
+          0.0
+        ],
+        [
+          52.370843969737635,
+          6.2048368229954285,
+          0.0
+        ],
+        [
+          52.370843969737635,
+          6.2048368229954285,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_circulation_storey_0_wall_0003",
+      "name": "Block circulation Storey 0 Wall 0003",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_circulation",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          52.370843969737635,
+          6.2048368229954285,
+          3.5
+        ],
+        [
+          52.370843969737635,
+          6.2048368229954285,
+          0.0
+        ],
+        [
+          46.1660071467422,
+          6.2048368229954285,
+          0.0
+        ],
+        [
+          46.1660071467422,
+          6.2048368229954285,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_circulation_storey_0_wall_0004",
+      "name": "Block circulation Storey 0 Wall 0004",
+      "surface_type": "wall",
+      "construction": "QCVN_Wall",
+      "zone_key": "zone_storey0_circulation",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          46.1660071467422,
+          6.2048368229954285,
+          3.5
+        ],
+        [
+          46.1660071467422,
+          6.2048368229954285,
+          0.0
+        ],
+        [
+          46.1660071467422,
+          0.0,
+          0.0
+        ],
+        [
+          46.1660071467422,
+          0.0,
+          3.5
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_circulation_storey_0_floor_0001",
+      "name": "Block circulation Storey 0 Floor 0001",
+      "surface_type": "floor",
+      "construction": "QCVN_Floor",
+      "zone_key": "zone_storey0_circulation",
+      "boundary": "ground",
+      "vertices": [
+        [
+          52.370843969737635,
+          6.2048368229954285,
+          0.0
+        ],
+        [
+          52.370843969737635,
+          0.0,
+          0.0
+        ],
+        [
+          46.1660071467422,
+          0.0,
+          0.0
+        ],
+        [
+          46.1660071467422,
+          6.2048368229954285,
+          0.0
+        ]
+      ]
+    },
+    {
+      "entity_key": "surface_block_circulation_storey_0_roof_0001",
+      "name": "Block circulation Storey 0 Roof 0001",
+      "surface_type": "roof",
+      "construction": "QCVN_Roof",
+      "zone_key": "zone_storey0_circulation",
+      "boundary": "outdoors",
+      "vertices": [
+        [
+          52.370843969737635,
+          0.0,
+          3.5
+        ],
+        [
+          52.370843969737635,
+          6.2048368229954285,
+          3.5
+        ],
+        [
+          46.1660071467422,
+          6.2048368229954285,
+          3.5
+        ],
+        [
+          46.1660071467422,
+          0.0,
+          3.5
+        ]
+      ]
+    }
+  ],
+  "fenestrations": [
+    {
+      "entity_key": "window_block_open_office_storey_0_wall_0001_window",
+      "name": "Block open_office Storey 0 Wall 0001 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block open_office Storey 0 Wall 0001",
+      "zone_key": "zone_storey0_open_office",
+      "vertices": [
+        [
+          0.006893838,
+          0.0,
+          2.3625
+        ],
+        [
+          0.006893838,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          13.780781818351237,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          13.780781818351237,
+          0.0,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_open_office_storey_0_wall_0002_window",
+      "name": "Block open_office Storey 0 Wall 0002 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block open_office Storey 0 Wall 0002",
+      "zone_key": "zone_storey0_open_office",
+      "vertices": [
+        [
+          13.787675656179326,
+          0.006893838,
+          2.3625
+        ],
+        [
+          13.787675656179326,
+          0.006893838,
+          1.1375000000000002
+        ],
+        [
+          13.787675656179326,
+          13.780781818351237,
+          1.1375000000000002
+        ],
+        [
+          13.787675656179326,
+          13.780781818351237,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_open_office_storey_0_wall_0003_window",
+      "name": "Block open_office Storey 0 Wall 0003 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block open_office Storey 0 Wall 0003",
+      "zone_key": "zone_storey0_open_office",
+      "vertices": [
+        [
+          13.780781818351237,
+          13.787675656179326,
+          2.3625
+        ],
+        [
+          13.780781818351237,
+          13.787675656179326,
+          1.1375000000000002
+        ],
+        [
+          0.006893838,
+          13.787675656179326,
+          1.1375000000000002
+        ],
+        [
+          0.006893838,
+          13.787675656179326,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_open_office_storey_0_wall_0004_window",
+      "name": "Block open_office Storey 0 Wall 0004 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block open_office Storey 0 Wall 0004",
+      "zone_key": "zone_storey0_open_office",
+      "vertices": [
+        [
+          0.0,
+          13.780781818351237,
+          2.3625
+        ],
+        [
+          0.0,
+          13.780781818351237,
+          1.1375000000000002
+        ],
+        [
+          0.0,
+          0.006893838,
+          1.1375000000000002
+        ],
+        [
+          0.0,
+          0.006893838,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_office_storey_0_wall_0001_window",
+      "name": "Block office Storey 0 Wall 0001 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block office Storey 0 Wall 0001",
+      "zone_key": "zone_storey0_office",
+      "vertices": [
+        [
+          18.789755319613633,
+          0.0,
+          2.3625
+        ],
+        [
+          18.789755319613633,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          22.9449228613621,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          22.9449228613621,
+          0.0,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_office_storey_0_wall_0002_window",
+      "name": "Block office Storey 0 Wall 0002 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block office Storey 0 Wall 0002",
+      "zone_key": "zone_storey0_office",
+      "vertices": [
+        [
+          22.94700252479641,
+          0.002079663,
+          2.3625
+        ],
+        [
+          22.94700252479641,
+          0.002079663,
+          1.1375000000000002
+        ],
+        [
+          22.94700252479641,
+          4.157247205182776,
+          1.1375000000000002
+        ],
+        [
+          22.94700252479641,
+          4.157247205182776,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_office_storey_0_wall_0003_window",
+      "name": "Block office Storey 0 Wall 0003 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block office Storey 0 Wall 0003",
+      "zone_key": "zone_storey0_office",
+      "vertices": [
+        [
+          22.9449228613621,
+          4.159326868617084,
+          2.3625
+        ],
+        [
+          22.9449228613621,
+          4.159326868617084,
+          1.1375000000000002
+        ],
+        [
+          18.789755319613633,
+          4.159326868617084,
+          1.1375000000000002
+        ],
+        [
+          18.789755319613633,
+          4.159326868617084,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_office_storey_0_wall_0004_window",
+      "name": "Block office Storey 0 Wall 0004 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block office Storey 0 Wall 0004",
+      "zone_key": "zone_storey0_office",
+      "vertices": [
+        [
+          18.787675656179324,
+          4.157247205182776,
+          2.3625
+        ],
+        [
+          18.787675656179324,
+          4.157247205182776,
+          1.1375000000000002
+        ],
+        [
+          18.787675656179324,
+          0.002079663,
+          1.1375000000000002
+        ],
+        [
+          18.787675656179324,
+          0.002079663,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_meeting_storey_0_wall_0001_window",
+      "name": "Block meeting Storey 0 Wall 0001 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block meeting Storey 0 Wall 0001",
+      "zone_key": "zone_storey0_meeting",
+      "vertices": [
+        [
+          27.94900252479641,
+          0.0,
+          2.3625
+        ],
+        [
+          27.94900252479641,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          31.94500252479641,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          31.94500252479641,
+          0.0,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_meeting_storey_0_wall_0002_window",
+      "name": "Block meeting Storey 0 Wall 0002 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block meeting Storey 0 Wall 0002",
+      "zone_key": "zone_storey0_meeting",
+      "vertices": [
+        [
+          31.94700252479641,
+          0.002,
+          2.3625
+        ],
+        [
+          31.94700252479641,
+          0.002,
+          1.1375000000000002
+        ],
+        [
+          31.94700252479641,
+          3.998,
+          1.1375000000000002
+        ],
+        [
+          31.94700252479641,
+          3.998,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_meeting_storey_0_wall_0003_window",
+      "name": "Block meeting Storey 0 Wall 0003 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block meeting Storey 0 Wall 0003",
+      "zone_key": "zone_storey0_meeting",
+      "vertices": [
+        [
+          31.94500252479641,
+          4.0,
+          2.3625
+        ],
+        [
+          31.94500252479641,
+          4.0,
+          1.1375000000000002
+        ],
+        [
+          27.94900252479641,
+          4.0,
+          1.1375000000000002
+        ],
+        [
+          27.94900252479641,
+          4.0,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_meeting_storey_0_wall_0004_window",
+      "name": "Block meeting Storey 0 Wall 0004 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block meeting Storey 0 Wall 0004",
+      "zone_key": "zone_storey0_meeting",
+      "vertices": [
+        [
+          27.94700252479641,
+          3.998,
+          2.3625
+        ],
+        [
+          27.94700252479641,
+          3.998,
+          1.1375000000000002
+        ],
+        [
+          27.94700252479641,
+          0.002,
+          1.1375000000000002
+        ],
+        [
+          27.94700252479641,
+          0.002,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_amenity_storey_0_wall_0001_window",
+      "name": "Block amenity Storey 0 Wall 0001 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block amenity Storey 0 Wall 0001",
+      "zone_key": "zone_storey0_amenity",
+      "vertices": [
+        [
+          36.94911202710738,
+          0.0,
+          2.3625
+        ],
+        [
+          36.94911202710738,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          41.16389764443124,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          41.16389764443124,
+          0.0,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_amenity_storey_0_wall_0002_window",
+      "name": "Block amenity Storey 0 Wall 0002 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block amenity Storey 0 Wall 0002",
+      "zone_key": "zone_storey0_amenity",
+      "vertices": [
+        [
+          41.16600714674221,
+          0.002109502,
+          2.3625
+        ],
+        [
+          41.16600714674221,
+          0.002109502,
+          1.1375000000000002
+        ],
+        [
+          41.16600714674221,
+          4.216895119634824,
+          1.1375000000000002
+        ],
+        [
+          41.16600714674221,
+          4.216895119634824,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_amenity_storey_0_wall_0003_window",
+      "name": "Block amenity Storey 0 Wall 0003 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block amenity Storey 0 Wall 0003",
+      "zone_key": "zone_storey0_amenity",
+      "vertices": [
+        [
+          41.16389764443124,
+          4.219004621945797,
+          2.3625
+        ],
+        [
+          41.16389764443124,
+          4.219004621945797,
+          1.1375000000000002
+        ],
+        [
+          36.94911202710738,
+          4.219004621945797,
+          1.1375000000000002
+        ],
+        [
+          36.94911202710738,
+          4.219004621945797,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_amenity_storey_0_wall_0004_window",
+      "name": "Block amenity Storey 0 Wall 0004 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block amenity Storey 0 Wall 0004",
+      "zone_key": "zone_storey0_amenity",
+      "vertices": [
+        [
+          36.94700252479641,
+          4.216895119634824,
+          2.3625
+        ],
+        [
+          36.94700252479641,
+          4.216895119634824,
+          1.1375000000000002
+        ],
+        [
+          36.94700252479641,
+          0.002109502,
+          1.1375000000000002
+        ],
+        [
+          36.94700252479641,
+          0.002109502,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_circulation_storey_0_wall_0001_window",
+      "name": "Block circulation Storey 0 Wall 0001 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block circulation Storey 0 Wall 0001",
+      "zone_key": "zone_storey0_circulation",
+      "vertices": [
+        [
+          46.169109565153704,
+          0.0,
+          2.3625
+        ],
+        [
+          46.169109565153704,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          52.367741551326134,
+          0.0,
+          1.1375000000000002
+        ],
+        [
+          52.367741551326134,
+          0.0,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_circulation_storey_0_wall_0002_window",
+      "name": "Block circulation Storey 0 Wall 0002 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block circulation Storey 0 Wall 0002",
+      "zone_key": "zone_storey0_circulation",
+      "vertices": [
+        [
+          52.370843969737635,
+          0.003102418,
+          2.3625
+        ],
+        [
+          52.370843969737635,
+          0.003102418,
+          1.1375000000000002
+        ],
+        [
+          52.370843969737635,
+          6.201734404583931,
+          1.1375000000000002
+        ],
+        [
+          52.370843969737635,
+          6.201734404583931,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_circulation_storey_0_wall_0003_window",
+      "name": "Block circulation Storey 0 Wall 0003 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block circulation Storey 0 Wall 0003",
+      "zone_key": "zone_storey0_circulation",
+      "vertices": [
+        [
+          52.367741551326134,
+          6.2048368229954285,
+          2.3625
+        ],
+        [
+          52.367741551326134,
+          6.2048368229954285,
+          1.1375000000000002
+        ],
+        [
+          46.169109565153704,
+          6.2048368229954285,
+          1.1375000000000002
+        ],
+        [
+          46.169109565153704,
+          6.2048368229954285,
+          2.3625
+        ]
+      ]
+    },
+    {
+      "entity_key": "window_block_circulation_storey_0_wall_0004_window",
+      "name": "Block circulation Storey 0 Wall 0004 window",
+      "surface_type": "window",
+      "construction": "QCVN_Window",
+      "base_surface": "Block circulation Storey 0 Wall 0004",
+      "zone_key": "zone_storey0_circulation",
+      "vertices": [
+        [
+          46.1660071467422,
+          6.201734404583931,
+          2.3625
+        ],
+        [
+          46.1660071467422,
+          6.201734404583931,
+          1.1375000000000002
+        ],
+        [
+          46.1660071467422,
+          0.003102418,
+          1.1375000000000002
+        ],
+        [
+          46.1660071467422,
+          0.003102418,
+          2.3625
+        ]
+      ]
+    }
+  ],
+  "constructions": [
+    {
+      "name": "Project Wall",
+      "layers": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "name": "Project Partition",
+      "layers": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "name": "Project Floor",
+      "layers": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "name": "Project Flat Roof",
+      "layers": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "name": "Project Ceiling",
+      "layers": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "name": "Project Door",
+      "layers": [
+        "DefaultMaterial"
+      ]
+    },
+    {
+      "name": "Project External Window",
+      "layers": [
+        "DefaultGlazing"
+      ]
+    },
+    {
+      "name": "QCVN_Wall",
+      "layers": [
+        "QCVN_Wall_mat"
+      ]
+    },
+    {
+      "name": "QCVN_Roof",
+      "layers": [
+        "QCVN_Roof_mat"
+      ]
+    },
+    {
+      "name": "QCVN_Floor",
+      "layers": [
+        "QCVN_Floor_mat"
+      ]
+    },
+    {
+      "name": "QCVN_Window",
+      "layers": [
+        "QCVN_Win_mat"
+      ]
+    }
+  ],
+  "materials": [
+    {
+      "name": "DefaultMaterial",
+      "class": "MATERIAL",
+      "fields": [
+        "Rough",
+        "0.1",
+        "0.1",
+        "1000",
+        "1000",
+        "0.9",
+        "0.7",
+        "0.7"
+      ]
+    },
+    {
+      "name": "QCVN_Wall_mat",
+      "class": "MATERIAL:NOMASS",
+      "fields": [
+        "MediumRough",
+        "0.559",
+        "0.9",
+        "0.6",
+        "0.6"
+      ]
+    },
+    {
+      "name": "QCVN_Roof_mat",
+      "class": "MATERIAL:NOMASS",
+      "fields": [
+        "MediumRough",
+        "1",
+        "0.9",
+        "0.6",
+        "0.6"
+      ]
+    },
+    {
+      "name": "QCVN_Floor_mat",
+      "class": "MATERIAL:NOMASS",
+      "fields": [
+        "MediumRough",
+        "0.5",
+        "0.9",
+        "0.6",
+        "0.6"
+      ]
+    },
+    {
+      "name": "DefaultGlazing",
+      "class": "WINDOWMATERIAL:SIMPLEGLAZINGSYSTEM",
+      "fields": [
+        "2.7",
+        "0.763",
+        "0.8"
+      ]
+    },
+    {
+      "name": "QCVN_Win_mat",
+      "class": "WINDOWMATERIAL:SIMPLEGLAZINGSYSTEM",
+      "fields": [
+        "2.8",
+        "0.52"
+      ]
+    }
+  ],
+  "schedules": {
+    "ActivitySched": {
+      "weekday": [
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0
+      ],
+      "weekend": [
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0,
+        120.0
+      ]
+    },
+    "WorkHoursFrac": {
+      "weekday": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.1,
+        0.5,
+        0.9,
+        1.0,
+        1.0,
+        1.0,
+        0.8,
+        0.9,
+        1.0,
+        1.0,
+        0.9,
+        0.6,
+        0.2,
+        0.1,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "weekend": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ]
+    },
+    "CoolSetSched": {
+      "weekday": [
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        24.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0
+      ],
+      "weekend": [
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0,
+        28.0
+      ]
+    },
+    "HeatSetSched": {
+      "weekday": [
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        20.0,
+        20.0,
+        20.0,
+        20.0,
+        20.0,
+        20.0,
+        20.0,
+        20.0,
+        20.0,
+        20.0,
+        20.0,
+        20.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0
+      ],
+      "weekend": [
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0,
+        16.0
+      ]
+    },
+    "Occ_open_office": {
+      "weekday": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.05,
+        0.3,
+        0.7,
+        0.9,
+        0.92,
+        0.9,
+        0.55,
+        0.6,
+        0.9,
+        0.92,
+        0.85,
+        0.6,
+        0.25,
+        0.08,
+        0.02,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "weekend": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ]
+    },
+    "Occ_office": {
+      "weekday": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.05,
+        0.3,
+        0.7,
+        0.9,
+        0.92,
+        0.9,
+        0.55,
+        0.6,
+        0.9,
+        0.92,
+        0.85,
+        0.6,
+        0.25,
+        0.08,
+        0.02,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "weekend": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ]
+    },
+    "Occ_meeting": {
+      "weekday": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.1,
+        0.3,
+        0.5,
+        0.6,
+        0.4,
+        0.2,
+        0.5,
+        0.6,
+        0.5,
+        0.4,
+        0.2,
+        0.05,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "weekend": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ]
+    },
+    "Occ_amenity": {
+      "weekday": [
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.0,
+        0.05,
+        0.15,
+        0.2,
+        0.2,
+        0.25,
+        0.5,
+        0.7,
+        0.5,
+        0.25,
+        0.2,
+        0.25,
+        0.4,
+        0.2,
+        0.1,
+        0.05,
+        0.0,
+        0.0,
+        0.0
+      ],
+      "weekend": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ]
+    },
+    "Occ_circulation": {
+      "weekday": [
+        0.02,
+        0.02,
+        0.02,
+        0.02,
+        0.02,
+        0.03,
+        0.1,
+        0.3,
+        0.4,
+        0.35,
+        0.3,
+        0.4,
+        0.5,
+        0.4,
+        0.3,
+        0.35,
+        0.4,
+        0.45,
+        0.3,
+        0.15,
+        0.08,
+        0.05,
+        0.03,
+        0.02
+      ],
+      "weekend": [
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05,
+        0.05
+      ]
+    }
+  },
+  "setpoints": {
+    "cooling_schedule": "CoolSetSched",
+    "heating_schedule": "HeatSetSched",
+    "cooling_weekday": [
+      28.0,
+      28.0,
+      28.0,
+      28.0,
+      28.0,
+      28.0,
+      28.0,
+      24.0,
+      24.0,
+      24.0,
+      24.0,
+      24.0,
+      24.0,
+      24.0,
+      24.0,
+      24.0,
+      24.0,
+      24.0,
+      24.0,
+      28.0,
+      28.0,
+      28.0,
+      28.0,
+      28.0
+    ],
+    "heating_weekday": [
+      16.0,
+      16.0,
+      16.0,
+      16.0,
+      16.0,
+      16.0,
+      16.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      20.0,
+      16.0,
+      16.0,
+      16.0,
+      16.0,
+      16.0
+    ]
+  },
+  "devices": [
+    {
+      "entity_key": "airterminal_storey0_open_office",
+      "name": "Air Terminal Block open_office Storey 0",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_storey0_open_office",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 17.11,
+      "tag": "AT-storey0_open_office"
+    },
+    {
+      "entity_key": "lighting_storey0_open_office",
+      "name": "Lighting Circuit Block open_office Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_storey0_open_office",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 2.091,
+      "tag": "LT-storey0_open_office"
+    },
+    {
+      "entity_key": "plug_storey0_open_office",
+      "name": "Plug Circuit Block open_office Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_storey0_open_office",
+      "floor_key": "storey_0",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 2.281,
+      "tag": "PL-storey0_open_office"
+    },
+    {
+      "entity_key": "airterminal_storey0_office",
+      "name": "Air Terminal Block office Storey 0",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_storey0_office",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 1.56,
+      "tag": "AT-storey0_office"
+    },
+    {
+      "entity_key": "lighting_storey0_office",
+      "name": "Lighting Circuit Block office Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_storey0_office",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.19,
+      "tag": "LT-storey0_office"
+    },
+    {
+      "entity_key": "plug_storey0_office",
+      "name": "Plug Circuit Block office Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_storey0_office",
+      "floor_key": "storey_0",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.208,
+      "tag": "PL-storey0_office"
+    },
+    {
+      "entity_key": "airterminal_storey0_meeting",
+      "name": "Air Terminal Block meeting Storey 0",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_storey0_meeting",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 1.44,
+      "tag": "AT-storey0_meeting"
+    },
+    {
+      "entity_key": "lighting_storey0_meeting",
+      "name": "Lighting Circuit Block meeting Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_storey0_meeting",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.176,
+      "tag": "LT-storey0_meeting"
+    },
+    {
+      "entity_key": "plug_storey0_meeting",
+      "name": "Plug Circuit Block meeting Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_storey0_meeting",
+      "floor_key": "storey_0",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.128,
+      "tag": "PL-storey0_meeting"
+    },
+    {
+      "entity_key": "airterminal_storey0_amenity",
+      "name": "Air Terminal Block amenity Storey 0",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_storey0_amenity",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 1.6,
+      "tag": "AT-storey0_amenity"
+    },
+    {
+      "entity_key": "lighting_storey0_amenity",
+      "name": "Lighting Circuit Block amenity Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_storey0_amenity",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.196,
+      "tag": "LT-storey0_amenity"
+    },
+    {
+      "entity_key": "plug_storey0_amenity",
+      "name": "Plug Circuit Block amenity Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_storey0_amenity",
+      "floor_key": "storey_0",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.107,
+      "tag": "PL-storey0_amenity"
+    },
+    {
+      "entity_key": "airterminal_storey0_circulation",
+      "name": "Air Terminal Block circulation Storey 0",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_storey0_circulation",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 3.46,
+      "tag": "AT-storey0_circulation"
+    },
+    {
+      "entity_key": "lighting_storey0_circulation",
+      "name": "Lighting Circuit Block circulation Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_storey0_circulation",
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.193,
+      "tag": "LT-storey0_circulation"
+    },
+    {
+      "entity_key": "plug_storey0_circulation",
+      "name": "Plug Circuit Block circulation Storey 0",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_storey0_circulation",
+      "floor_key": "storey_0",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.077,
+      "tag": "PL-storey0_circulation"
+    },
+    {
+      "entity_key": "ahu_building_01",
+      "name": "AHU Building 01",
+      "device_type": "hvac",
+      "device_subtype": "ahu",
+      "zone_key": null,
+      "floor_key": "storey_0",
+      "controllable": true,
+      "risk_level": "watch",
+      "nominal_power_kw": 25.0,
+      "tag": "AHU-01"
+    },
+    {
+      "entity_key": "board_building_01",
+      "name": "Main Electrical Board",
+      "device_type": "electrical",
+      "device_subtype": "distribution_board",
+      "zone_key": null,
+      "floor_key": "storey_0",
+      "controllable": false,
+      "risk_level": "critical",
+      "nominal_power_kw": 60.0,
+      "tag": "DB-01"
+    }
+  ],
+  "zone_equipment_map": {
+    "zone_storey0_open_office": [
+      "airterminal_storey0_open_office",
+      "lighting_storey0_open_office",
+      "plug_storey0_open_office"
+    ],
+    "zone_storey0_office": [
+      "airterminal_storey0_office",
+      "lighting_storey0_office",
+      "plug_storey0_office"
+    ],
+    "zone_storey0_meeting": [
+      "airterminal_storey0_meeting",
+      "lighting_storey0_meeting",
+      "plug_storey0_meeting"
+    ],
+    "zone_storey0_amenity": [
+      "airterminal_storey0_amenity",
+      "lighting_storey0_amenity",
+      "plug_storey0_amenity"
+    ],
+    "zone_storey0_circulation": [
+      "airterminal_storey0_circulation",
+      "lighting_storey0_circulation",
+      "plug_storey0_circulation"
+    ]
+  },
+  "entity_relations": [
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_open_office",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_open_office",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_open_office",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_open_office",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_storey0_open_office",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_open_office",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_storey0_open_office",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_open_office",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_open_office",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_office",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_office",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_office",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_office",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_storey0_office",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_office",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_storey0_office",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_office",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_office",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_meeting",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_meeting",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_meeting",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_meeting",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_storey0_meeting",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_meeting",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_storey0_meeting",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_meeting",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_meeting",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_amenity",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_amenity",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_amenity",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_amenity",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_storey0_amenity",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_amenity",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_storey0_amenity",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_amenity",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_amenity",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_circulation",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_circulation",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_storey0_circulation",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_circulation",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_storey0_circulation",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_circulation",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_storey0_circulation",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_circulation",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_storey0_circulation",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "storey_0",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_storey0_open_office",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_storey0_office",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_storey0_meeting",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_storey0_amenity",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_storey0_circulation",
+      "method": "derived",
+      "confidence": 0.9
+    }
+  ]
+}

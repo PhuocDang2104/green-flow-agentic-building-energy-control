@@ -1,0 +1,47 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+*.egg-info/
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+
+# Node
+node_modules/
+web/.next/
+web/out/
+*.tsbuildinfo
+
+# Env / secrets
+.env
+.env.local
+
+# Storage artifacts (generated at runtime)
+storage/processed/energyplus/
+storage/processed/reports/
+storage/raw/weather/*.epw
+
+# OS / editor
+.DS_Store
+Thumbs.db
+.idea/
+.vscode/
+
+# Caddy data volume (if run locally)
+caddy_data/
+caddy_config/
+
+# Heavy BIM reference dataset (Nordic Office/Housing source CAD binaries).
+# The runnable demo only needs data/greenflow_archetype.idf (kept below).
+# These multi-GB .ifc/.rvt/.pla files exceed GitHub's 100 MB/file limit and
+# are not required to run GreenFlow. See README "Mở rộng (P1/P2)" for how to
+# obtain them when implementing the IFC extractor.
+data/ARCH/
+data/HVAC/
+data/STRUCTURAL/
+*.ifc
+*.rvt
+*.pla
+
