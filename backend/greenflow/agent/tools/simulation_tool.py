@@ -65,7 +65,16 @@ def simulate_actions(building_id: str, actions: list[Action],
 
 
 def quick_estimate(action: Action, zones: list[dict]) -> dict:
-    """Rule-based quick estimate without running a simulation (Level 1)."""
+    """Quick estimate (Level 1): LightGBM surrogate nếu có model, else rule thô.
+
+    Surrogate (ml/scoring.estimate_action) học từ EnergyPlus DoE -> ước tính
+    setpoint/lighting saving sát thực hơn rule tuyến tính. Fallback rule khi
+    chưa có model file (deps optional)."""
+    from ...ml.scoring import estimate_action
+    surrogate = estimate_action(action, zones)
+    if surrogate is not None:
+        return surrogate
+
     target = [z for z in zones if not action.target_zone_keys
               or z["entity_key"] in action.target_zone_keys]
     area = sum(z.get("area_m2", 0) for z in target)
