@@ -1,0 +1,802 @@
+openapi: 3.1.0
+info:
+  title: GreenFlow API
+  version: 0.1.0
+  description: >
+    API contract chốt cho GreenFlow MVP (spine). Mọi track (frontend, agent, ML)
+    code bám contract này. Đổi contract = sửa file này TRƯỚC, code sau.
+    Quy ước chung: id là TEXT (IFC GUID hoặc slug); thời gian là ISO-8601 có
+    timezone (+07:00); "now" của hệ thống là replay clock (query param `at`),
+    mặc định = max(timestamp) trong world_run đang chọn.
+
+servers:
+  - url: http://localhost:8000
+
+tags:
+  - name: meta        # buildings/floors/zones/devices/graph
+  - name: state       # latest state, timeseries, kpi
+  - name: forecast
+  - name: actions     # actions + approvals
+  - name: simulations # world_runs, compare
+  - name: alerts
+  - name: agent       # chat / orchestrator
+
+paths:
+  # ------------------------------------------------------------ meta
+  /api/buildings:
+    get:
+      tags: [meta]
+      operationId: listBuildings
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Building" } }
+
+  /api/buildings/{building_id}/floors:
+    get:
+      tags: [meta]
+      operationId: listFloors
+      parameters: [{ $ref: "#/components/parameters/BuildingId" }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Floor" } }
+
+  /api/zones:
+    get:
+      tags: [meta]
+      operationId: listZones
+      parameters:
+        - { name: building_id, in: query, required: true, schema: { type: string } }
+        - { name: floor_id, in: query, schema: { type: string } }
+        - { name: category, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Zone" } }
+
+  /api/zones/{zone_id}:
+    get:
+      tags: [meta]
+      operationId: getZone
+      parameters: [{ $ref: "#/components/parameters/ZoneId" }]
+      responses:
+        "200":
+          description: Zone + devices phục vụ + comfort profile (join sẵn cho Zone Inspector)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ZoneDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/devices:
+    get:
+      tags: [meta]
+      operationId: listDevices
+      parameters:
+        - { name: building_id, in: query, required: true, schema: { type: string } }
+        - { name: zone_id, in: query, schema: { type: string } }
+        - { name: floor_id, in: query, schema: { type: string } }
+        - { name: device_type, in: query, schema: { type: string } }
+        - { name: controllable, in: query, schema: { type: boolean } }
+        - { name: limit, in: query, schema: { type: integer, default: 200, maximum: 2000 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Device" } }
+
+  /api/graph/neighborhood:
+    get:
+      tags: [meta]
+      operationId: graphNeighborhood
+      description: >
+        Semantic graph query (entity_relations, recursive CTE). Trả về node + edge
+        trong bán kính `depth` từ entity gốc. Dùng cho Building Semantic Agent
+        và resilience (zone nào chịu ảnh hưởng khi device chết).
+      parameters:
+        - { name: entity_id, in: query, required: true, schema: { type: string } }
+        - { name: depth, in: query, schema: { type: integer, default: 2, maximum: 4 } }
+        - { name: relation_types, in: query, schema: { type: string }, description: "CSV: feeds,isPartOf" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/GraphNeighborhood" }
+
+  # ------------------------------------------------------------ state
+  /api/state/latest:
+    get:
+      tags: [state]
+      operationId: latestState
+      description: State mới nhất mọi zone tại replay clock `at` (mặc định = max ts của run).
+      parameters:
+        - { name: building_id, in: query, required: true, schema: { type: string } }
+        - { $ref: "#/components/parameters/WorldRunId" }
+        - { $ref: "#/components/parameters/At" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  at: { type: string, format: date-time }
+                  world_run_id: { type: string }
+                  zones: { type: array, items: { $ref: "#/components/schemas/ZoneState" } }
+
+  /api/state/devices:
+    get:
+      tags: [state]
+      operationId: latestDeviceState
+      parameters:
+        - { name: zone_id, in: query, schema: { type: string } }
+        - { name: device_ids, in: query, schema: { type: string }, description: CSV }
+        - { $ref: "#/components/parameters/WorldRunId" }
+        - { $ref: "#/components/parameters/At" }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/DeviceState" } }
+
+  /api/timeseries:
+    get:
+      tags: [state]
+      operationId: getTimeseries
+      description: >
+        Time-series 1 metric cho 1 entity (zone/building). entity_id='building'
+        nghĩa là tổng hợp toàn building (SUM theo timestamp).
+      parameters:
+        - { name: entity_id, in: query, required: true, schema: { type: string } }
+        - { name: metric, in: query, required: true, schema: { type: string },
+            description: "zone_state column: total_power_kw|hvac_power_kw|temperature_c|co2_ppm|occupancy_count|cost_vnd|..." }
+        - { name: start, in: query, required: true, schema: { type: string, format: date-time } }
+        - { name: end, in: query, required: true, schema: { type: string, format: date-time } }
+        - { $ref: "#/components/parameters/WorldRunId" }
+        - { name: agg, in: query, schema: { type: string, enum: [raw, hourly, daily], default: raw } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Timeseries" }
+
+  /api/kpi/current:
+    get:
+      tags: [state]
+      operationId: currentKpi
+      description: KPI cards cho dashboard (cửa sổ `window` kết thúc tại `at`).
+      parameters:
+        - { name: building_id, in: query, required: true, schema: { type: string } }
+        - { $ref: "#/components/parameters/WorldRunId" }
+        - { $ref: "#/components/parameters/At" }
+        - { name: window, in: query, schema: { type: string, enum: [day, week, month], default: day } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/KpiSummary" }
+
+  # ------------------------------------------------------------ forecast
+  /api/forecast/run:
+    post:
+      tags: [forecast]
+      operationId: runForecast
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [kind, horizon_minutes]
+              properties:
+                kind: { type: string, enum: [zone_load, zone_temp, occupancy, building_peak, comfort_risk] }
+                horizon_minutes: { type: integer, default: 240 }
+                zone_ids: { type: array, items: { type: string }, description: rỗng = mọi zone }
+                issued_ts: { type: string, format: date-time, description: replay clock; mặc định = now của run }
+                world_run_id: { type: string, default: baseline }
+      responses:
+        "200":
+          description: Forecast hoàn tất (sync, surrogate nhanh)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ForecastResult" }
+
+  /api/forecast/latest:
+    get:
+      tags: [forecast]
+      operationId: latestForecast
+      parameters:
+        - { name: kind, in: query, required: true, schema: { type: string } }
+        - { name: zone_id, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ForecastResult" }
+
+  # ------------------------------------------------------------ actions
+  /api/actions:
+    get:
+      tags: [actions]
+      operationId: listActions
+      parameters:
+        - { name: building_id, in: query, required: true, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string } }
+        - { name: world_run_id, in: query, schema: { type: string } }
+        - { name: limit, in: query, schema: { type: integer, default: 50 } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Action" } }
+
+  /api/actions/{action_id}:
+    get:
+      tags: [actions]
+      operationId: getAction
+      parameters: [{ name: action_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200":
+          description: Action + targets + policy_decision + approval (join sẵn)
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ActionDetail" }
+        "404": { $ref: "#/components/responses/NotFound" }
+
+  /api/approvals:
+    get:
+      tags: [actions]
+      operationId: listApprovals
+      parameters:
+        - { name: status, in: query, schema: { type: string, default: pending } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/ApprovalRequest" } }
+
+  /api/approvals/{approval_id}/decide:
+    post:
+      tags: [actions]
+      operationId: decideApproval
+      parameters: [{ name: approval_id, in: path, required: true, schema: { type: string } }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [decision]
+              properties:
+                decision: { type: string, enum: [approved, rejected, modified] }
+                decided_by: { type: string, default: operator }
+                comment: { type: string }
+                modified_params: { type: object }
+      responses:
+        "200":
+          description: Approval cập nhật; action.status chuyển scheduled/rejected; ghi audit_logs.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/ApprovalRequest" }
+
+  # ------------------------------------------------------------ simulations
+  /api/simulations/runs:
+    get:
+      tags: [simulations]
+      operationId: listWorldRuns
+      parameters:
+        - { name: scenario_id, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/WorldRun" } }
+
+  /api/simulations/run-agent:
+    post:
+      tags: [simulations]
+      operationId: runAgentVariant
+      description: >
+        Chạy agent variant cho 1 scenario: agent/control sinh action plan →
+        action_to_idf → E+ (hoặc surrogate nếu engine=surrogate) → nạp kết quả
+        → tính scenario_kpi. CHẠY ASYNC: trả 202 + run_id, FE poll GET runs/{id}.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [scenario_id]
+              properties:
+                scenario_id: { type: string }
+                engine: { type: string, enum: [eplus, surrogate], default: surrogate }
+                policy_overrides: { type: object }
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorldRun" }
+
+  /api/simulations/runs/{run_id}:
+    get:
+      tags: [simulations]
+      operationId: getWorldRun
+      parameters: [{ name: run_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200":
+          description: Run + scenario_kpi (nếu completed) + actions của run.
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/WorldRunDetail" }
+
+  /api/simulations/compare:
+    get:
+      tags: [simulations]
+      operationId: compareRuns
+      description: >
+        So sánh 2 world_run cùng scenario window. Delta = optimized - baseline.
+        Đây là endpoint M&V chính cho Simulation tab.
+      parameters:
+        - { name: baseline_run_id, in: query, required: true, schema: { type: string } }
+        - { name: optimized_run_id, in: query, required: true, schema: { type: string } }
+        - { name: scope, in: query, schema: { type: string, enum: [building, zone], default: building } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/RunComparison" }
+
+  # ------------------------------------------------------------ alerts
+  /api/alerts:
+    get:
+      tags: [alerts]
+      operationId: listAlerts
+      parameters:
+        - { name: building_id, in: query, required: true, schema: { type: string } }
+        - { name: status, in: query, schema: { type: string, default: open } }
+        - { name: severity, in: query, schema: { type: string } }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { type: array, items: { $ref: "#/components/schemas/Alert" } }
+
+  /api/alerts/{alert_id}/resolve:
+    post:
+      tags: [alerts]
+      operationId: resolveAlert
+      parameters: [{ name: alert_id, in: path, required: true, schema: { type: string } }]
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/Alert" }
+
+  # ------------------------------------------------------------ agent
+  /api/agent/chat:
+    post:
+      tags: [agent]
+      operationId: agentChat
+      description: >
+        Entry chatbot → LangGraph orchestrator. Response gồm câu trả lời +
+        viewer_updates (highlight 3D) + dashboard_cards + action đề xuất nếu có.
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [message]
+              properties:
+                message: { type: string }
+                session_id: { type: string }
+                building_id: { type: string, default: office_concrete }
+                context:
+                  type: object
+                  properties:
+                    selected_zone_id: { type: string }
+                    selected_floor_id: { type: string }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: "#/components/schemas/AgentResponse" }
+
+  /api/agent/run-optimization:
+    post:
+      tags: [agent]
+      operationId: runOptimization
+      description: Button "Run Optimization" — async, trả run_id; logs poll qua /api/agent/runs/{id}/logs.
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                building_id: { type: string, default: office_concrete }
+                scenario_id: { type: string, default: normal_optimize }
+      responses:
+        "202":
+          description: Accepted
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  agent_run_id: { type: string }
+
+  /api/agent/runs/{agent_run_id}/logs:
+    get:
+      tags: [agent]
+      operationId: agentRunLogs
+      parameters:
+        - { name: agent_run_id, in: path, required: true, schema: { type: string } }
+        - { name: after, in: query, schema: { type: integer, default: 0 }, description: log index cursor }
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status: { type: string }
+                  logs:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        index: { type: integer }
+                        ts: { type: string, format: date-time }
+                        node: { type: string }
+                        message: { type: string }
+                        payload: { type: object }
+
+components:
+  parameters:
+    BuildingId:
+      name: building_id
+      in: path
+      required: true
+      schema: { type: string }
+    ZoneId:
+      name: zone_id
+      in: path
+      required: true
+      schema: { type: string }
+    WorldRunId:
+      name: world_run_id
+      in: query
+      schema: { type: string, default: baseline }
+    At:
+      name: at
+      in: query
+      description: Replay clock. Mặc định = max(timestamp) của world_run.
+      schema: { type: string, format: date-time }
+
+  responses:
+    NotFound:
+      description: Not found
+      content:
+        application/json:
+          schema:
+            type: object
+            properties:
+              detail: { type: string }
+
+  schemas:
+    Building:
+      type: object
+      properties:
+        id: { type: string }
+        name: { type: string }
+        timezone: { type: string }
+        location_name: { type: string }
+        floors_count: { type: integer }
+        zones_count: { type: integer }
+
+    Floor:
+      type: object
+      properties:
+        id: { type: string }
+        building_id: { type: string }
+        floor_index: { type: integer }
+        name: { type: string }
+        elevation_m: { type: number }
+
+    Zone:
+      type: object
+      properties:
+        id: { type: string }
+        building_id: { type: string }
+        floor_id: { type: string }
+        name: { type: string }
+        category: { type: string }
+        area_m2: { type: number }
+        archetype: { type: string }
+        comfort_profile_id: { type: string }
+        risk_level: { type: string }
+
+    ZoneDetail:
+      allOf:
+        - $ref: "#/components/schemas/Zone"
+        - type: object
+          properties:
+            comfort_profile: { type: object }
+            devices: { type: array, items: { $ref: "#/components/schemas/Device" } }
+            controllable_device_count: { type: integer }
+
+    Device:
+      type: object
+      properties:
+        id: { type: string }
+        zone_id: { type: string }
+        floor_id: { type: string }
+        device_type: { type: string }
+        name: { type: string }
+        scope: { type: string, enum: [zone, floor, plant] }
+        controllable: { type: boolean }
+        nominal_power_kw: { type: number }
+
+    ZoneState:
+      type: object
+      description: 1 dòng zone_state_15m
+      properties:
+        timestamp: { type: string, format: date-time }
+        zone_id: { type: string }
+        occupancy_count: { type: integer }
+        occupancy_state: { type: string }
+        temperature_c: { type: number }
+        humidity_pct: { type: number }
+        co2_ppm: { type: number }
+        hvac_power_kw: { type: number }
+        lighting_power_kw: { type: number }
+        plug_power_kw: { type: number }
+        total_power_kw: { type: number }
+        cooling_setpoint_c: { type: number }
+        comfort_risk: { type: string }
+        cost_vnd: { type: number }
+
+    DeviceState:
+      type: object
+      properties:
+        timestamp: { type: string, format: date-time }
+        device_id: { type: string }
+        zone_id: { type: string }
+        device_type: { type: string }
+        status: { type: string }
+        setpoint_c: { type: number }
+        power_kw: { type: number }
+        fault_state: { type: string }
+
+    Timeseries:
+      type: object
+      properties:
+        entity_id: { type: string }
+        metric: { type: string }
+        world_run_id: { type: string }
+        agg: { type: string }
+        points:
+          type: array
+          items:
+            type: object
+            properties:
+              ts: { type: string, format: date-time }
+              value: { type: number }
+
+    KpiSummary:
+      type: object
+      properties:
+        window_start: { type: string, format: date-time }
+        window_end: { type: string, format: date-time }
+        energy_kwh: { type: number }
+        cost_vnd: { type: number }
+        peak_kw: { type: number }
+        comfort_violation_min: { type: number }
+        co2_kg: { type: number }
+        hvac_share: { type: number }
+        occupancy_now: { type: integer }
+        open_alerts: { type: integer }
+
+    ForecastResult:
+      type: object
+      properties:
+        forecast_run_id: { type: string }
+        kind: { type: string }
+        model_name: { type: string }
+        model_version: { type: string }
+        issued_ts: { type: string, format: date-time }
+        horizon_minutes: { type: integer }
+        values:
+          type: array
+          items:
+            type: object
+            properties:
+              target_ts: { type: string, format: date-time }
+              zone_id: { type: string }
+              target_name: { type: string }
+              yhat: { type: number }
+              yhat_lower: { type: number }
+              yhat_upper: { type: number }
+              confidence: { type: number }
+
+    Action:
+      type: object
+      properties:
+        id: { type: string }
+        world_run_id: { type: string }
+        action_type: { type: string }
+        risk_level: { type: string }
+        status: { type: string }
+        decision_mode: { type: string }
+        starts_at: { type: string, format: date-time }
+        ends_at: { type: string, format: date-time }
+        params: { type: object }
+        reason: { type: string }
+        confidence: { type: number }
+        expected:
+          type: object
+          properties:
+            saving_kwh: { type: number }
+            cost_saving_vnd: { type: number }
+            peak_delta_kw: { type: number }
+            comfort_delta_min: { type: number }
+        created_by: { type: string }
+        created_at: { type: string, format: date-time }
+
+    ActionDetail:
+      allOf:
+        - $ref: "#/components/schemas/Action"
+        - type: object
+          properties:
+            targets:
+              type: array
+              items:
+                type: object
+                properties:
+                  target_type: { type: string }
+                  target_id: { type: string }
+                  parameters: { type: object }
+            policy_decision:
+              type: object
+              properties:
+                decision: { type: string }
+                rule_id: { type: string }
+                checks: { type: array, items: { type: object } }
+                regrettable_check: { type: object }
+            approval: { $ref: "#/components/schemas/ApprovalRequest" }
+
+    ApprovalRequest:
+      type: object
+      properties:
+        id: { type: string }
+        action_id: { type: string }
+        status: { type: string }
+        requested_at: { type: string, format: date-time }
+        decided_at: { type: string, format: date-time }
+        decided_by: { type: string }
+        comment: { type: string }
+
+    WorldRun:
+      type: object
+      properties:
+        id: { type: string }
+        scenario_id: { type: string }
+        variant: { type: string }
+        engine: { type: string }
+        status: { type: string }
+        started_at: { type: string, format: date-time }
+        completed_at: { type: string, format: date-time }
+
+    WorldRunDetail:
+      allOf:
+        - $ref: "#/components/schemas/WorldRun"
+        - type: object
+          properties:
+            kpi: { $ref: "#/components/schemas/KpiSummary" }
+            actions: { type: array, items: { $ref: "#/components/schemas/Action" } }
+
+    RunComparison:
+      type: object
+      description: M&V — Simulation tab
+      properties:
+        baseline_run_id: { type: string }
+        optimized_run_id: { type: string }
+        window_start: { type: string, format: date-time }
+        window_end: { type: string, format: date-time }
+        baseline: { $ref: "#/components/schemas/KpiSummary" }
+        optimized: { $ref: "#/components/schemas/KpiSummary" }
+        delta:
+          type: object
+          properties:
+            saving_kwh: { type: number }
+            saving_pct: { type: number }
+            cost_saving_vnd: { type: number }
+            peak_reduction_kw: { type: number }
+            comfort_violation_delta_min: { type: number }
+            co2_avoided_kg: { type: number }
+        zone_deltas:
+          type: array
+          description: scope=zone — top zones theo saving
+          items:
+            type: object
+            properties:
+              zone_id: { type: string }
+              saving_kwh: { type: number }
+              comfort_violation_delta_min: { type: number }
+        action_trace: { type: array, items: { $ref: "#/components/schemas/Action" } }
+
+    GraphNeighborhood:
+      type: object
+      properties:
+        root: { type: string }
+        nodes:
+          type: array
+          items:
+            type: object
+            properties:
+              id: { type: string }
+              type: { type: string }
+              name: { type: string }
+        edges:
+          type: array
+          items:
+            type: object
+            properties:
+              src: { type: string }
+              relation: { type: string }
+              dst: { type: string }
+              confidence: { type: number }
+
+    Alert:
+      type: object
+      properties:
+        id: { type: string }
+        zone_id: { type: string }
+        device_id: { type: string }
+        rule_id: { type: string }
+        alert_type: { type: string }
+        severity: { type: string }
+        message: { type: string }
+        status: { type: string }
+        detected_ts: { type: string, format: date-time }
+        resolved_at: { type: string, format: date-time }
+
+    AgentResponse:
+      type: object
+      properties:
+        session_id: { type: string }
+        answer: { type: string }
+        intent: { type: string }
+        viewer_updates:
+          type: array
+          description: highlight 3D theo zone/device GUID
+          items:
+            type: object
+            properties:
+              entity_id: { type: string }
+              highlight: { type: string, enum: [info, warning, critical, selected] }
+        dashboard_cards: { type: array, items: { type: object } }
+        proposed_actions: { type: array, items: { $ref: "#/components/schemas/Action" } }
+        agent_logs: { type: array, items: { type: object } }

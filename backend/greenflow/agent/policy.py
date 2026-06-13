@@ -14,6 +14,7 @@ import yaml
 
 from ..config import get_settings
 from ..sim.actions import ACTION_RISK
+from .regret import regrettable_substitution_check
 
 POLICY_FILE = Path(__file__).with_name("policy.yaml")
 
@@ -29,7 +30,8 @@ def evaluate_action(action: dict, context: dict) -> dict[str, Any]:
     action: dict form of sim.actions.Action (+ simulation results merged in)
     context keys: zone_types {zone_key: room_type}, occupancy_confidence,
                   forecast_confidence, comfort_risk_after, peak_risk_after,
-                  zones_affected
+                  zones_affected, kpi (optional compare_runs dict for the
+                  regrettable-substitution check)
     """
     policy = load_policy()
     auto = policy["auto_actions"]
@@ -111,14 +113,24 @@ def evaluate_action(action: dict, context: dict) -> dict[str, Any]:
         reasons.append(f"Zone type not auto-allowed for {not_allowed_types}")
         violated.append("allowed_zone_types")
 
+    # Regrettable substitution: an action that "wins" the target KPI while
+    # losing another dimension must never auto-run (spine D8).
+    regret = regrettable_substitution_check(
+        context.get("kpi", {}), policy.get("regrettable_check"))
+    if not regret["passed"]:
+        reasons.extend(f["message"] for f in regret["flags"])
+        violated.append("regrettable_substitution")
+
     if violated:
-        return _decision("approval_required", risk_level, reasons, violated)
+        return _decision("approval_required", risk_level, reasons, violated, regret)
 
     return _decision("auto_run", "low",
-                     [f"{action_type} passes all auto-action guardrails"], [])
+                     [f"{action_type} passes all auto-action guardrails"], [], regret)
 
 
 def _decision(decision: str, risk_level: str, reasons: list[str],
-              violated_rules: list[str]) -> dict[str, Any]:
+              violated_rules: list[str],
+              regret: dict | None = None) -> dict[str, Any]:
     return {"decision": decision, "risk_level": risk_level,
-            "reasons": reasons, "violated_rules": violated_rules}
+            "reasons": reasons, "violated_rules": violated_rules,
+            "regrettable_check": regret or {"passed": True, "flags": []}}

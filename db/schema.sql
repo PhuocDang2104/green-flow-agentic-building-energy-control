@@ -408,6 +408,19 @@ CREATE TABLE IF NOT EXISTS forecast_predictions (
 CREATE INDEX IF NOT EXISTS forecast_predictions_run_idx
   ON forecast_predictions(forecast_run_id, timestamp);
 
+-- Rule catalog for the anomaly engine (spine merge). The engine reads enabled
+-- rules from here instead of hardcoding thresholds; alerts reference rules via
+-- alerts.alert_type = anomaly_rules.id. Seed: db/seed/anomaly_rules.sql
+CREATE TABLE IF NOT EXISTS anomaly_rules (
+  id          text PRIMARY KEY,          -- 'hvac_on_empty', ...
+  name        text NOT NULL,
+  description text,
+  rule_type   text NOT NULL,             -- threshold | schedule_deviation | stuck_sensor | fault
+  params      jsonb NOT NULL DEFAULT '{}'::jsonb,
+  severity    text NOT NULL DEFAULT 'warning',
+  enabled     boolean NOT NULL DEFAULT true
+);
+
 CREATE TABLE IF NOT EXISTS alerts (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   building_id uuid NOT NULL REFERENCES buildings(id) ON DELETE CASCADE,

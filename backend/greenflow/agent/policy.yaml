@@ -35,3 +35,9 @@ approval_required_actions:
 
 rejected_actions:
   - whole_building_hvac_shutdown
+
+# Regrettable-substitution thresholds (agent/regret.py — spine D8)
+regrettable_check:
+  max_comfort_delta_min: 15.0
+  rebound_ratio_max: 0.5
+  max_peak_increase_kw: 5.0

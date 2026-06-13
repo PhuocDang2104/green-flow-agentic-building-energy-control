@@ -36,6 +36,7 @@ def run(state: GreenFlowState) -> dict:
             "peak_risk_after": peak_risk_after,
             "zones_affected": len(action.get("target_zone_keys", []))
                               or len(state.get("zones", [])),
+            "kpi": kpi,  # regrettable-substitution check (agent/regret.py)
         }
         decision = evaluate_action(action, context)
         decisions.append({"action": action, **decision})
