@@ -350,6 +350,9 @@ CREATE TABLE IF NOT EXISTS simulation_runs (
 CREATE INDEX IF NOT EXISTS simulation_runs_building_started_idx
   ON simulation_runs(building_id, started_at DESC);
 
+-- LEGACY (EAV): kept so anything still referencing it keeps working, but the
+-- write/read path of record is now the wide sim_zone_15m below (spine merge,
+-- decision #3 in docs/spine/CONFLICT_RESOLUTION.md). New runs do NOT write here.
 CREATE TABLE IF NOT EXISTS simulation_results (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),
   simulation_run_id uuid NOT NULL REFERENCES simulation_runs(id) ON DELETE CASCADE,
@@ -363,6 +366,27 @@ CREATE TABLE IF NOT EXISTS simulation_results (
 
 CREATE INDEX IF NOT EXISTS simulation_results_run_idx
   ON simulation_results(simulation_run_id, timestamp);
+
+-- Wide per-run simulation trajectory (spine storage, decision #3). One row per
+-- (run, zone, 15-min step) — same wide shape as telemetry_zone_15m, so reading
+-- a trajectory is a column select, not an EAV pivot. uuid keying (decision #2).
+CREATE TABLE IF NOT EXISTS sim_zone_15m (
+  simulation_run_id uuid NOT NULL REFERENCES simulation_runs(id) ON DELETE CASCADE,
+  zone_id           uuid NOT NULL REFERENCES zones(id) ON DELETE CASCADE,
+  timestamp         timestamptz NOT NULL,
+  occupancy_count   numeric NOT NULL DEFAULT 0,
+  temperature_c     numeric,
+  setpoint_c        numeric,
+  hvac_power_kw     numeric NOT NULL DEFAULT 0,
+  lighting_power_kw numeric NOT NULL DEFAULT 0,
+  plug_power_kw     numeric NOT NULL DEFAULT 0,
+  total_power_kw    numeric NOT NULL DEFAULT 0,
+  comfort_violated  boolean NOT NULL DEFAULT false,
+  PRIMARY KEY (simulation_run_id, zone_id, timestamp)
+);
+
+CREATE INDEX IF NOT EXISTS sim_zone_15m_run_ts_idx
+  ON sim_zone_15m(simulation_run_id, timestamp);
 
 CREATE TABLE IF NOT EXISTS scenario_kpi (
   id uuid PRIMARY KEY DEFAULT gen_random_uuid(),

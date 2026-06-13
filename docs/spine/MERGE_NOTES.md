@@ -1,8 +1,27 @@
 # Spine merge notes (2026-06-13)
 
 Merge từ spine `Vòng 2/greenflow/` (dựng 2026-06-12) vào repo này. Nguyên tắc:
-**additive, không phá flow hiện có** — demo building synthetic (b000…001),
-LangGraph graph, API, web giữ nguyên hành vi; 29 test cũ vẫn pass.
+**additive, không phá flow hiện có** — LangGraph graph, API, web giữ nguyên
+hành vi; test vẫn pass (37/37).
+
+## Vòng 2 — chốt 6 quyết định xung đột (xem CONFLICT_RESOLUTION.md)
+
+Dữ liệu gốc = spine · keying = repo (uuid + entity_key) · lưu sim = bảng rộng
+spine · backend/data theo spine · frontend/3D không đụng.
+
+| Thay đổi | File |
+|---|---|
+| Bảng rộng `sim_zone_15m` (thay EAV `simulation_results`) | `db/schema.sql` |
+| Helper ghi/đọc bảng rộng | `backend/greenflow/sim/sim_store.py` |
+| `_persist_run` + `get_run_series` + `seed_demo._insert_sim_run` dùng helper | (sửa) |
+| Loader gộp 188 zone thật → 5 zone demo (frontend hiện số thật) | `scripts/load_real_into_demo.py` |
+
+`get_run_series` trả y nguyên `[{timestamp, value}]` ⇒ frontend không phải sửa.
+Kiểm chứng: aggregate ra peak 415.4 kW, khớp summary.json (415.41) của pipeline thật.
+Chạy số thật vào demo: `make seed` → `python scripts/load_real_into_demo.py
+--zone-state ../tools/datagen/out/zone_state_15m.parquet --archetype-map ../tools/idf/out/archetype_zone_map.json`.
+
+## Vòng 1 (giữ nguyên bên dưới)
 
 ## Đã merge
 

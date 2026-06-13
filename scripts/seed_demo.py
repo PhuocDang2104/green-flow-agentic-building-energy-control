@@ -380,30 +380,12 @@ def _insert_sim_run(conn, label, kind, actions_json, result, day_start) -> uuid.
            "engine": result.engine, "actions": json.dumps(actions_json),
            "notes": f"totals: {json.dumps(result.totals)}"})
 
-    zone_ids = {}  # entity_key -> uuid (lazy fetch once)
-    rows = []
+    # Wide sim storage (spine merge, decision #3) via the shared helper.
     from greenflow.db import fetch_all
-    for z in fetch_all(conn, "SELECT id, entity_key FROM zones WHERE building_id = :b",
-                       b=BUILDING_ID):
-        zone_ids[z["entity_key"]] = z["id"]
-    for r in result.records:
-        ts = day_start + timedelta(minutes=r.minutes)
-        zid = zone_ids.get(r.zone_key)
-        for metric, value, unit in (
-            ("zone_temperature_c", r.temperature_c, "C"),
-            ("hvac_power_kw", r.hvac_kw, "kW"),
-            ("lighting_power_kw", r.lighting_kw, "kW"),
-            ("plug_power_kw", r.plug_kw, "kW"),
-            ("total_power_kw", r.total_kw, "kW"),
-            ("comfort_violated", 1.0 if r.comfort_violated else 0.0, "bool"),
-        ):
-            rows.append({"run": run_id, "ts": ts, "z": zid, "m": metric,
-                         "v": value, "u": unit})
-    _bulk(conn, """
-        INSERT INTO simulation_results (simulation_run_id, timestamp, zone_id,
-                                        metric_name, metric_value, metric_unit)
-        VALUES (:run, :ts, :z, :m, :v, :u)
-    """, rows)
+    from greenflow.sim.sim_store import write_run_rows
+    zone_ids = {z["entity_key"]: z["id"] for z in fetch_all(
+        conn, "SELECT id, entity_key FROM zones WHERE building_id = :b", b=BUILDING_ID)}
+    write_run_rows(conn, run_id, result, zone_ids, day_start)
     return run_id
 
 
