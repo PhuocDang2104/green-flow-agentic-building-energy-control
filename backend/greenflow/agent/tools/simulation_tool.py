@@ -13,6 +13,7 @@ from ...db import db_conn, fetch_all, fetch_one
 from ...sim.actions import Action
 from ...sim.kpi import compare_runs
 from ...sim.runner import run_simulation
+from ...sim.sim_store import read_run_series, write_run_rows
 from ...sim.synthetic_baseline import SimResult
 from .db_tool import _clean
 
@@ -88,13 +89,9 @@ def get_latest_comparison(building_id: str) -> dict:
 
 
 def get_run_series(run_id: str, metric: str = "total_power_kw") -> list[dict]:
+    # Reads the wide sim_zone_15m table (spine storage, decision #3).
     with db_conn() as conn:
-        return [_clean(r) for r in fetch_all(conn, """
-            SELECT timestamp, sum(metric_value) AS value
-            FROM simulation_results
-            WHERE simulation_run_id = :r AND metric_name = :m
-            GROUP BY timestamp ORDER BY timestamp
-        """, r=run_id, m=metric)]
+        return [_clean(r) for r in read_run_series(conn, run_id, metric)]
 
 
 def _persist_run(conn, building_id: str, label: str, kind: str,
@@ -110,23 +107,5 @@ def _persist_run(conn, building_id: str, label: str, kind: str,
            "notes": f"totals: {json.dumps(result.totals)}"})
     zone_ids = {z["entity_key"]: z["id"] for z in fetch_all(
         conn, "SELECT id, entity_key FROM zones WHERE building_id = :b", b=building_id)}
-    rows = []
-    for r in result.records:
-        ts = day_start + timedelta(minutes=r.minutes)
-        zid = zone_ids.get(r.zone_key)
-        for metric, value, unit in (
-            ("zone_temperature_c", r.temperature_c, "C"),
-            ("hvac_power_kw", r.hvac_kw, "kW"),
-            ("lighting_power_kw", r.lighting_kw, "kW"),
-            ("total_power_kw", r.total_kw, "kW"),
-            ("comfort_violated", 1.0 if r.comfort_violated else 0.0, "bool"),
-        ):
-            rows.append({"run": run_id, "ts": ts, "z": zid, "m": metric,
-                         "v": value, "u": unit})
-    if rows:
-        conn.execute(text("""
-            INSERT INTO simulation_results (simulation_run_id, timestamp, zone_id,
-                                            metric_name, metric_value, metric_unit)
-            VALUES (:run, :ts, :z, :m, :v, :u)
-        """), rows)
+    write_run_rows(conn, run_id, result, zone_ids, day_start)
     return run_id
