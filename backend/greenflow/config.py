@@ -17,11 +17,19 @@ class Settings(BaseSettings):
 
     database_url: str = "postgresql+psycopg://greenflow:greenflow@localhost:5432/greenflow"
 
-    llm_provider: str = "none"  # openai | anthropic | none
+    llm_provider: str = "groq"  # groq | openai | openrouter | together | ollama
     openai_api_key: str = ""
     openai_model: str = "gpt-4.1-mini"
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-4-6"
+
+    # AI chat: provider mặc định khi DB chưa cấu hình
+    groq_api_key: str = ""
+    groq_model: str = "llama-3.3-70b-versatile"
+    # mã hoá key provider lưu DB (ĐỔI ở production; KHÔNG commit)
+    llm_keystore_secret: str = "change-me-in-production"
+    # embedder English: bge-small(384,mặc định) | bge-base | mxbai-large | hashing(dev)
+    llm_embedder: str = "bge-small"
 
     storage_dir: str = "./storage"
     energyplus_bin: str = ""
@@ -44,6 +52,10 @@ class Settings(BaseSettings):
     def idf_file(self) -> Path:
         p = Path(self.idf_path)
         return p if p.is_absolute() else PROJECT_ROOT / p
+
+    @property
+    def vector_index_path(self) -> Path:
+        return self.storage_path / "processed" / "vector" / "kb.tvim"
 
 
 @lru_cache

@@ -566,3 +566,53 @@ CREATE TABLE IF NOT EXISTS document_embeddings (
   embedding_dim integer NOT NULL,
   metadata_json jsonb NOT NULL DEFAULT '{}'::jsonb
 );
+
+-- ---------------------------------------------------------------------------
+-- AI chat (Groq-mặc-định, OpenAI-compatible) + RAG bằng turbovec
+-- Vector KHÔNG lưu ở Postgres (dùng turbovec ngoài, file storage); bảng kb_chunks
+-- giữ TEXT + metadata, id (bigint) làm khoá tới turbovec IdMapIndex.
+-- ---------------------------------------------------------------------------
+
+-- Cấu hình LLM provider: chọn provider + key (ĐÃ MÃ HOÁ) + model. is_active = đang dùng.
+CREATE TABLE IF NOT EXISTS provider_configs (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  provider    text NOT NULL,                 -- groq | openai | openrouter | together | ollama | custom
+  model       text,
+  base_url    text,
+  api_key_enc text NOT NULL,                  -- Fernet ciphertext (llm/keystore.py); KHÔNG bao giờ lưu trần
+  is_active   boolean NOT NULL DEFAULT false,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS provider_configs_active_idx ON provider_configs(is_active) WHERE is_active;
+
+CREATE TABLE IF NOT EXISTS chat_sessions (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  building_id uuid REFERENCES buildings(id) ON DELETE CASCADE,
+  user_id     text,
+  title       text,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS chat_sessions_building_idx ON chat_sessions(building_id, created_at DESC);
+
+CREATE TABLE IF NOT EXISTS chat_messages (
+  id          uuid PRIMARY KEY DEFAULT gen_random_uuid(),
+  session_id  uuid NOT NULL REFERENCES chat_sessions(id) ON DELETE CASCADE,
+  role        text NOT NULL,                  -- user | assistant | tool
+  content     text NOT NULL DEFAULT '',
+  tool_calls  jsonb NOT NULL DEFAULT '[]'::jsonb,  -- tool nào đã gọi (truy vết)
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS chat_messages_session_idx ON chat_messages(session_id, created_at);
+
+-- Knowledge-base chunks cho RAG (policy, định nghĩa, tóm tắt report, Q&A cũ).
+-- Embedding sống trong turbovec (file), id ở đây = id trong turbovec IdMapIndex.
+CREATE TABLE IF NOT EXISTS kb_chunks (
+  id          bigserial PRIMARY KEY,
+  doc_type    text NOT NULL,                  -- policy | definition | report | qa
+  title       text NOT NULL,
+  content     text NOT NULL,
+  building_id uuid REFERENCES buildings(id) ON DELETE SET NULL,
+  metadata    jsonb NOT NULL DEFAULT '{}'::jsonb,
+  created_at  timestamptz NOT NULL DEFAULT now()
+);
+CREATE INDEX IF NOT EXISTS kb_chunks_doc_type_idx ON kb_chunks(doc_type);
