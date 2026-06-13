@@ -23,6 +23,12 @@ llm = [
     "langchain-openai>=0.2",
     "langchain-anthropic>=0.2",
 ]
+ml = [
+    # surrogate forecast (ml/forecast_service). Thiếu -> quick_estimate fallback rule.
+    "lightgbm>=4.0",
+    "numpy>=1.26",
+    "pandas>=2.0",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
