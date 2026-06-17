@@ -1,1829 +1,451 @@
 {
   "building": {
     "entity_key": "greenflow_archetype",
-    "name": "GreenFlow Archetype",
+    "name": "Nordic LCA Office",
     "location_name": "Hanoi-Noi.Bai.Intl.AP",
     "latitude": 21.221,
     "longitude": 105.807,
     "timezone": "Asia/Ho_Chi_Minh",
     "building_type": "office",
-    "source_dataset": "greenflow_archetype.idf",
-    "total_area_m2": 279.7,
-    "zone_count": 5
+    "source_dataset": "enriched_IFC (ARCH/ELE/HVAC/STRUCTURAL)",
+    "total_area_m2": 2492.82,
+    "zone_count": 14,
+    "space_count": 308,
+    "storey_count": 10
   },
   "floors": [
     {
-      "entity_key": "storey_0",
-      "name": "Storey 0",
+      "entity_key": "sea_level",
+      "name": "Sea Level",
       "floor_index": 0,
-      "elevation_m": 0.0
+      "elevation_m": -0.0
+    },
+    {
+      "entity_key": "foundation",
+      "name": "Foundation",
+      "floor_index": 1,
+      "elevation_m": 51.0
+    },
+    {
+      "entity_key": "basement",
+      "name": "Basement",
+      "floor_index": 2,
+      "elevation_m": 51.7
+    },
+    {
+      "entity_key": "level_01",
+      "name": "Level_01",
+      "floor_index": 3,
+      "elevation_m": 55.5
+    },
+    {
+      "entity_key": "level_02a_parking",
+      "name": "Level_02a_Parking",
+      "floor_index": 4,
+      "elevation_m": 58.9
+    },
+    {
+      "entity_key": "level_02",
+      "name": "Level_02",
+      "floor_index": 5,
+      "elevation_m": 59.7
+    },
+    {
+      "entity_key": "level_03",
+      "name": "Level_03",
+      "floor_index": 6,
+      "elevation_m": 63.65
+    },
+    {
+      "entity_key": "level_04",
+      "name": "Level_04",
+      "floor_index": 7,
+      "elevation_m": 67.6
+    },
+    {
+      "entity_key": "level_05",
+      "name": "Level_05",
+      "floor_index": 8,
+      "elevation_m": 71.92
+    },
+    {
+      "entity_key": "roof",
+      "name": "Roof",
+      "floor_index": 9,
+      "elevation_m": 77.89
     }
   ],
   "zones": [
     {
-      "entity_key": "zone_storey0_open_office",
-      "name": "Block open_office Storey 0",
-      "floor_key": "storey_0",
-      "room_type": "open_office",
-      "comfort_profile": "office_standard",
-      "area_m2": 190.1,
-      "volume_m3": 665.35,
-      "height_m": 3.5,
-      "centroid": [
-        6.894,
-        6.894,
-        1.75
-      ],
-      "lights_w_m2": 11.0,
-      "equip_w_m2": 12.0,
-      "people_per_m2": 0.1,
-      "occupancy_schedule": "Occ_open_office",
-      "lights_schedule": "WorkHoursFrac",
-      "equip_schedule": "WorkHoursFrac",
-      "source_space_name": "Block open_office Storey 0"
-    },
-    {
-      "entity_key": "zone_storey0_office",
-      "name": "Block office Storey 0",
-      "floor_key": "storey_0",
+      "entity_key": "zone_3xtnrBUgHBCwRh_xfyB626",
+      "name": "Parking 150",
+      "floor_key": "level_01",
       "room_type": "office",
       "comfort_profile": "office_standard",
-      "area_m2": 17.3,
-      "volume_m3": 60.55,
-      "height_m": 3.5,
+      "area_m2": 408.37,
+      "volume_m3": 1388.45,
+      "height_m": 3.4,
       "centroid": [
-        20.867,
-        2.08,
-        1.75
+        0.0,
+        0.0,
+        0.0
       ],
       "lights_w_m2": 11.0,
       "equip_w_m2": 12.0,
       "people_per_m2": 0.0833,
-      "occupancy_schedule": "Occ_office",
+      "occupancy_schedule": "WorkHoursFrac",
       "lights_schedule": "WorkHoursFrac",
       "equip_schedule": "WorkHoursFrac",
-      "source_space_name": "Block office Storey 0"
+      "window_area_m2": 77.0,
+      "envelope_area_m2": 683.2,
+      "source_space_name": "PARKING 150",
+      "ifc_guid": "3xtnrBUgHBCwRh$xfyB626",
+      "storey": "Level_01"
     },
     {
-      "entity_key": "zone_storey0_meeting",
-      "name": "Block meeting Storey 0",
-      "floor_key": "storey_0",
+      "entity_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
+      "name": "Open Office 220",
+      "floor_key": "level_02",
+      "room_type": "open_office",
+      "comfort_profile": "office_standard",
+      "area_m2": 354.74,
+      "volume_m3": 1401.21,
+      "height_m": 3.95,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 12.0,
+      "people_per_m2": 0.1,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 83.3,
+      "envelope_area_m2": 652.3,
+      "source_space_name": "OPEN OFFICE 220",
+      "ifc_guid": "3xtnrBUgHBCwRh$xfyB4IZ",
+      "storey": "Level_02"
+    },
+    {
+      "entity_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
+      "name": "Open Office 230",
+      "floor_key": "level_02",
+      "room_type": "open_office",
+      "comfort_profile": "office_standard",
+      "area_m2": 302.85,
+      "volume_m3": 1196.26,
+      "height_m": 3.95,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 12.0,
+      "people_per_m2": 0.1,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 77.0,
+      "envelope_area_m2": 577.8,
+      "source_space_name": "OPEN OFFICE 230",
+      "ifc_guid": "3xtnrBUgHBCwRh$xfyB1VR",
+      "storey": "Level_02"
+    },
+    {
+      "entity_key": "zone_0Q4MSUQx531vKL_w06AgFH",
+      "name": "Open Office 430",
+      "floor_key": "level_04",
+      "room_type": "open_office",
+      "comfort_profile": "office_standard",
+      "area_m2": 286.17,
+      "volume_m3": 1107.49,
+      "height_m": 3.87,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 12.0,
+      "people_per_m2": 0.1,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 73.3,
+      "envelope_area_m2": 548.0,
+      "source_space_name": "OPEN OFFICE 430",
+      "ifc_guid": "0Q4MSUQx531vKL_w06AgFH",
+      "storey": "Level_04"
+    },
+    {
+      "entity_key": "zone_1xBFBS5N18MfdblikYnUB5",
+      "name": "Open Office 330",
+      "floor_key": "level_03",
+      "room_type": "open_office",
+      "comfort_profile": "office_standard",
+      "area_m2": 268.68,
+      "volume_m3": 1061.27,
+      "height_m": 3.95,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 12.0,
+      "people_per_m2": 0.1,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 72.5,
+      "envelope_area_m2": 527.7,
+      "source_space_name": "OPEN OFFICE 330",
+      "ifc_guid": "1xBFBS5N18MfdblikYnUB5",
+      "storey": "Level_03"
+    },
+    {
+      "entity_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "name": "Lobby 100",
+      "floor_key": "level_01",
+      "room_type": "lobby",
+      "comfort_profile": "relaxed",
+      "area_m2": 268.13,
+      "volume_m3": 1126.16,
+      "height_m": 4.2,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 9.0,
+      "equip_w_m2": 3.0,
+      "people_per_m2": 0.05,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 77.0,
+      "envelope_area_m2": 543.2,
+      "source_space_name": "LOBBY 100",
+      "ifc_guid": "3xtnrBUgHBCwRh$xfyB8zE",
+      "storey": "Level_01"
+    },
+    {
+      "entity_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "name": "Restaurant 1000",
+      "floor_key": "level_01",
+      "room_type": "office",
+      "comfort_profile": "office_standard",
+      "area_m2": 243.8,
+      "volume_m3": 1023.96,
+      "height_m": 4.2,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 12.0,
+      "people_per_m2": 0.0833,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 73.4,
+      "envelope_area_m2": 506.1,
+      "source_space_name": "RESTAURANT 1000",
+      "ifc_guid": "0tWM7C8ybBZQ4c5DL1$lwj",
+      "storey": "Level_01"
+    },
+    {
+      "entity_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "name": "Business Space 140",
+      "floor_key": "level_01",
+      "room_type": "office",
+      "comfort_profile": "office_standard",
+      "area_m2": 117.11,
+      "volume_m3": 491.87,
+      "height_m": 4.2,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 12.0,
+      "people_per_m2": 0.0833,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 50.9,
+      "envelope_area_m2": 298.9,
+      "source_space_name": "BUSINESS SPACE 140",
+      "ifc_guid": "2EmhthfYTF$hx0gAAa2KtI",
+      "storey": "Level_01"
+    },
+    {
+      "entity_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "name": "Kitchen 110",
+      "floor_key": "level_01",
+      "room_type": "amenity",
+      "comfort_profile": "relaxed",
+      "area_m2": 84.65,
+      "volume_m3": 355.52,
+      "height_m": 4.2,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 10.0,
+      "equip_w_m2": 6.0,
+      "people_per_m2": 0.12,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 43.3,
+      "envelope_area_m2": 239.2,
+      "source_space_name": "KITCHEN 110",
+      "ifc_guid": "3jzuKaCoj7duM8YUpx6IdZ",
+      "storey": "Level_01"
+    },
+    {
+      "entity_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "name": "Auditorium 130",
+      "floor_key": "level_01",
+      "room_type": "office",
+      "comfort_profile": "office_standard",
+      "area_m2": 53.7,
+      "volume_m3": 225.53,
+      "height_m": 4.2,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 11.0,
+      "equip_w_m2": 12.0,
+      "people_per_m2": 0.0833,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 34.5,
+      "envelope_area_m2": 176.8,
+      "source_space_name": "AUDITORIUM 130",
+      "ifc_guid": "0tWM7C8ybBZQ4c5DL1$lzg",
+      "storey": "Level_01"
+    },
+    {
+      "entity_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "name": "Meeting 547",
+      "floor_key": "level_04",
       "room_type": "meeting_room",
       "comfort_profile": "office_standard",
-      "area_m2": 16.0,
-      "volume_m3": 56.0,
-      "height_m": 3.5,
+      "area_m2": 27.11,
+      "volume_m3": 97.61,
+      "height_m": 3.6,
       "centroid": [
-        29.947,
-        2.0,
-        1.75
+        0.0,
+        0.0,
+        0.0
       ],
       "lights_w_m2": 11.0,
       "equip_w_m2": 8.0,
-      "people_per_m2": 0.3333,
-      "occupancy_schedule": "Occ_meeting",
+      "people_per_m2": 0.3,
+      "occupancy_schedule": "WorkHoursFrac",
       "lights_schedule": "WorkHoursFrac",
       "equip_schedule": "WorkHoursFrac",
-      "source_space_name": "Block meeting Storey 0"
+      "window_area_m2": 21.0,
+      "envelope_area_m2": 102.1,
+      "source_space_name": "MEETING 547",
+      "ifc_guid": "36Blhdds16DOgkiAVsP5oS",
+      "storey": "Level_04"
     },
     {
-      "entity_key": "zone_storey0_amenity",
-      "name": "Block amenity Storey 0",
-      "floor_key": "storey_0",
-      "room_type": "amenity",
+      "entity_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "name": "Staircase 401",
+      "floor_key": "level_04",
+      "room_type": "circulation",
       "comfort_profile": "relaxed",
-      "area_m2": 17.8,
-      "volume_m3": 62.3,
-      "height_m": 3.5,
+      "area_m2": 25.97,
+      "volume_m3": 112.2,
+      "height_m": 4.32,
       "centroid": [
-        39.057,
-        2.11,
-        1.75
-      ],
-      "lights_w_m2": 11.0,
-      "equip_w_m2": 6.0,
-      "people_per_m2": 0.125,
-      "occupancy_schedule": "Occ_amenity",
-      "lights_schedule": "WorkHoursFrac",
-      "equip_schedule": "WorkHoursFrac",
-      "source_space_name": "Block amenity Storey 0"
-    },
-    {
-      "entity_key": "zone_storey0_circulation",
-      "name": "Block circulation Storey 0",
-      "floor_key": "storey_0",
-      "room_type": "hallway",
-      "comfort_profile": "relaxed",
-      "area_m2": 38.5,
-      "volume_m3": 134.75,
-      "height_m": 3.5,
-      "centroid": [
-        49.268,
-        3.102,
-        1.75
+        0.0,
+        0.0,
+        0.0
       ],
       "lights_w_m2": 5.0,
-      "equip_w_m2": 2.0,
-      "people_per_m2": 0.025,
-      "occupancy_schedule": "Occ_circulation",
+      "equip_w_m2": 1.0,
+      "people_per_m2": 0.02,
+      "occupancy_schedule": "WorkHoursFrac",
       "lights_schedule": "WorkHoursFrac",
       "equip_schedule": "WorkHoursFrac",
-      "source_space_name": "Block circulation Storey 0"
-    }
-  ],
-  "surfaces": [
-    {
-      "entity_key": "surface_block_open_office_storey_0_wall_0001",
-      "name": "Block open_office Storey 0 Wall 0001",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_open_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          0.0,
-          0.0,
-          3.5
-        ],
-        [
-          0.0,
-          0.0,
-          0.0
-        ],
-        [
-          13.787675656179326,
-          0.0,
-          0.0
-        ],
-        [
-          13.787675656179326,
-          0.0,
-          3.5
-        ]
-      ]
+      "window_area_m2": 24.7,
+      "envelope_area_m2": 114.0,
+      "source_space_name": "STAIRCASE 401",
+      "ifc_guid": "0Q4MSUQx531vKL_w06AgFJ",
+      "storey": "Level_04"
     },
     {
-      "entity_key": "surface_block_open_office_storey_0_wall_0002",
-      "name": "Block open_office Storey 0 Wall 0002",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_open_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          13.787675656179326,
-          0.0,
-          3.5
-        ],
-        [
-          13.787675656179326,
-          0.0,
-          0.0
-        ],
-        [
-          13.787675656179326,
-          13.787675656179326,
-          0.0
-        ],
-        [
-          13.787675656179326,
-          13.787675656179326,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_open_office_storey_0_wall_0003",
-      "name": "Block open_office Storey 0 Wall 0003",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_open_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          13.787675656179326,
-          13.787675656179326,
-          3.5
-        ],
-        [
-          13.787675656179326,
-          13.787675656179326,
-          0.0
-        ],
-        [
-          0.0,
-          13.787675656179326,
-          0.0
-        ],
-        [
-          0.0,
-          13.787675656179326,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_open_office_storey_0_wall_0004",
-      "name": "Block open_office Storey 0 Wall 0004",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_open_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          0.0,
-          13.787675656179326,
-          3.5
-        ],
-        [
-          0.0,
-          13.787675656179326,
-          0.0
-        ],
-        [
-          0.0,
-          0.0,
-          0.0
-        ],
-        [
-          0.0,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_open_office_storey_0_floor_0001",
-      "name": "Block open_office Storey 0 Floor 0001",
-      "surface_type": "floor",
-      "construction": "QCVN_Floor",
-      "zone_key": "zone_storey0_open_office",
-      "boundary": "ground",
-      "vertices": [
-        [
-          13.787675656179326,
-          13.787675656179326,
-          0.0
-        ],
-        [
-          13.787675656179326,
-          0.0,
-          0.0
-        ],
-        [
-          0.0,
-          0.0,
-          0.0
-        ],
-        [
-          0.0,
-          13.787675656179326,
-          0.0
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_open_office_storey_0_roof_0001",
-      "name": "Block open_office Storey 0 Roof 0001",
-      "surface_type": "roof",
-      "construction": "QCVN_Roof",
-      "zone_key": "zone_storey0_open_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          13.787675656179326,
-          0.0,
-          3.5
-        ],
-        [
-          13.787675656179326,
-          13.787675656179326,
-          3.5
-        ],
-        [
-          0.0,
-          13.787675656179326,
-          3.5
-        ],
-        [
-          0.0,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_office_storey_0_wall_0001",
-      "name": "Block office Storey 0 Wall 0001",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          18.787675656179324,
-          0.0,
-          3.5
-        ],
-        [
-          18.787675656179324,
-          0.0,
-          0.0
-        ],
-        [
-          22.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          22.94700252479641,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_office_storey_0_wall_0002",
-      "name": "Block office Storey 0 Wall 0002",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          22.94700252479641,
-          0.0,
-          3.5
-        ],
-        [
-          22.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          22.94700252479641,
-          4.159326868617084,
-          0.0
-        ],
-        [
-          22.94700252479641,
-          4.159326868617084,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_office_storey_0_wall_0003",
-      "name": "Block office Storey 0 Wall 0003",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          22.94700252479641,
-          4.159326868617084,
-          3.5
-        ],
-        [
-          22.94700252479641,
-          4.159326868617084,
-          0.0
-        ],
-        [
-          18.787675656179324,
-          4.159326868617084,
-          0.0
-        ],
-        [
-          18.787675656179324,
-          4.159326868617084,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_office_storey_0_wall_0004",
-      "name": "Block office Storey 0 Wall 0004",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          18.787675656179324,
-          4.159326868617084,
-          3.5
-        ],
-        [
-          18.787675656179324,
-          4.159326868617084,
-          0.0
-        ],
-        [
-          18.787675656179324,
-          0.0,
-          0.0
-        ],
-        [
-          18.787675656179324,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_office_storey_0_floor_0001",
-      "name": "Block office Storey 0 Floor 0001",
-      "surface_type": "floor",
-      "construction": "QCVN_Floor",
-      "zone_key": "zone_storey0_office",
-      "boundary": "ground",
-      "vertices": [
-        [
-          22.94700252479641,
-          4.159326868617084,
-          0.0
-        ],
-        [
-          22.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          18.787675656179324,
-          0.0,
-          0.0
-        ],
-        [
-          18.787675656179324,
-          4.159326868617084,
-          0.0
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_office_storey_0_roof_0001",
-      "name": "Block office Storey 0 Roof 0001",
-      "surface_type": "roof",
-      "construction": "QCVN_Roof",
-      "zone_key": "zone_storey0_office",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          22.94700252479641,
-          0.0,
-          3.5
-        ],
-        [
-          22.94700252479641,
-          4.159326868617084,
-          3.5
-        ],
-        [
-          18.787675656179324,
-          4.159326868617084,
-          3.5
-        ],
-        [
-          18.787675656179324,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_meeting_storey_0_wall_0001",
-      "name": "Block meeting Storey 0 Wall 0001",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_meeting",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          27.94700252479641,
-          0.0,
-          3.5
-        ],
-        [
-          27.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          31.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          31.94700252479641,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_meeting_storey_0_wall_0002",
-      "name": "Block meeting Storey 0 Wall 0002",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_meeting",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          31.94700252479641,
-          0.0,
-          3.5
-        ],
-        [
-          31.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          31.94700252479641,
-          4.0,
-          0.0
-        ],
-        [
-          31.94700252479641,
-          4.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_meeting_storey_0_wall_0003",
-      "name": "Block meeting Storey 0 Wall 0003",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_meeting",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          31.94700252479641,
-          4.0,
-          3.5
-        ],
-        [
-          31.94700252479641,
-          4.0,
-          0.0
-        ],
-        [
-          27.94700252479641,
-          4.0,
-          0.0
-        ],
-        [
-          27.94700252479641,
-          4.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_meeting_storey_0_wall_0004",
-      "name": "Block meeting Storey 0 Wall 0004",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_meeting",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          27.94700252479641,
-          4.0,
-          3.5
-        ],
-        [
-          27.94700252479641,
-          4.0,
-          0.0
-        ],
-        [
-          27.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          27.94700252479641,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_meeting_storey_0_floor_0001",
-      "name": "Block meeting Storey 0 Floor 0001",
-      "surface_type": "floor",
-      "construction": "QCVN_Floor",
-      "zone_key": "zone_storey0_meeting",
-      "boundary": "ground",
-      "vertices": [
-        [
-          31.94700252479641,
-          4.0,
-          0.0
-        ],
-        [
-          31.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          27.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          27.94700252479641,
-          4.0,
-          0.0
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_meeting_storey_0_roof_0001",
-      "name": "Block meeting Storey 0 Roof 0001",
-      "surface_type": "roof",
-      "construction": "QCVN_Roof",
-      "zone_key": "zone_storey0_meeting",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          31.94700252479641,
-          0.0,
-          3.5
-        ],
-        [
-          31.94700252479641,
-          4.0,
-          3.5
-        ],
-        [
-          27.94700252479641,
-          4.0,
-          3.5
-        ],
-        [
-          27.94700252479641,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_amenity_storey_0_wall_0001",
-      "name": "Block amenity Storey 0 Wall 0001",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_amenity",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          36.94700252479641,
-          0.0,
-          3.5
-        ],
-        [
-          36.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          41.16600714674221,
-          0.0,
-          0.0
-        ],
-        [
-          41.16600714674221,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_amenity_storey_0_wall_0002",
-      "name": "Block amenity Storey 0 Wall 0002",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_amenity",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          41.16600714674221,
-          0.0,
-          3.5
-        ],
-        [
-          41.16600714674221,
-          0.0,
-          0.0
-        ],
-        [
-          41.16600714674221,
-          4.219004621945797,
-          0.0
-        ],
-        [
-          41.16600714674221,
-          4.219004621945797,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_amenity_storey_0_wall_0003",
-      "name": "Block amenity Storey 0 Wall 0003",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_amenity",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          41.16600714674221,
-          4.219004621945797,
-          3.5
-        ],
-        [
-          41.16600714674221,
-          4.219004621945797,
-          0.0
-        ],
-        [
-          36.94700252479641,
-          4.219004621945797,
-          0.0
-        ],
-        [
-          36.94700252479641,
-          4.219004621945797,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_amenity_storey_0_wall_0004",
-      "name": "Block amenity Storey 0 Wall 0004",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_amenity",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          36.94700252479641,
-          4.219004621945797,
-          3.5
-        ],
-        [
-          36.94700252479641,
-          4.219004621945797,
-          0.0
-        ],
-        [
-          36.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          36.94700252479641,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_amenity_storey_0_floor_0001",
-      "name": "Block amenity Storey 0 Floor 0001",
-      "surface_type": "floor",
-      "construction": "QCVN_Floor",
-      "zone_key": "zone_storey0_amenity",
-      "boundary": "ground",
-      "vertices": [
-        [
-          41.16600714674221,
-          4.219004621945797,
-          0.0
-        ],
-        [
-          41.16600714674221,
-          0.0,
-          0.0
-        ],
-        [
-          36.94700252479641,
-          0.0,
-          0.0
-        ],
-        [
-          36.94700252479641,
-          4.219004621945797,
-          0.0
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_amenity_storey_0_roof_0001",
-      "name": "Block amenity Storey 0 Roof 0001",
-      "surface_type": "roof",
-      "construction": "QCVN_Roof",
-      "zone_key": "zone_storey0_amenity",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          41.16600714674221,
-          0.0,
-          3.5
-        ],
-        [
-          41.16600714674221,
-          4.219004621945797,
-          3.5
-        ],
-        [
-          36.94700252479641,
-          4.219004621945797,
-          3.5
-        ],
-        [
-          36.94700252479641,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_circulation_storey_0_wall_0001",
-      "name": "Block circulation Storey 0 Wall 0001",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_circulation",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          46.1660071467422,
-          0.0,
-          3.5
-        ],
-        [
-          46.1660071467422,
-          0.0,
-          0.0
-        ],
-        [
-          52.370843969737635,
-          0.0,
-          0.0
-        ],
-        [
-          52.370843969737635,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_circulation_storey_0_wall_0002",
-      "name": "Block circulation Storey 0 Wall 0002",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_circulation",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          52.370843969737635,
-          0.0,
-          3.5
-        ],
-        [
-          52.370843969737635,
-          0.0,
-          0.0
-        ],
-        [
-          52.370843969737635,
-          6.2048368229954285,
-          0.0
-        ],
-        [
-          52.370843969737635,
-          6.2048368229954285,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_circulation_storey_0_wall_0003",
-      "name": "Block circulation Storey 0 Wall 0003",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_circulation",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          52.370843969737635,
-          6.2048368229954285,
-          3.5
-        ],
-        [
-          52.370843969737635,
-          6.2048368229954285,
-          0.0
-        ],
-        [
-          46.1660071467422,
-          6.2048368229954285,
-          0.0
-        ],
-        [
-          46.1660071467422,
-          6.2048368229954285,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_circulation_storey_0_wall_0004",
-      "name": "Block circulation Storey 0 Wall 0004",
-      "surface_type": "wall",
-      "construction": "QCVN_Wall",
-      "zone_key": "zone_storey0_circulation",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          46.1660071467422,
-          6.2048368229954285,
-          3.5
-        ],
-        [
-          46.1660071467422,
-          6.2048368229954285,
-          0.0
-        ],
-        [
-          46.1660071467422,
-          0.0,
-          0.0
-        ],
-        [
-          46.1660071467422,
-          0.0,
-          3.5
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_circulation_storey_0_floor_0001",
-      "name": "Block circulation Storey 0 Floor 0001",
-      "surface_type": "floor",
-      "construction": "QCVN_Floor",
-      "zone_key": "zone_storey0_circulation",
-      "boundary": "ground",
-      "vertices": [
-        [
-          52.370843969737635,
-          6.2048368229954285,
-          0.0
-        ],
-        [
-          52.370843969737635,
-          0.0,
-          0.0
-        ],
-        [
-          46.1660071467422,
-          0.0,
-          0.0
-        ],
-        [
-          46.1660071467422,
-          6.2048368229954285,
-          0.0
-        ]
-      ]
-    },
-    {
-      "entity_key": "surface_block_circulation_storey_0_roof_0001",
-      "name": "Block circulation Storey 0 Roof 0001",
-      "surface_type": "roof",
-      "construction": "QCVN_Roof",
-      "zone_key": "zone_storey0_circulation",
-      "boundary": "outdoors",
-      "vertices": [
-        [
-          52.370843969737635,
-          0.0,
-          3.5
-        ],
-        [
-          52.370843969737635,
-          6.2048368229954285,
-          3.5
-        ],
-        [
-          46.1660071467422,
-          6.2048368229954285,
-          3.5
-        ],
-        [
-          46.1660071467422,
-          0.0,
-          3.5
-        ]
-      ]
-    }
-  ],
-  "fenestrations": [
-    {
-      "entity_key": "window_block_open_office_storey_0_wall_0001_window",
-      "name": "Block open_office Storey 0 Wall 0001 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block open_office Storey 0 Wall 0001",
-      "zone_key": "zone_storey0_open_office",
-      "vertices": [
-        [
-          0.006893838,
-          0.0,
-          2.3625
-        ],
-        [
-          0.006893838,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          13.780781818351237,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          13.780781818351237,
-          0.0,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_open_office_storey_0_wall_0002_window",
-      "name": "Block open_office Storey 0 Wall 0002 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block open_office Storey 0 Wall 0002",
-      "zone_key": "zone_storey0_open_office",
-      "vertices": [
-        [
-          13.787675656179326,
-          0.006893838,
-          2.3625
-        ],
-        [
-          13.787675656179326,
-          0.006893838,
-          1.1375000000000002
-        ],
-        [
-          13.787675656179326,
-          13.780781818351237,
-          1.1375000000000002
-        ],
-        [
-          13.787675656179326,
-          13.780781818351237,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_open_office_storey_0_wall_0003_window",
-      "name": "Block open_office Storey 0 Wall 0003 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block open_office Storey 0 Wall 0003",
-      "zone_key": "zone_storey0_open_office",
-      "vertices": [
-        [
-          13.780781818351237,
-          13.787675656179326,
-          2.3625
-        ],
-        [
-          13.780781818351237,
-          13.787675656179326,
-          1.1375000000000002
-        ],
-        [
-          0.006893838,
-          13.787675656179326,
-          1.1375000000000002
-        ],
-        [
-          0.006893838,
-          13.787675656179326,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_open_office_storey_0_wall_0004_window",
-      "name": "Block open_office Storey 0 Wall 0004 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block open_office Storey 0 Wall 0004",
-      "zone_key": "zone_storey0_open_office",
-      "vertices": [
-        [
-          0.0,
-          13.780781818351237,
-          2.3625
-        ],
-        [
-          0.0,
-          13.780781818351237,
-          1.1375000000000002
-        ],
-        [
-          0.0,
-          0.006893838,
-          1.1375000000000002
-        ],
-        [
-          0.0,
-          0.006893838,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_office_storey_0_wall_0001_window",
-      "name": "Block office Storey 0 Wall 0001 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block office Storey 0 Wall 0001",
-      "zone_key": "zone_storey0_office",
-      "vertices": [
-        [
-          18.789755319613633,
-          0.0,
-          2.3625
-        ],
-        [
-          18.789755319613633,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          22.9449228613621,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          22.9449228613621,
-          0.0,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_office_storey_0_wall_0002_window",
-      "name": "Block office Storey 0 Wall 0002 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block office Storey 0 Wall 0002",
-      "zone_key": "zone_storey0_office",
-      "vertices": [
-        [
-          22.94700252479641,
-          0.002079663,
-          2.3625
-        ],
-        [
-          22.94700252479641,
-          0.002079663,
-          1.1375000000000002
-        ],
-        [
-          22.94700252479641,
-          4.157247205182776,
-          1.1375000000000002
-        ],
-        [
-          22.94700252479641,
-          4.157247205182776,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_office_storey_0_wall_0003_window",
-      "name": "Block office Storey 0 Wall 0003 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block office Storey 0 Wall 0003",
-      "zone_key": "zone_storey0_office",
-      "vertices": [
-        [
-          22.9449228613621,
-          4.159326868617084,
-          2.3625
-        ],
-        [
-          22.9449228613621,
-          4.159326868617084,
-          1.1375000000000002
-        ],
-        [
-          18.789755319613633,
-          4.159326868617084,
-          1.1375000000000002
-        ],
-        [
-          18.789755319613633,
-          4.159326868617084,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_office_storey_0_wall_0004_window",
-      "name": "Block office Storey 0 Wall 0004 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block office Storey 0 Wall 0004",
-      "zone_key": "zone_storey0_office",
-      "vertices": [
-        [
-          18.787675656179324,
-          4.157247205182776,
-          2.3625
-        ],
-        [
-          18.787675656179324,
-          4.157247205182776,
-          1.1375000000000002
-        ],
-        [
-          18.787675656179324,
-          0.002079663,
-          1.1375000000000002
-        ],
-        [
-          18.787675656179324,
-          0.002079663,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_meeting_storey_0_wall_0001_window",
-      "name": "Block meeting Storey 0 Wall 0001 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block meeting Storey 0 Wall 0001",
-      "zone_key": "zone_storey0_meeting",
-      "vertices": [
-        [
-          27.94900252479641,
-          0.0,
-          2.3625
-        ],
-        [
-          27.94900252479641,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          31.94500252479641,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          31.94500252479641,
-          0.0,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_meeting_storey_0_wall_0002_window",
-      "name": "Block meeting Storey 0 Wall 0002 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block meeting Storey 0 Wall 0002",
-      "zone_key": "zone_storey0_meeting",
-      "vertices": [
-        [
-          31.94700252479641,
-          0.002,
-          2.3625
-        ],
-        [
-          31.94700252479641,
-          0.002,
-          1.1375000000000002
-        ],
-        [
-          31.94700252479641,
-          3.998,
-          1.1375000000000002
-        ],
-        [
-          31.94700252479641,
-          3.998,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_meeting_storey_0_wall_0003_window",
-      "name": "Block meeting Storey 0 Wall 0003 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block meeting Storey 0 Wall 0003",
-      "zone_key": "zone_storey0_meeting",
-      "vertices": [
-        [
-          31.94500252479641,
-          4.0,
-          2.3625
-        ],
-        [
-          31.94500252479641,
-          4.0,
-          1.1375000000000002
-        ],
-        [
-          27.94900252479641,
-          4.0,
-          1.1375000000000002
-        ],
-        [
-          27.94900252479641,
-          4.0,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_meeting_storey_0_wall_0004_window",
-      "name": "Block meeting Storey 0 Wall 0004 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block meeting Storey 0 Wall 0004",
-      "zone_key": "zone_storey0_meeting",
-      "vertices": [
-        [
-          27.94700252479641,
-          3.998,
-          2.3625
-        ],
-        [
-          27.94700252479641,
-          3.998,
-          1.1375000000000002
-        ],
-        [
-          27.94700252479641,
-          0.002,
-          1.1375000000000002
-        ],
-        [
-          27.94700252479641,
-          0.002,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_amenity_storey_0_wall_0001_window",
-      "name": "Block amenity Storey 0 Wall 0001 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block amenity Storey 0 Wall 0001",
-      "zone_key": "zone_storey0_amenity",
-      "vertices": [
-        [
-          36.94911202710738,
-          0.0,
-          2.3625
-        ],
-        [
-          36.94911202710738,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          41.16389764443124,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          41.16389764443124,
-          0.0,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_amenity_storey_0_wall_0002_window",
-      "name": "Block amenity Storey 0 Wall 0002 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block amenity Storey 0 Wall 0002",
-      "zone_key": "zone_storey0_amenity",
-      "vertices": [
-        [
-          41.16600714674221,
-          0.002109502,
-          2.3625
-        ],
-        [
-          41.16600714674221,
-          0.002109502,
-          1.1375000000000002
-        ],
-        [
-          41.16600714674221,
-          4.216895119634824,
-          1.1375000000000002
-        ],
-        [
-          41.16600714674221,
-          4.216895119634824,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_amenity_storey_0_wall_0003_window",
-      "name": "Block amenity Storey 0 Wall 0003 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block amenity Storey 0 Wall 0003",
-      "zone_key": "zone_storey0_amenity",
-      "vertices": [
-        [
-          41.16389764443124,
-          4.219004621945797,
-          2.3625
-        ],
-        [
-          41.16389764443124,
-          4.219004621945797,
-          1.1375000000000002
-        ],
-        [
-          36.94911202710738,
-          4.219004621945797,
-          1.1375000000000002
-        ],
-        [
-          36.94911202710738,
-          4.219004621945797,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_amenity_storey_0_wall_0004_window",
-      "name": "Block amenity Storey 0 Wall 0004 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block amenity Storey 0 Wall 0004",
-      "zone_key": "zone_storey0_amenity",
-      "vertices": [
-        [
-          36.94700252479641,
-          4.216895119634824,
-          2.3625
-        ],
-        [
-          36.94700252479641,
-          4.216895119634824,
-          1.1375000000000002
-        ],
-        [
-          36.94700252479641,
-          0.002109502,
-          1.1375000000000002
-        ],
-        [
-          36.94700252479641,
-          0.002109502,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_circulation_storey_0_wall_0001_window",
-      "name": "Block circulation Storey 0 Wall 0001 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block circulation Storey 0 Wall 0001",
-      "zone_key": "zone_storey0_circulation",
-      "vertices": [
-        [
-          46.169109565153704,
-          0.0,
-          2.3625
-        ],
-        [
-          46.169109565153704,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          52.367741551326134,
-          0.0,
-          1.1375000000000002
-        ],
-        [
-          52.367741551326134,
-          0.0,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_circulation_storey_0_wall_0002_window",
-      "name": "Block circulation Storey 0 Wall 0002 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block circulation Storey 0 Wall 0002",
-      "zone_key": "zone_storey0_circulation",
-      "vertices": [
-        [
-          52.370843969737635,
-          0.003102418,
-          2.3625
-        ],
-        [
-          52.370843969737635,
-          0.003102418,
-          1.1375000000000002
-        ],
-        [
-          52.370843969737635,
-          6.201734404583931,
-          1.1375000000000002
-        ],
-        [
-          52.370843969737635,
-          6.201734404583931,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_circulation_storey_0_wall_0003_window",
-      "name": "Block circulation Storey 0 Wall 0003 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block circulation Storey 0 Wall 0003",
-      "zone_key": "zone_storey0_circulation",
-      "vertices": [
-        [
-          52.367741551326134,
-          6.2048368229954285,
-          2.3625
-        ],
-        [
-          52.367741551326134,
-          6.2048368229954285,
-          1.1375000000000002
-        ],
-        [
-          46.169109565153704,
-          6.2048368229954285,
-          1.1375000000000002
-        ],
-        [
-          46.169109565153704,
-          6.2048368229954285,
-          2.3625
-        ]
-      ]
-    },
-    {
-      "entity_key": "window_block_circulation_storey_0_wall_0004_window",
-      "name": "Block circulation Storey 0 Wall 0004 window",
-      "surface_type": "window",
-      "construction": "QCVN_Window",
-      "base_surface": "Block circulation Storey 0 Wall 0004",
-      "zone_key": "zone_storey0_circulation",
-      "vertices": [
-        [
-          46.1660071467422,
-          6.201734404583931,
-          2.3625
-        ],
-        [
-          46.1660071467422,
-          6.201734404583931,
-          1.1375000000000002
-        ],
-        [
-          46.1660071467422,
-          0.003102418,
-          1.1375000000000002
-        ],
-        [
-          46.1660071467422,
-          0.003102418,
-          2.3625
-        ]
-      ]
-    }
-  ],
-  "constructions": [
-    {
-      "name": "Project Wall",
-      "layers": [
-        "DefaultMaterial"
-      ]
-    },
-    {
-      "name": "Project Partition",
-      "layers": [
-        "DefaultMaterial"
-      ]
-    },
-    {
-      "name": "Project Floor",
-      "layers": [
-        "DefaultMaterial"
-      ]
-    },
-    {
-      "name": "Project Flat Roof",
-      "layers": [
-        "DefaultMaterial"
-      ]
-    },
-    {
-      "name": "Project Ceiling",
-      "layers": [
-        "DefaultMaterial"
-      ]
-    },
-    {
-      "name": "Project Door",
-      "layers": [
-        "DefaultMaterial"
-      ]
-    },
-    {
-      "name": "Project External Window",
-      "layers": [
-        "DefaultGlazing"
-      ]
-    },
-    {
-      "name": "QCVN_Wall",
-      "layers": [
-        "QCVN_Wall_mat"
-      ]
-    },
-    {
-      "name": "QCVN_Roof",
-      "layers": [
-        "QCVN_Roof_mat"
-      ]
-    },
-    {
-      "name": "QCVN_Floor",
-      "layers": [
-        "QCVN_Floor_mat"
-      ]
-    },
-    {
-      "name": "QCVN_Window",
-      "layers": [
-        "QCVN_Win_mat"
-      ]
-    }
-  ],
-  "materials": [
-    {
-      "name": "DefaultMaterial",
-      "class": "MATERIAL",
-      "fields": [
-        "Rough",
-        "0.1",
-        "0.1",
-        "1000",
-        "1000",
-        "0.9",
-        "0.7",
-        "0.7"
-      ]
-    },
-    {
-      "name": "QCVN_Wall_mat",
-      "class": "MATERIAL:NOMASS",
-      "fields": [
-        "MediumRough",
-        "0.559",
-        "0.9",
-        "0.6",
-        "0.6"
-      ]
-    },
-    {
-      "name": "QCVN_Roof_mat",
-      "class": "MATERIAL:NOMASS",
-      "fields": [
-        "MediumRough",
-        "1",
-        "0.9",
-        "0.6",
-        "0.6"
-      ]
-    },
-    {
-      "name": "QCVN_Floor_mat",
-      "class": "MATERIAL:NOMASS",
-      "fields": [
-        "MediumRough",
-        "0.5",
-        "0.9",
-        "0.6",
-        "0.6"
-      ]
-    },
-    {
-      "name": "DefaultGlazing",
-      "class": "WINDOWMATERIAL:SIMPLEGLAZINGSYSTEM",
-      "fields": [
-        "2.7",
-        "0.763",
-        "0.8"
-      ]
-    },
-    {
-      "name": "QCVN_Win_mat",
-      "class": "WINDOWMATERIAL:SIMPLEGLAZINGSYSTEM",
-      "fields": [
-        "2.8",
-        "0.52"
-      ]
-    }
-  ],
-  "schedules": {
-    "ActivitySched": {
-      "weekday": [
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0
+      "entity_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "name": "Staircase 201",
+      "floor_key": "level_02",
+      "room_type": "circulation",
+      "comfort_profile": "relaxed",
+      "area_m2": 25.77,
+      "volume_m3": 101.79,
+      "height_m": 3.95,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
       ],
-      "weekend": [
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0,
-        120.0
-      ]
+      "lights_w_m2": 5.0,
+      "equip_w_m2": 1.0,
+      "people_per_m2": 0.02,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 22.5,
+      "envelope_area_m2": 106.0,
+      "source_space_name": "STAIRCASE 201",
+      "ifc_guid": "3H2AkZFqzChQTN2UOTW$7V",
+      "storey": "Level_02"
     },
+    {
+      "entity_key": "zone_1xBFBS5N18MfdblikYnUBD",
+      "name": "Staircase 302",
+      "floor_key": "level_03",
+      "room_type": "circulation",
+      "comfort_profile": "relaxed",
+      "area_m2": 25.77,
+      "volume_m3": 101.8,
+      "height_m": 3.95,
+      "centroid": [
+        0.0,
+        0.0,
+        0.0
+      ],
+      "lights_w_m2": 5.0,
+      "equip_w_m2": 1.0,
+      "people_per_m2": 0.02,
+      "occupancy_schedule": "WorkHoursFrac",
+      "lights_schedule": "WorkHoursFrac",
+      "equip_schedule": "WorkHoursFrac",
+      "window_area_m2": 22.5,
+      "envelope_area_m2": 106.0,
+      "source_space_name": "STAIRCASE 302",
+      "ifc_guid": "1xBFBS5N18MfdblikYnUBD",
+      "storey": "Level_03"
+    }
+  ],
+  "surfaces": [],
+  "fenestrations": [],
+  "constructions": [],
+  "materials": [],
+  "schedules": {
     "WorkHoursFrac": {
       "weekday": [
         0.0,
@@ -1934,326 +556,56 @@
     },
     "HeatSetSched": {
       "weekday": [
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        20.0,
-        20.0,
-        20.0,
-        20.0,
-        20.0,
-        20.0,
-        20.0,
-        20.0,
-        20.0,
-        20.0,
-        20.0,
-        20.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0
       ],
       "weekend": [
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0,
-        16.0
-      ]
-    },
-    "Occ_open_office": {
-      "weekday": [
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.05,
-        0.3,
-        0.7,
-        0.9,
-        0.92,
-        0.9,
-        0.55,
-        0.6,
-        0.9,
-        0.92,
-        0.85,
-        0.6,
-        0.25,
-        0.08,
-        0.02,
-        0.0,
-        0.0,
-        0.0
-      ],
-      "weekend": [
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05
-      ]
-    },
-    "Occ_office": {
-      "weekday": [
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.05,
-        0.3,
-        0.7,
-        0.9,
-        0.92,
-        0.9,
-        0.55,
-        0.6,
-        0.9,
-        0.92,
-        0.85,
-        0.6,
-        0.25,
-        0.08,
-        0.02,
-        0.0,
-        0.0,
-        0.0
-      ],
-      "weekend": [
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05
-      ]
-    },
-    "Occ_meeting": {
-      "weekday": [
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.1,
-        0.3,
-        0.5,
-        0.6,
-        0.4,
-        0.2,
-        0.5,
-        0.6,
-        0.5,
-        0.4,
-        0.2,
-        0.05,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0
-      ],
-      "weekend": [
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05
-      ]
-    },
-    "Occ_amenity": {
-      "weekday": [
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.0,
-        0.05,
-        0.15,
-        0.2,
-        0.2,
-        0.25,
-        0.5,
-        0.7,
-        0.5,
-        0.25,
-        0.2,
-        0.25,
-        0.4,
-        0.2,
-        0.1,
-        0.05,
-        0.0,
-        0.0,
-        0.0
-      ],
-      "weekend": [
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05
-      ]
-    },
-    "Occ_circulation": {
-      "weekday": [
-        0.02,
-        0.02,
-        0.02,
-        0.02,
-        0.02,
-        0.03,
-        0.1,
-        0.3,
-        0.4,
-        0.35,
-        0.3,
-        0.4,
-        0.5,
-        0.4,
-        0.3,
-        0.35,
-        0.4,
-        0.45,
-        0.3,
-        0.15,
-        0.08,
-        0.05,
-        0.03,
-        0.02
-      ],
-      "weekend": [
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05,
-        0.05
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0,
+        18.0
       ]
     }
   },
@@ -2287,212 +639,536 @@
       28.0
     ],
     "heating_weekday": [
-      16.0,
-      16.0,
-      16.0,
-      16.0,
-      16.0,
-      16.0,
-      16.0,
-      20.0,
-      20.0,
-      20.0,
-      20.0,
-      20.0,
-      20.0,
-      20.0,
-      20.0,
-      20.0,
-      20.0,
-      20.0,
-      20.0,
-      16.0,
-      16.0,
-      16.0,
-      16.0,
-      16.0
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0,
+      18.0
     ]
   },
   "devices": [
     {
-      "entity_key": "airterminal_storey0_open_office",
-      "name": "Air Terminal Block open_office Storey 0",
+      "entity_key": "airterminal_3xtnrBUgHBCwRh_xfyB626",
+      "name": "Air Terminal Parking 150",
       "device_type": "hvac",
       "device_subtype": "air_terminal",
-      "zone_key": "zone_storey0_open_office",
-      "floor_key": "storey_0",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB626",
+      "floor_key": "level_01",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 17.11,
-      "tag": "AT-storey0_open_office"
+      "nominal_power_kw": 36.75,
+      "tag": "AT-3xtnrBUgHBCwRh_xfyB626"
     },
     {
-      "entity_key": "lighting_storey0_open_office",
-      "name": "Lighting Circuit Block open_office Storey 0",
+      "entity_key": "lighting_3xtnrBUgHBCwRh_xfyB626",
+      "name": "Lighting Circuit Parking 150",
       "device_type": "electrical",
       "device_subtype": "lighting_circuit",
-      "zone_key": "zone_storey0_open_office",
-      "floor_key": "storey_0",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB626",
+      "floor_key": "level_01",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 2.091,
-      "tag": "LT-storey0_open_office"
+      "nominal_power_kw": 4.492,
+      "tag": "LT-3xtnrBUgHBCwRh_xfyB626"
     },
     {
-      "entity_key": "plug_storey0_open_office",
-      "name": "Plug Circuit Block open_office Storey 0",
+      "entity_key": "plug_3xtnrBUgHBCwRh_xfyB626",
+      "name": "Plug Circuit Parking 150",
       "device_type": "electrical",
       "device_subtype": "plug_circuit",
-      "zone_key": "zone_storey0_open_office",
-      "floor_key": "storey_0",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB626",
+      "floor_key": "level_01",
       "controllable": false,
       "risk_level": "normal",
-      "nominal_power_kw": 2.281,
-      "tag": "PL-storey0_open_office"
+      "nominal_power_kw": 4.9,
+      "tag": "PL-3xtnrBUgHBCwRh_xfyB626"
     },
     {
-      "entity_key": "airterminal_storey0_office",
-      "name": "Air Terminal Block office Storey 0",
+      "entity_key": "airterminal_3xtnrBUgHBCwRh_xfyB4IZ",
+      "name": "Air Terminal Open Office 220",
       "device_type": "hvac",
       "device_subtype": "air_terminal",
-      "zone_key": "zone_storey0_office",
-      "floor_key": "storey_0",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
+      "floor_key": "level_02",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 1.56,
-      "tag": "AT-storey0_office"
+      "nominal_power_kw": 31.93,
+      "tag": "AT-3xtnrBUgHBCwRh_xfyB4IZ"
     },
     {
-      "entity_key": "lighting_storey0_office",
-      "name": "Lighting Circuit Block office Storey 0",
+      "entity_key": "lighting_3xtnrBUgHBCwRh_xfyB4IZ",
+      "name": "Lighting Circuit Open Office 220",
       "device_type": "electrical",
       "device_subtype": "lighting_circuit",
-      "zone_key": "zone_storey0_office",
-      "floor_key": "storey_0",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
+      "floor_key": "level_02",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 0.19,
-      "tag": "LT-storey0_office"
+      "nominal_power_kw": 3.902,
+      "tag": "LT-3xtnrBUgHBCwRh_xfyB4IZ"
     },
     {
-      "entity_key": "plug_storey0_office",
-      "name": "Plug Circuit Block office Storey 0",
+      "entity_key": "plug_3xtnrBUgHBCwRh_xfyB4IZ",
+      "name": "Plug Circuit Open Office 220",
       "device_type": "electrical",
       "device_subtype": "plug_circuit",
-      "zone_key": "zone_storey0_office",
-      "floor_key": "storey_0",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
+      "floor_key": "level_02",
       "controllable": false,
       "risk_level": "normal",
-      "nominal_power_kw": 0.208,
-      "tag": "PL-storey0_office"
+      "nominal_power_kw": 4.257,
+      "tag": "PL-3xtnrBUgHBCwRh_xfyB4IZ"
     },
     {
-      "entity_key": "airterminal_storey0_meeting",
-      "name": "Air Terminal Block meeting Storey 0",
+      "entity_key": "airterminal_3xtnrBUgHBCwRh_xfyB1VR",
+      "name": "Air Terminal Open Office 230",
       "device_type": "hvac",
       "device_subtype": "air_terminal",
-      "zone_key": "zone_storey0_meeting",
-      "floor_key": "storey_0",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
+      "floor_key": "level_02",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 1.44,
-      "tag": "AT-storey0_meeting"
+      "nominal_power_kw": 27.26,
+      "tag": "AT-3xtnrBUgHBCwRh_xfyB1VR"
     },
     {
-      "entity_key": "lighting_storey0_meeting",
-      "name": "Lighting Circuit Block meeting Storey 0",
+      "entity_key": "lighting_3xtnrBUgHBCwRh_xfyB1VR",
+      "name": "Lighting Circuit Open Office 230",
       "device_type": "electrical",
       "device_subtype": "lighting_circuit",
-      "zone_key": "zone_storey0_meeting",
-      "floor_key": "storey_0",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
+      "floor_key": "level_02",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 0.176,
-      "tag": "LT-storey0_meeting"
+      "nominal_power_kw": 3.331,
+      "tag": "LT-3xtnrBUgHBCwRh_xfyB1VR"
     },
     {
-      "entity_key": "plug_storey0_meeting",
-      "name": "Plug Circuit Block meeting Storey 0",
+      "entity_key": "plug_3xtnrBUgHBCwRh_xfyB1VR",
+      "name": "Plug Circuit Open Office 230",
       "device_type": "electrical",
       "device_subtype": "plug_circuit",
-      "zone_key": "zone_storey0_meeting",
-      "floor_key": "storey_0",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
+      "floor_key": "level_02",
       "controllable": false,
       "risk_level": "normal",
-      "nominal_power_kw": 0.128,
-      "tag": "PL-storey0_meeting"
+      "nominal_power_kw": 3.634,
+      "tag": "PL-3xtnrBUgHBCwRh_xfyB1VR"
     },
     {
-      "entity_key": "airterminal_storey0_amenity",
-      "name": "Air Terminal Block amenity Storey 0",
+      "entity_key": "airterminal_0Q4MSUQx531vKL_w06AgFH",
+      "name": "Air Terminal Open Office 430",
       "device_type": "hvac",
       "device_subtype": "air_terminal",
-      "zone_key": "zone_storey0_amenity",
-      "floor_key": "storey_0",
+      "zone_key": "zone_0Q4MSUQx531vKL_w06AgFH",
+      "floor_key": "level_04",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 1.6,
-      "tag": "AT-storey0_amenity"
+      "nominal_power_kw": 25.76,
+      "tag": "AT-0Q4MSUQx531vKL_w06AgFH"
     },
     {
-      "entity_key": "lighting_storey0_amenity",
-      "name": "Lighting Circuit Block amenity Storey 0",
+      "entity_key": "lighting_0Q4MSUQx531vKL_w06AgFH",
+      "name": "Lighting Circuit Open Office 430",
       "device_type": "electrical",
       "device_subtype": "lighting_circuit",
-      "zone_key": "zone_storey0_amenity",
-      "floor_key": "storey_0",
+      "zone_key": "zone_0Q4MSUQx531vKL_w06AgFH",
+      "floor_key": "level_04",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 0.196,
-      "tag": "LT-storey0_amenity"
+      "nominal_power_kw": 3.148,
+      "tag": "LT-0Q4MSUQx531vKL_w06AgFH"
     },
     {
-      "entity_key": "plug_storey0_amenity",
-      "name": "Plug Circuit Block amenity Storey 0",
+      "entity_key": "plug_0Q4MSUQx531vKL_w06AgFH",
+      "name": "Plug Circuit Open Office 430",
       "device_type": "electrical",
       "device_subtype": "plug_circuit",
-      "zone_key": "zone_storey0_amenity",
-      "floor_key": "storey_0",
+      "zone_key": "zone_0Q4MSUQx531vKL_w06AgFH",
+      "floor_key": "level_04",
       "controllable": false,
       "risk_level": "normal",
-      "nominal_power_kw": 0.107,
-      "tag": "PL-storey0_amenity"
+      "nominal_power_kw": 3.434,
+      "tag": "PL-0Q4MSUQx531vKL_w06AgFH"
     },
     {
-      "entity_key": "airterminal_storey0_circulation",
-      "name": "Air Terminal Block circulation Storey 0",
+      "entity_key": "airterminal_1xBFBS5N18MfdblikYnUB5",
+      "name": "Air Terminal Open Office 330",
       "device_type": "hvac",
       "device_subtype": "air_terminal",
-      "zone_key": "zone_storey0_circulation",
-      "floor_key": "storey_0",
+      "zone_key": "zone_1xBFBS5N18MfdblikYnUB5",
+      "floor_key": "level_03",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 3.46,
-      "tag": "AT-storey0_circulation"
+      "nominal_power_kw": 24.18,
+      "tag": "AT-1xBFBS5N18MfdblikYnUB5"
     },
     {
-      "entity_key": "lighting_storey0_circulation",
-      "name": "Lighting Circuit Block circulation Storey 0",
+      "entity_key": "lighting_1xBFBS5N18MfdblikYnUB5",
+      "name": "Lighting Circuit Open Office 330",
       "device_type": "electrical",
       "device_subtype": "lighting_circuit",
-      "zone_key": "zone_storey0_circulation",
-      "floor_key": "storey_0",
+      "zone_key": "zone_1xBFBS5N18MfdblikYnUB5",
+      "floor_key": "level_03",
       "controllable": true,
       "risk_level": "normal",
-      "nominal_power_kw": 0.193,
-      "tag": "LT-storey0_circulation"
+      "nominal_power_kw": 2.955,
+      "tag": "LT-1xBFBS5N18MfdblikYnUB5"
     },
     {
-      "entity_key": "plug_storey0_circulation",
-      "name": "Plug Circuit Block circulation Storey 0",
+      "entity_key": "plug_1xBFBS5N18MfdblikYnUB5",
+      "name": "Plug Circuit Open Office 330",
       "device_type": "electrical",
       "device_subtype": "plug_circuit",
-      "zone_key": "zone_storey0_circulation",
-      "floor_key": "storey_0",
+      "zone_key": "zone_1xBFBS5N18MfdblikYnUB5",
+      "floor_key": "level_03",
       "controllable": false,
       "risk_level": "normal",
-      "nominal_power_kw": 0.077,
-      "tag": "PL-storey0_circulation"
+      "nominal_power_kw": 3.224,
+      "tag": "PL-1xBFBS5N18MfdblikYnUB5"
+    },
+    {
+      "entity_key": "airterminal_3xtnrBUgHBCwRh_xfyB8zE",
+      "name": "Air Terminal Lobby 100",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 24.13,
+      "tag": "AT-3xtnrBUgHBCwRh_xfyB8zE"
+    },
+    {
+      "entity_key": "lighting_3xtnrBUgHBCwRh_xfyB8zE",
+      "name": "Lighting Circuit Lobby 100",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 2.413,
+      "tag": "LT-3xtnrBUgHBCwRh_xfyB8zE"
+    },
+    {
+      "entity_key": "plug_3xtnrBUgHBCwRh_xfyB8zE",
+      "name": "Plug Circuit Lobby 100",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "floor_key": "level_01",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.804,
+      "tag": "PL-3xtnrBUgHBCwRh_xfyB8zE"
+    },
+    {
+      "entity_key": "airterminal_0tWM7C8ybBZQ4c5DL1_lwj",
+      "name": "Air Terminal Restaurant 1000",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 21.94,
+      "tag": "AT-0tWM7C8ybBZQ4c5DL1_lwj"
+    },
+    {
+      "entity_key": "lighting_0tWM7C8ybBZQ4c5DL1_lwj",
+      "name": "Lighting Circuit Restaurant 1000",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 2.682,
+      "tag": "LT-0tWM7C8ybBZQ4c5DL1_lwj"
+    },
+    {
+      "entity_key": "plug_0tWM7C8ybBZQ4c5DL1_lwj",
+      "name": "Plug Circuit Restaurant 1000",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "floor_key": "level_01",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 2.926,
+      "tag": "PL-0tWM7C8ybBZQ4c5DL1_lwj"
+    },
+    {
+      "entity_key": "airterminal_2EmhthfYTF_hx0gAAa2KtI",
+      "name": "Air Terminal Business Space 140",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 10.54,
+      "tag": "AT-2EmhthfYTF_hx0gAAa2KtI"
+    },
+    {
+      "entity_key": "lighting_2EmhthfYTF_hx0gAAa2KtI",
+      "name": "Lighting Circuit Business Space 140",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 1.288,
+      "tag": "LT-2EmhthfYTF_hx0gAAa2KtI"
+    },
+    {
+      "entity_key": "plug_2EmhthfYTF_hx0gAAa2KtI",
+      "name": "Plug Circuit Business Space 140",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "floor_key": "level_01",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 1.405,
+      "tag": "PL-2EmhthfYTF_hx0gAAa2KtI"
+    },
+    {
+      "entity_key": "airterminal_3jzuKaCoj7duM8YUpx6IdZ",
+      "name": "Air Terminal Kitchen 110",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 7.62,
+      "tag": "AT-3jzuKaCoj7duM8YUpx6IdZ"
+    },
+    {
+      "entity_key": "lighting_3jzuKaCoj7duM8YUpx6IdZ",
+      "name": "Lighting Circuit Kitchen 110",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.847,
+      "tag": "LT-3jzuKaCoj7duM8YUpx6IdZ"
+    },
+    {
+      "entity_key": "plug_3jzuKaCoj7duM8YUpx6IdZ",
+      "name": "Plug Circuit Kitchen 110",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "floor_key": "level_01",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.508,
+      "tag": "PL-3jzuKaCoj7duM8YUpx6IdZ"
+    },
+    {
+      "entity_key": "airterminal_0tWM7C8ybBZQ4c5DL1_lzg",
+      "name": "Air Terminal Auditorium 130",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 4.83,
+      "tag": "AT-0tWM7C8ybBZQ4c5DL1_lzg"
+    },
+    {
+      "entity_key": "lighting_0tWM7C8ybBZQ4c5DL1_lzg",
+      "name": "Lighting Circuit Auditorium 130",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "floor_key": "level_01",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.591,
+      "tag": "LT-0tWM7C8ybBZQ4c5DL1_lzg"
+    },
+    {
+      "entity_key": "plug_0tWM7C8ybBZQ4c5DL1_lzg",
+      "name": "Plug Circuit Auditorium 130",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "floor_key": "level_01",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.644,
+      "tag": "PL-0tWM7C8ybBZQ4c5DL1_lzg"
+    },
+    {
+      "entity_key": "airterminal_36Blhdds16DOgkiAVsP5oS",
+      "name": "Air Terminal Meeting 547",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "floor_key": "level_04",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 2.44,
+      "tag": "AT-36Blhdds16DOgkiAVsP5oS"
+    },
+    {
+      "entity_key": "lighting_36Blhdds16DOgkiAVsP5oS",
+      "name": "Lighting Circuit Meeting 547",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "floor_key": "level_04",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.298,
+      "tag": "LT-36Blhdds16DOgkiAVsP5oS"
+    },
+    {
+      "entity_key": "plug_36Blhdds16DOgkiAVsP5oS",
+      "name": "Plug Circuit Meeting 547",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "floor_key": "level_04",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.217,
+      "tag": "PL-36Blhdds16DOgkiAVsP5oS"
+    },
+    {
+      "entity_key": "airterminal_0Q4MSUQx531vKL_w06AgFJ",
+      "name": "Air Terminal Staircase 401",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "floor_key": "level_04",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 2.34,
+      "tag": "AT-0Q4MSUQx531vKL_w06AgFJ"
+    },
+    {
+      "entity_key": "lighting_0Q4MSUQx531vKL_w06AgFJ",
+      "name": "Lighting Circuit Staircase 401",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "floor_key": "level_04",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.13,
+      "tag": "LT-0Q4MSUQx531vKL_w06AgFJ"
+    },
+    {
+      "entity_key": "plug_0Q4MSUQx531vKL_w06AgFJ",
+      "name": "Plug Circuit Staircase 401",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "floor_key": "level_04",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.026,
+      "tag": "PL-0Q4MSUQx531vKL_w06AgFJ"
+    },
+    {
+      "entity_key": "airterminal_3H2AkZFqzChQTN2UOTW_7V",
+      "name": "Air Terminal Staircase 201",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "floor_key": "level_02",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 2.32,
+      "tag": "AT-3H2AkZFqzChQTN2UOTW_7V"
+    },
+    {
+      "entity_key": "lighting_3H2AkZFqzChQTN2UOTW_7V",
+      "name": "Lighting Circuit Staircase 201",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "floor_key": "level_02",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.129,
+      "tag": "LT-3H2AkZFqzChQTN2UOTW_7V"
+    },
+    {
+      "entity_key": "plug_3H2AkZFqzChQTN2UOTW_7V",
+      "name": "Plug Circuit Staircase 201",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "floor_key": "level_02",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.026,
+      "tag": "PL-3H2AkZFqzChQTN2UOTW_7V"
+    },
+    {
+      "entity_key": "airterminal_1xBFBS5N18MfdblikYnUBD",
+      "name": "Air Terminal Staircase 302",
+      "device_type": "hvac",
+      "device_subtype": "air_terminal",
+      "zone_key": "zone_1xBFBS5N18MfdblikYnUBD",
+      "floor_key": "level_03",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 2.32,
+      "tag": "AT-1xBFBS5N18MfdblikYnUBD"
+    },
+    {
+      "entity_key": "lighting_1xBFBS5N18MfdblikYnUBD",
+      "name": "Lighting Circuit Staircase 302",
+      "device_type": "electrical",
+      "device_subtype": "lighting_circuit",
+      "zone_key": "zone_1xBFBS5N18MfdblikYnUBD",
+      "floor_key": "level_03",
+      "controllable": true,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.129,
+      "tag": "LT-1xBFBS5N18MfdblikYnUBD"
+    },
+    {
+      "entity_key": "plug_1xBFBS5N18MfdblikYnUBD",
+      "name": "Plug Circuit Staircase 302",
+      "device_type": "electrical",
+      "device_subtype": "plug_circuit",
+      "zone_key": "zone_1xBFBS5N18MfdblikYnUBD",
+      "floor_key": "level_03",
+      "controllable": false,
+      "risk_level": "normal",
+      "nominal_power_kw": 0.026,
+      "tag": "PL-1xBFBS5N18MfdblikYnUBD"
     },
     {
       "entity_key": "ahu_building_01",
@@ -2520,66 +1196,111 @@
     }
   ],
   "zone_equipment_map": {
-    "zone_storey0_open_office": [
-      "airterminal_storey0_open_office",
-      "lighting_storey0_open_office",
-      "plug_storey0_open_office"
+    "zone_3xtnrBUgHBCwRh_xfyB626": [
+      "airterminal_3xtnrBUgHBCwRh_xfyB626",
+      "lighting_3xtnrBUgHBCwRh_xfyB626",
+      "plug_3xtnrBUgHBCwRh_xfyB626"
     ],
-    "zone_storey0_office": [
-      "airterminal_storey0_office",
-      "lighting_storey0_office",
-      "plug_storey0_office"
+    "zone_3xtnrBUgHBCwRh_xfyB4IZ": [
+      "airterminal_3xtnrBUgHBCwRh_xfyB4IZ",
+      "lighting_3xtnrBUgHBCwRh_xfyB4IZ",
+      "plug_3xtnrBUgHBCwRh_xfyB4IZ"
     ],
-    "zone_storey0_meeting": [
-      "airterminal_storey0_meeting",
-      "lighting_storey0_meeting",
-      "plug_storey0_meeting"
+    "zone_3xtnrBUgHBCwRh_xfyB1VR": [
+      "airterminal_3xtnrBUgHBCwRh_xfyB1VR",
+      "lighting_3xtnrBUgHBCwRh_xfyB1VR",
+      "plug_3xtnrBUgHBCwRh_xfyB1VR"
     ],
-    "zone_storey0_amenity": [
-      "airterminal_storey0_amenity",
-      "lighting_storey0_amenity",
-      "plug_storey0_amenity"
+    "zone_0Q4MSUQx531vKL_w06AgFH": [
+      "airterminal_0Q4MSUQx531vKL_w06AgFH",
+      "lighting_0Q4MSUQx531vKL_w06AgFH",
+      "plug_0Q4MSUQx531vKL_w06AgFH"
     ],
-    "zone_storey0_circulation": [
-      "airterminal_storey0_circulation",
-      "lighting_storey0_circulation",
-      "plug_storey0_circulation"
+    "zone_1xBFBS5N18MfdblikYnUB5": [
+      "airterminal_1xBFBS5N18MfdblikYnUB5",
+      "lighting_1xBFBS5N18MfdblikYnUB5",
+      "plug_1xBFBS5N18MfdblikYnUB5"
+    ],
+    "zone_3xtnrBUgHBCwRh_xfyB8zE": [
+      "airterminal_3xtnrBUgHBCwRh_xfyB8zE",
+      "lighting_3xtnrBUgHBCwRh_xfyB8zE",
+      "plug_3xtnrBUgHBCwRh_xfyB8zE"
+    ],
+    "zone_0tWM7C8ybBZQ4c5DL1_lwj": [
+      "airterminal_0tWM7C8ybBZQ4c5DL1_lwj",
+      "lighting_0tWM7C8ybBZQ4c5DL1_lwj",
+      "plug_0tWM7C8ybBZQ4c5DL1_lwj"
+    ],
+    "zone_2EmhthfYTF_hx0gAAa2KtI": [
+      "airterminal_2EmhthfYTF_hx0gAAa2KtI",
+      "lighting_2EmhthfYTF_hx0gAAa2KtI",
+      "plug_2EmhthfYTF_hx0gAAa2KtI"
+    ],
+    "zone_3jzuKaCoj7duM8YUpx6IdZ": [
+      "airterminal_3jzuKaCoj7duM8YUpx6IdZ",
+      "lighting_3jzuKaCoj7duM8YUpx6IdZ",
+      "plug_3jzuKaCoj7duM8YUpx6IdZ"
+    ],
+    "zone_0tWM7C8ybBZQ4c5DL1_lzg": [
+      "airterminal_0tWM7C8ybBZQ4c5DL1_lzg",
+      "lighting_0tWM7C8ybBZQ4c5DL1_lzg",
+      "plug_0tWM7C8ybBZQ4c5DL1_lzg"
+    ],
+    "zone_36Blhdds16DOgkiAVsP5oS": [
+      "airterminal_36Blhdds16DOgkiAVsP5oS",
+      "lighting_36Blhdds16DOgkiAVsP5oS",
+      "plug_36Blhdds16DOgkiAVsP5oS"
+    ],
+    "zone_0Q4MSUQx531vKL_w06AgFJ": [
+      "airterminal_0Q4MSUQx531vKL_w06AgFJ",
+      "lighting_0Q4MSUQx531vKL_w06AgFJ",
+      "plug_0Q4MSUQx531vKL_w06AgFJ"
+    ],
+    "zone_3H2AkZFqzChQTN2UOTW_7V": [
+      "airterminal_3H2AkZFqzChQTN2UOTW_7V",
+      "lighting_3H2AkZFqzChQTN2UOTW_7V",
+      "plug_3H2AkZFqzChQTN2UOTW_7V"
+    ],
+    "zone_1xBFBS5N18MfdblikYnUBD": [
+      "airterminal_1xBFBS5N18MfdblikYnUBD",
+      "lighting_1xBFBS5N18MfdblikYnUBD",
+      "plug_1xBFBS5N18MfdblikYnUBD"
     ]
   },
   "entity_relations": [
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_open_office",
+      "src_key": "airterminal_3xtnrBUgHBCwRh_xfyB626",
       "relation": "SUPPLIES_AIR_TO",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_open_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB626",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_open_office",
+      "src_key": "airterminal_3xtnrBUgHBCwRh_xfyB626",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_open_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB626",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "lighting_storey0_open_office",
+      "src_key": "lighting_3xtnrBUgHBCwRh_xfyB626",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_open_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB626",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "plug_storey0_open_office",
+      "src_key": "plug_3xtnrBUgHBCwRh_xfyB626",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_open_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB626",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
@@ -2588,43 +1309,43 @@
       "src_key": "storey_0",
       "relation": "HAS_ZONE",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_open_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB626",
       "method": "idf",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_office",
+      "src_key": "airterminal_3xtnrBUgHBCwRh_xfyB4IZ",
       "relation": "SUPPLIES_AIR_TO",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_office",
+      "src_key": "airterminal_3xtnrBUgHBCwRh_xfyB4IZ",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "lighting_storey0_office",
+      "src_key": "lighting_3xtnrBUgHBCwRh_xfyB4IZ",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "plug_storey0_office",
+      "src_key": "plug_3xtnrBUgHBCwRh_xfyB4IZ",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
@@ -2633,43 +1354,43 @@
       "src_key": "storey_0",
       "relation": "HAS_ZONE",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_office",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
       "method": "idf",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_meeting",
+      "src_key": "airterminal_3xtnrBUgHBCwRh_xfyB1VR",
       "relation": "SUPPLIES_AIR_TO",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_meeting",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_meeting",
+      "src_key": "airterminal_3xtnrBUgHBCwRh_xfyB1VR",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_meeting",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "lighting_storey0_meeting",
+      "src_key": "lighting_3xtnrBUgHBCwRh_xfyB1VR",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_meeting",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "plug_storey0_meeting",
+      "src_key": "plug_3xtnrBUgHBCwRh_xfyB1VR",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_meeting",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
@@ -2678,43 +1399,43 @@
       "src_key": "storey_0",
       "relation": "HAS_ZONE",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_meeting",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
       "method": "idf",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_amenity",
+      "src_key": "airterminal_0Q4MSUQx531vKL_w06AgFH",
       "relation": "SUPPLIES_AIR_TO",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_amenity",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFH",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_amenity",
+      "src_key": "airterminal_0Q4MSUQx531vKL_w06AgFH",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_amenity",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFH",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "lighting_storey0_amenity",
+      "src_key": "lighting_0Q4MSUQx531vKL_w06AgFH",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_amenity",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFH",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "plug_storey0_amenity",
+      "src_key": "plug_0Q4MSUQx531vKL_w06AgFH",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_amenity",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFH",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
@@ -2723,43 +1444,43 @@
       "src_key": "storey_0",
       "relation": "HAS_ZONE",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_amenity",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFH",
       "method": "idf",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_circulation",
+      "src_key": "airterminal_1xBFBS5N18MfdblikYnUB5",
       "relation": "SUPPLIES_AIR_TO",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_circulation",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUB5",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "airterminal_storey0_circulation",
+      "src_key": "airterminal_1xBFBS5N18MfdblikYnUB5",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_circulation",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUB5",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "lighting_storey0_circulation",
+      "src_key": "lighting_1xBFBS5N18MfdblikYnUB5",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_circulation",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUB5",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
     {
       "src_type": "Device",
-      "src_key": "plug_storey0_circulation",
+      "src_key": "plug_1xBFBS5N18MfdblikYnUB5",
       "relation": "LOCATED_IN",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_circulation",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUB5",
       "method": "derived_from_idf_zone",
       "confidence": 1.0
     },
@@ -2768,7 +1489,412 @@
       "src_key": "storey_0",
       "relation": "HAS_ZONE",
       "dst_type": "Zone",
-      "dst_key": "zone_storey0_circulation",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUB5",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_3xtnrBUgHBCwRh_xfyB8zE",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_3xtnrBUgHBCwRh_xfyB8zE",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_3xtnrBUgHBCwRh_xfyB8zE",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_3xtnrBUgHBCwRh_xfyB8zE",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_0tWM7C8ybBZQ4c5DL1_lwj",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_0tWM7C8ybBZQ4c5DL1_lwj",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_0tWM7C8ybBZQ4c5DL1_lwj",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_0tWM7C8ybBZQ4c5DL1_lwj",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_2EmhthfYTF_hx0gAAa2KtI",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_2EmhthfYTF_hx0gAAa2KtI",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_2EmhthfYTF_hx0gAAa2KtI",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_2EmhthfYTF_hx0gAAa2KtI",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_3jzuKaCoj7duM8YUpx6IdZ",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_3jzuKaCoj7duM8YUpx6IdZ",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_3jzuKaCoj7duM8YUpx6IdZ",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_3jzuKaCoj7duM8YUpx6IdZ",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_0tWM7C8ybBZQ4c5DL1_lzg",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_0tWM7C8ybBZQ4c5DL1_lzg",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_0tWM7C8ybBZQ4c5DL1_lzg",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_0tWM7C8ybBZQ4c5DL1_lzg",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_36Blhdds16DOgkiAVsP5oS",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_36Blhdds16DOgkiAVsP5oS",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_36Blhdds16DOgkiAVsP5oS",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_36Blhdds16DOgkiAVsP5oS",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_0Q4MSUQx531vKL_w06AgFJ",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_0Q4MSUQx531vKL_w06AgFJ",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_0Q4MSUQx531vKL_w06AgFJ",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_0Q4MSUQx531vKL_w06AgFJ",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_3H2AkZFqzChQTN2UOTW_7V",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_3H2AkZFqzChQTN2UOTW_7V",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_3H2AkZFqzChQTN2UOTW_7V",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_3H2AkZFqzChQTN2UOTW_7V",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "method": "idf",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_1xBFBS5N18MfdblikYnUBD",
+      "relation": "SUPPLIES_AIR_TO",
+      "dst_type": "Zone",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUBD",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "airterminal_1xBFBS5N18MfdblikYnUBD",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUBD",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "lighting_1xBFBS5N18MfdblikYnUBD",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUBD",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Device",
+      "src_key": "plug_1xBFBS5N18MfdblikYnUBD",
+      "relation": "LOCATED_IN",
+      "dst_type": "Zone",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUBD",
+      "method": "derived_from_idf_zone",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "storey_0",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUBD",
       "method": "idf",
       "confidence": 1.0
     },
@@ -2786,7 +1912,7 @@
       "src_key": "ahu_building_01",
       "relation": "SERVES",
       "dst_type": "Device",
-      "dst_key": "airterminal_storey0_open_office",
+      "dst_key": "airterminal_3xtnrBUgHBCwRh_xfyB626",
       "method": "derived",
       "confidence": 0.9
     },
@@ -2795,7 +1921,7 @@
       "src_key": "ahu_building_01",
       "relation": "SERVES",
       "dst_type": "Device",
-      "dst_key": "airterminal_storey0_office",
+      "dst_key": "airterminal_3xtnrBUgHBCwRh_xfyB4IZ",
       "method": "derived",
       "confidence": 0.9
     },
@@ -2804,7 +1930,7 @@
       "src_key": "ahu_building_01",
       "relation": "SERVES",
       "dst_type": "Device",
-      "dst_key": "airterminal_storey0_meeting",
+      "dst_key": "airterminal_3xtnrBUgHBCwRh_xfyB1VR",
       "method": "derived",
       "confidence": 0.9
     },
@@ -2813,7 +1939,7 @@
       "src_key": "ahu_building_01",
       "relation": "SERVES",
       "dst_type": "Device",
-      "dst_key": "airterminal_storey0_amenity",
+      "dst_key": "airterminal_0Q4MSUQx531vKL_w06AgFH",
       "method": "derived",
       "confidence": 0.9
     },
@@ -2822,9 +1948,315 @@
       "src_key": "ahu_building_01",
       "relation": "SERVES",
       "dst_type": "Device",
-      "dst_key": "airterminal_storey0_circulation",
+      "dst_key": "airterminal_1xBFBS5N18MfdblikYnUB5",
       "method": "derived",
       "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_3xtnrBUgHBCwRh_xfyB8zE",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_0tWM7C8ybBZQ4c5DL1_lwj",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_2EmhthfYTF_hx0gAAa2KtI",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_3jzuKaCoj7duM8YUpx6IdZ",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_0tWM7C8ybBZQ4c5DL1_lzg",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_36Blhdds16DOgkiAVsP5oS",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_0Q4MSUQx531vKL_w06AgFJ",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_3H2AkZFqzChQTN2UOTW_7V",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Device",
+      "src_key": "ahu_building_01",
+      "relation": "SERVES",
+      "dst_type": "Device",
+      "dst_key": "airterminal_1xBFBS5N18MfdblikYnUBD",
+      "method": "derived",
+      "confidence": 0.9
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "sea_level",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "sea_level",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "foundation",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "basement",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "level_01",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "level_02a_parking",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "level_02",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "level_03",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "level_04",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "level_05",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Building",
+      "src_key": "greenflow_archetype",
+      "relation": "HAS_FLOOR",
+      "dst_type": "Floor",
+      "dst_key": "roof",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_01",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB626",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_02",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_02",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_04",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFH",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_03",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUB5",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_01",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_01",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_01",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_01",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_01",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_04",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_36Blhdds16DOgkiAVsP5oS",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_04",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_02",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
+      "method": "ifc",
+      "confidence": 1.0
+    },
+    {
+      "src_type": "Floor",
+      "src_key": "level_03",
+      "relation": "HAS_ZONE",
+      "dst_type": "Zone",
+      "dst_key": "zone_1xBFBS5N18MfdblikYnUBD",
+      "method": "ifc",
+      "confidence": 1.0
     }
   ]
 }

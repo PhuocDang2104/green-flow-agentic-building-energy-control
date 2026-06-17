@@ -1,18 +1,18 @@
 {
   "building_key": "greenflow_archetype",
-  "building_name": "GreenFlow Archetype",
+  "building_name": "Nordic LCA Office",
   "viewer_stack": "xeokit",
   "geometry_format": "xkt",
   "geometry_json_src": "/assets/buildings/greenflow_archetype/geometry/geometry.json",
   "object_map_src": "/assets/buildings/greenflow_archetype/mapping/xeokit_object_map.json",
   "assets": [
     {
-      "asset_id": "arch_shell",
+      "asset_id": "architecture",
       "layer": "architecture",
-      "model_id": "model_arch_shell",
-      "src": "/assets/buildings/greenflow_archetype/xkt/arch_shell.xkt",
-      "glb_src": "/assets/buildings/greenflow_archetype/glb/arch_shell.glb",
-      "metadata_src": "/assets/buildings/greenflow_archetype/metadata/arch_shell_metadata.json",
+      "model_id": "model_architecture",
+      "src": "/assets/buildings/greenflow_archetype/xkt/architecture.xkt",
+      "glb_src": "/assets/buildings/greenflow_archetype/glb/architecture.glb",
+      "metadata_src": "/assets/buildings/greenflow_archetype/metadata/architecture_metadata.json",
       "default_visible": true,
       "pickable": false
     },
@@ -33,6 +33,36 @@
       "src": "/assets/buildings/greenflow_archetype/xkt/fenestration.xkt",
       "glb_src": "/assets/buildings/greenflow_archetype/glb/fenestration.glb",
       "metadata_src": "/assets/buildings/greenflow_archetype/metadata/fenestration_metadata.json",
+      "default_visible": false,
+      "pickable": false
+    },
+    {
+      "asset_id": "structural",
+      "layer": "structural",
+      "model_id": "model_structural",
+      "src": "/assets/buildings/greenflow_archetype/xkt/structural.xkt",
+      "glb_src": "/assets/buildings/greenflow_archetype/glb/structural.glb",
+      "metadata_src": "/assets/buildings/greenflow_archetype/metadata/structural_metadata.json",
+      "default_visible": false,
+      "pickable": false
+    },
+    {
+      "asset_id": "electrical",
+      "layer": "electrical",
+      "model_id": "model_electrical",
+      "src": "/assets/buildings/greenflow_archetype/xkt/electrical.xkt",
+      "glb_src": "/assets/buildings/greenflow_archetype/glb/electrical.glb",
+      "metadata_src": "/assets/buildings/greenflow_archetype/metadata/electrical_metadata.json",
+      "default_visible": false,
+      "pickable": false
+    },
+    {
+      "asset_id": "hvac",
+      "layer": "hvac",
+      "model_id": "model_hvac",
+      "src": "/assets/buildings/greenflow_archetype/xkt/hvac.xkt",
+      "glb_src": "/assets/buildings/greenflow_archetype/glb/hvac.glb",
+      "metadata_src": "/assets/buildings/greenflow_archetype/metadata/hvac_metadata.json",
       "default_visible": false,
       "pickable": false
     }

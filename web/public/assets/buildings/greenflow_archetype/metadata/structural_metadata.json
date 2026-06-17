@@ -1,0 +1,1 @@
+{"id": "greenflow_archetype_structural", "projectId": "greenflow", "metaObjects": [{"id": "model_structural", "name": "structural", "type": "Default", "parent": null}, {"id": "structural_unknown", "name": "Structural \u00b7 Unknown", "type": "IfcColumn", "parent": "model_structural"}]}

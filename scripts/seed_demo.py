@@ -174,13 +174,16 @@ def seed_geometry(conn, ids) -> None:
         entity_id = None
         if o["entity_type"] == "ThermalZone":
             entity_id = ids["zones"].get(o["entity_key"])
+        props = {"name": o.get("name"), "room_type": o.get("room_type"),
+                 "live": o.get("live", False)}
         conn.execute(text("""
             INSERT INTO mesh_entity_map (asset_id, building_id, mesh_id, entity_type,
                                          entity_id, entity_key, floor_id, layer, properties)
-            VALUES (:a, :b, :mesh, :et, :eid, :ekey, NULL, :layer, '{}'::jsonb)
+            VALUES (:a, :b, :mesh, :et, :eid, :ekey, NULL, :layer, cast(:p as jsonb))
         """), {"a": asset_ids[o["layer"]], "b": BUILDING_ID,
                "mesh": o["xeokit_object_id"], "et": o["entity_type"],
-               "eid": entity_id, "ekey": o["entity_key"], "layer": o["layer"]})
+               "eid": entity_id, "ekey": o["entity_key"], "layer": o["layer"],
+               "p": json.dumps(props)})
 
 
 def seed_tariffs(conn) -> None:
@@ -205,6 +208,13 @@ def seed_telemetry(conn, normalized, ids, days: int) -> None:
     specs = zone_specs_from_normalized(normalized)
     zone_ids = ids["zones"]
     floor_id = next(iter(ids["floors"].values()))
+    # Pick two zones to carry demo anomalies (so the Building Semantic Agent has
+    # findings). Chosen by room type from the real building, not hardcoded keys.
+    by_type = {z["room_type"]: z["entity_key"] for z in normalized["zones"]}
+    anomaly_light_zone = (by_type.get("meeting_room") or by_type.get("amenity")
+                          or by_type.get("hallway") or specs[0].zone_key)
+    anomaly_hvac_zone = (by_type.get("office") or by_type.get("open_office")
+                         or specs[-1].zone_key)
     device_by_zone: dict[str, list[tuple[uuid.UUID, str, str]]] = {}
     for d in normalized["devices"]:
         if d.get("zone_key"):
@@ -252,11 +262,11 @@ def seed_telemetry(conn, normalized, ids, days: int) -> None:
 
                 # Demo anomalies on the most recent weekday afternoon/evening:
                 if day == days - 1 and not is_weekend:
-                    if spec.zone_key == "zone_storey0_meeting" and 18 <= hour < 21:
+                    if spec.zone_key == anomaly_light_zone and 18 <= hour < 21:
                         lighting = round(spec.area_m2 * spec.lights_w_m2 / 1000.0 * 0.9, 3)
                         occupancy = 0
                         anomaly = "lighting_on_empty_zone"
-                    if spec.zone_key == "zone_storey0_office" and 12 <= hour < 14:
+                    if spec.zone_key == anomaly_hvac_zone and 12 <= hour < 14:
                         hvac = round(max(hvac, spec.area_m2 * 0.05), 3)
                         occupancy = 0
                         anomaly = "hvac_on_empty_zone"
@@ -335,10 +345,13 @@ def _bulk(conn, sql: str, rows: list[dict]) -> None:
 def seed_simulations(conn, normalized, ids) -> None:
     specs = zone_specs_from_normalized(normalized)
     baseline = run_synthetic(specs)
+    # Target the largest open-office zones for lighting; HVAC actions are
+    # building-wide (empty target = all zones) so the demo comparison shows a
+    # real saving regardless of the building source.
+    big_office = [z["entity_key"] for z in sorted(
+        normalized["zones"], key=lambda z: -(z.get("area_m2") or 0))[:4]]
     actions = [
-        make_action("lighting_reduction",
-                    ["zone_storey0_open_office", "zone_storey0_circulation"],
-                    start_hour=12, end_hour=18,
+        make_action("lighting_reduction", big_office, start_hour=12, end_hour=18,
                     reason="Lunch-dip and afternoon daylight allow dimming"),
         make_action("hvac_eco_mode", [], start_hour=13, end_hour=16,
                     reason="Raise setpoint 1C during the afternoon peak window"),

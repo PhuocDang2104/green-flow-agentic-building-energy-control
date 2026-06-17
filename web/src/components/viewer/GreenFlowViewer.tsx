@@ -47,12 +47,10 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
 
     (async () => {
       try {
-        console.log("[viewer] importing xeokit-sdk…");
         const [{ Viewer, XKTLoaderPlugin, SceneModel }, manifestRes] = await Promise.all([
           import("@xeokit/xeokit-sdk"),
           fetch(MANIFEST_URL),
         ]);
-        console.log("[viewer] sdk imported, manifest status", manifestRes.status);
         if (disposed || !canvasRef.current) return;
         const manifest: ViewerManifest = await manifestRes.json();
 
@@ -68,8 +66,9 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
           antialias: true,
         });
         viewer.scene.gammaOutput = true;
-        viewer.camera.eye = [28, 22, 28];
-        viewer.camera.look = [8, 2, -7];
+        // framed precisely by cameraFlight once the first model loads
+        viewer.camera.eye = [60, 45, 60];
+        viewer.camera.look = [0, 0, 0];
         viewer.camera.up = [0, 1, 0];
         viewer.cameraControl.followPointer = true;
         viewerRef.current = viewer;
@@ -88,6 +87,9 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
               edges: true,
             } as any);
             (model as any).visible = asset.default_visible;
+            // Only spaces are pickable so clicks fall through the shell to the
+            // zone behind; other layers are visual context.
+            (model as any).pickable = asset.pickable === true;
             modelsRef.current[asset.layer] = model;
             initialLayers[asset.layer] = asset.default_visible;
             // style/refit progressively; never block the UI on load events
@@ -149,7 +151,6 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
           if (id && e.canvasPos) setHover({ id, x: e.canvasPos[0], y: e.canvasPos[1] });
         });
         viewer.cameraControl.on("hoverOut", () => setHover(null));
-        console.log("[viewer] init complete");
         setReady(true);
       } catch (err: any) {
         console.error("viewer init failed", err);
@@ -166,28 +167,44 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  function styleSpace(entity: any, entry: ObjectMapEntry) {
+    // live (curated) zones pop in teal; the other 294 spaces are faint context
+    if (entry.live) {
+      entity.colorize = ZONE_BASE_COLOR;
+      entity.opacity = 0.42;
+    } else {
+      entity.colorize = [0.55, 0.62, 0.66];
+      entity.opacity = 0.14;
+    }
+  }
+
   function styleDefaults(viewer: any) {
-    // zones are translucent volumes; architecture slightly x-rayable
     for (const [id, entry] of Object.entries(objectMapRef.current)) {
       const entity = viewer.scene.objects[id];
-      if (!entity) continue;
-      if (entry.layer === "spaces") {
-        entity.colorize = ZONE_BASE_COLOR;
-        entity.opacity = 0.35;
-      }
+      if (entity && entry.layer === "spaces") styleSpace(entity, entry);
     }
     viewer.scene.highlightMaterial.fillColor = [0.06, 0.46, 0.43];
     viewer.scene.highlightMaterial.fillAlpha = 0.5;
     viewer.scene.highlightMaterial.edgeColor = [0.02, 0.3, 0.28];
   }
 
-  // --- layer visibility ----------------------------------------------------
+  // --- layer visibility + x-ray architecture when a discipline is on -------
   useEffect(() => {
-    if (!ready) return;
+    const viewer = viewerRef.current;
+    if (!viewer || !ready) return;
     for (const [layer, model] of Object.entries(modelsRef.current)) {
       if (model) model.visible = layers[layer] !== false;
     }
-  }, [layers, ready]);
+    // X-ray architecture when a discipline (MEP/structural) or a zone heatmap
+    // is active, so what's inside reads clearly (3D doc §7.1).
+    const discipline = layers.hvac || layers.electrical || layers.structural;
+    const archModel = modelsRef.current["architecture"];
+    if (archModel) {
+      archModel.xrayed = !!discipline || activeMetric !== "none";
+    }
+    viewer.scene.xrayMaterial.fillAlpha = 0.06;
+    viewer.scene.xrayMaterial.edgeAlpha = 0.22;
+  }, [layers, ready, activeMetric]);
 
   // --- heatmap overlay from live zone state --------------------------------
   useEffect(() => {
@@ -199,10 +216,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       if (!entity) continue;
       const st = zoneStates[entry.entity_key];
       const styled = applyMetricColor(entity, st, activeMetric);
-      if (!styled) {
-        entity.colorize = ZONE_BASE_COLOR;
-        entity.opacity = 0.35;
-      }
+      if (!styled) styleSpace(entity, entry);
     }
   }, [zoneStates, activeMetric, ready]);
 

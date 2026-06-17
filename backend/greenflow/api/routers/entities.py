@@ -47,6 +47,17 @@ def get_entity(entity_ref: str, building_id: str = Query(default=None)):
     entity_type, data = found
     result = {"entity_type": entity_type, "entity_key": entity_ref, **data}
 
+    # Non-curated IFC spaces resolve via mesh_entity_map (no DB zone row).
+    # Surface their enriched name/room_type so the inspector isn't blank.
+    props = data.get("properties") or {}
+    if entity_type == "ThermalZone" and not data.get("id"):
+        result["name"] = props.get("name") or result.get("name")
+        result["room_type"] = props.get("room_type")
+        result["live"] = props.get("live", False)
+        result["devices"] = []
+        result["latest_state"] = None
+        return result
+
     if entity_type == "ThermalZone":
         result["devices"] = db_tool.get_devices(b, data["id"])
         state = db_tool.get_latest_zone_state(b)

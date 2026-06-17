@@ -34,6 +34,11 @@ ml = [
 embeddings = [
     "sentence-transformers>=3.0",  # bge-small-en-v1.5 (English RAG)
 ]
+ifc = [
+    # Offline 3D asset build from enriched IFC (scripts/build_3d_assets_ifc.py).
+    # Not needed at runtime — generated XKT/JSON are committed.
+    "ifcopenshell>=0.8",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",

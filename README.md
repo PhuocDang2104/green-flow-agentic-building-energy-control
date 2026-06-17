@@ -29,8 +29,10 @@ make install            # hoặc: pip install -e ".[dev]" && cd web && npm i && 
 # 1. Postgres + schema
 docker compose up -d db
 
-# 2. Sinh 3D assets từ IDF (normalized JSON + GLB + XKT + manifest)
-python scripts/build_3d_assets.py
+# 2. Sinh 3D assets từ enriched IFC (cần ifcopenshell; offline, output commit sẵn)
+pip install -e ".[ifc]"
+python scripts/build_3d_assets_ifc.py        # tòa Nordic thật: 6 layer XKT
+# (hoặc python scripts/build_3d_assets.py cho archetype IDF 5-zone cũ)
 
 # 3. Seed demo building + 7 ngày telemetry 15-phút + baseline run
 python scripts/seed_demo.py
@@ -54,13 +56,19 @@ python scripts/build_3d_assets.py && python scripts/seed_demo.py
 Deploy lên VNPT cloud: trỏ DNS về VM, đặt `DOMAIN=ten-mien-cua-ban.vn` trong `.env`
 → Caddy tự cấp HTTPS.
 
-## Ba trang chính
+## Giao diện
+
+**Desktop/laptop**: sidebar trái (trắng-xanh teal) với Favourites + Main menu +
+Archive/Settings; TopBar có search toàn cục (zones/devices, ⌘K) và avatar menu.
+**Mobile**: sidebar ẩn, dùng floating icon nav ở đáy.
 
 | Route | Nội dung |
 |---|---|
-| `/dashboard` | 3D digital twin (xeokit), layer toggle, heatmap energy/comfort/occupancy, click zone → Inspector, KPI cards, zone table, nút Building Semantic Report (PDF) |
+| `/dashboard` | 3D digital twin (xeokit) dựng từ enriched IFC — 6 layer (Architecture/Spaces/Windows/Structural/HVAC/Electrical), x-ray architecture khi bật MEP, heatmap energy/comfort/occupancy, click space → Inspector, KPI cards, zone table |
 | `/agent-actions` | Run Optimization / Run Prediction, agent timeline kiểu CI pipeline, action queue (Recommended/Pending/Executed/Blocked), approve/reject, policy guardrails, audit trail |
 | `/simulation-baseline` | Baseline vs optimized chart (đánh dấu peak window), KPI delta (kWh, VND, peak kW, comfort, CO₂), bảng simulation runs, action trace, Simulate Peak-Hour Strategy |
+| `/archive` | Lịch sử agent runs / reports (PDF) / simulation runs |
+| `/settings` | Building info, policy guardrails, engine/LLM (read-only) |
 
 Chatbot **"Ask GreenFlow"** nổi ở mọi trang — câu hỏi đi qua Orchestrator (intent →
 plan → agents → answer kèm linked entity chips highlight trên 3D).

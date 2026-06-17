@@ -10,22 +10,24 @@ const TABS = [
   { href: "/simulation-baseline", label: "Control & Simulation", icon: FlaskConical },
 ];
 
+// Mobile/tablet only — on desktop (lg+) the SideBar replaces this. Floating,
+// icon-only pill bar fixed at the bottom centre.
 export default function MainTabBar() {
   const pathname = usePathname();
   return (
-    <nav className="sticky top-16 z-30 flex justify-center px-4 pt-4">
-      <div className="flex items-center gap-1 rounded-full border border-border bg-white p-1 shadow-card">
+    <nav className="fixed bottom-4 left-1/2 z-30 -translate-x-1/2 lg:hidden">
+      <div className="flex items-center gap-1 rounded-full border border-border bg-white/95 p-1.5 shadow-floating backdrop-blur">
         {TABS.map(({ href, label, icon: Icon }) => {
           const active = pathname?.startsWith(href);
           return (
             <Link
               key={href}
               href={href}
-              className={`flex items-center gap-2 rounded-full px-4 py-2 text-[13px] font-medium transition
-                ${active ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted hover:text-text-primary"}`}
+              title={label}
+              className={`grid h-11 w-11 place-items-center rounded-full transition
+                ${active ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"}`}
             >
-              <Icon size={15} strokeWidth={2} />
-              <span className="hidden sm:inline">{label}</span>
+              <Icon size={19} strokeWidth={2} />
             </Link>
           );
         })}

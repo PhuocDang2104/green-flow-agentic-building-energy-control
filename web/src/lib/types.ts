@@ -213,4 +213,6 @@ export interface ObjectMapEntry {
   floor_key?: string;
   layer: string;
   name: string;
+  live?: boolean;
+  room_type?: string | null;
 }

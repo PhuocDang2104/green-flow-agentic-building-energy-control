@@ -17,6 +17,7 @@ interface AppState {
   viewerUpdates: ViewerUpdate[];
   chatbotOpen: boolean;
   activeAgentRunId: string | null;
+  sidebarCollapsed: boolean;
 
   setReplay: (ts: string, zones: Record<string, ZoneState>,
               building: { total_power_kw?: number; occupancy?: number }) => void;
@@ -29,6 +30,7 @@ interface AppState {
   setChatbotOpen: (v: boolean) => void;
   setActiveAgentRunId: (id: string | null) => void;
   setZoneStates: (z: Record<string, ZoneState>) => void;
+  toggleSidebar: () => void;
 }
 
 export const useAppStore = create<AppState>((set) => ({
@@ -40,10 +42,12 @@ export const useAppStore = create<AppState>((set) => ({
 
   selectedEntityKey: null,
   activeMetric: "none",
-  layers: { arch_shell: true, spaces: true, fenestration: true },
+  layers: { architecture: true, spaces: true, fenestration: false,
+            structural: false, hvac: false, electrical: false },
   viewerUpdates: [],
   chatbotOpen: false,
   activeAgentRunId: null,
+  sidebarCollapsed: false,
 
   setReplay: (ts, zones, building) =>
     set({ replayTimestamp: ts, zoneStates: zones, buildingLive: building }),
@@ -57,4 +61,5 @@ export const useAppStore = create<AppState>((set) => ({
   setChatbotOpen: (v) => set({ chatbotOpen: v }),
   setActiveAgentRunId: (id) => set({ activeAgentRunId: id }),
   setZoneStates: (z) => set({ zoneStates: z }),
+  toggleSidebar: () => set((s) => ({ sidebarCollapsed: !s.sidebarCollapsed })),
 }));

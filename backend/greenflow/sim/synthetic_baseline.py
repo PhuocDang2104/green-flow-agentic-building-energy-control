@@ -130,8 +130,12 @@ def zone_specs_from_normalized(normalized: dict) -> list[ZoneSpec]:
             lights_w_m2=z["lights_w_m2"],
             equip_w_m2=z["equip_w_m2"],
             people_per_m2=z["people_per_m2"],
-            window_area_m2=round(win_area.get(z["entity_key"], 0.0), 2),
-            envelope_area_m2=round(env_area.get(z["entity_key"], 0.0), 2),
+            # Prefer geometry-derived areas; fall back to zone-level estimates
+            # (IFC-sourced zones have no surface/fenestration lists).
+            window_area_m2=round(win_area.get(z["entity_key"])
+                                 or z.get("window_area_m2", 0.0), 2),
+            envelope_area_m2=round(env_area.get(z["entity_key"])
+                                   or z.get("envelope_area_m2", 0.0), 2),
             occupancy_weekday=occ["weekday"],
             occupancy_weekend=occ["weekend"],
             lights_weekday=lights["weekday"],
