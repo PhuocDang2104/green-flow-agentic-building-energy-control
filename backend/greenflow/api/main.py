@@ -22,6 +22,8 @@ async def lifespan(app: FastAPI):
     ticker.cancel()
 
 
+settings = get_settings()
+
 app = FastAPI(
     title="GreenFlow API",
     description="Agentic digital twin platform for energy-efficient building operations",
@@ -31,7 +33,7 @@ app = FastAPI(
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],  # demo; restrict for production
+    allow_origins=settings.cors_origin_list,
     allow_methods=["*"],
     allow_headers=["*"],
 )
@@ -41,7 +43,6 @@ for router in (buildings.router, entities.router, states.router, viewer.router,
                chat.router):
     app.include_router(router, prefix="/api")
 
-settings = get_settings()
 settings.storage_path.mkdir(parents=True, exist_ok=True)
 app.mount("/storage", StaticFiles(directory=str(settings.storage_path)), name="storage")
 

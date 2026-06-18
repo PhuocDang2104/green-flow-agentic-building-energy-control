@@ -43,6 +43,13 @@ class Settings(BaseSettings):
     default_building_id: str = "b0000000-0000-0000-0000-000000000001"
     replay_speed_seconds: int = 10
 
+    # comma-separated list of allowed frontend origins for CORS
+    cors_origins: str = "http://localhost:3000"
+
+    @property
+    def cors_origin_list(self) -> list[str]:
+        return [o.strip() for o in self.cors_origins.split(",") if o.strip()]
+
     @property
     def storage_path(self) -> Path:
         p = Path(self.storage_dir)
