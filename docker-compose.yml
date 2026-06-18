@@ -4,10 +4,10 @@ services:
     container_name: greenflow-db
     environment:
       POSTGRES_USER: greenflow
-      POSTGRES_PASSWORD: greenflow
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-greenflow}
       POSTGRES_DB: greenflow
-    ports:
-      - "5434:5432"
+    expose:
+      - "5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
       - ./db/schema.sql:/docker-entrypoint-initdb.d/01_schema.sql:ro
@@ -26,7 +26,7 @@ services:
       - path: .env
         required: false
     environment:
-      DATABASE_URL: postgresql+psycopg://greenflow:greenflow@db:5432/greenflow
+      DATABASE_URL: postgresql+psycopg://greenflow:${POSTGRES_PASSWORD:-greenflow}@db:5432/greenflow
       STORAGE_DIR: /app/storage
       IDF_PATH: /app/data/greenflow_archetype.idf
     volumes:
