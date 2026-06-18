@@ -7,6 +7,7 @@ import KpiCard from "@/components/dashboard/KpiCard";
 import BaselineOptimizedChart from "@/components/simulation/BaselineOptimizedChart";
 import ScenarioComparisonTable from "@/components/simulation/ScenarioComparisonTable";
 import ActionTraceTimeline from "@/components/simulation/ActionTraceTimeline";
+import ValidationPanel from "@/components/simulation/ValidationPanel";
 import { useAgentRun } from "@/hooks/useAgentRun";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
@@ -106,6 +107,10 @@ export default function SimulationBaselinePage() {
       <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_420px]">
         <ScenarioComparisonTable runs={runs} />
         <ActionTraceTimeline actions={actions} />
+      </div>
+
+      <div className="mt-4">
+        <ValidationPanel />
       </div>
     </div>
   );

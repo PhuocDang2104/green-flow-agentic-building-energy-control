@@ -32,6 +32,9 @@ services:
     volumes:
       - ./storage:/app/storage
       - ./data:/app/data:ro
+      # BGE-M3 + bge-reranker-v2-m3 weights (~4GB) live here, downloaded once on
+      # first use and persisted — keeps them out of the image.
+      - hf_cache:/root/.cache/huggingface
     depends_on:
       db:
         condition: service_healthy
@@ -71,3 +74,4 @@ volumes:
   pgdata:
   caddy_data:
   caddy_config:
+  hf_cache:

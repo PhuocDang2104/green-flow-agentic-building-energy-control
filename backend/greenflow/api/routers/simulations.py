@@ -68,6 +68,18 @@ def comparison_series(building_id: str = Query(default=None),
     }
 
 
+@router.get("/simulations/validate-baseline")
+def validate_baseline(building_id: str = Query(default=None),
+                      is_weekend: bool | None = Query(default=None)):
+    """Backtest the no-action synthetic baseline against a real historical
+    day's telemetry (Control & Simulation -> Model Validation panel)."""
+    result = simulation_tool.validate_baseline_against_telemetry(
+        building_id or default_building_id(), is_weekend=is_weekend)
+    if "error" in result:
+        raise HTTPException(404, result["error"])
+    return result
+
+
 @router.get("/simulations/{run_id}")
 def get_run(run_id: str):
     with db_conn() as conn:

@@ -4,7 +4,7 @@
 import type {
   ActionItem, AgentLog, AgentRun, Approval, Building, ChatMessageRow,
   ChatQueryResponse, ChatResponse, ChatSessionSummary, ComparisonKpi, Device,
-  Kpis, Report, SimulationRun, Zone,
+  Kpis, Report, SimulationRun, ValidationResult, Zone,
 } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
@@ -81,6 +81,9 @@ export const api = {
       `/simulations/compare/series?metric=${metric}`),
   simulateRecommended: () =>
     post<{ run_id: string }>("/simulation/simulate-recommended-actions"),
+  validateBaseline: (isWeekend?: boolean) =>
+    get<ValidationResult>(`/simulations/validate-baseline${
+      isWeekend === undefined ? "" : `?is_weekend=${isWeekend}`}`),
 
   // reports / scenarios
   reports: () => get<Report[]>("/reports"),

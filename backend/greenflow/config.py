@@ -28,8 +28,12 @@ class Settings(BaseSettings):
     groq_model: str = "llama-3.3-70b-versatile"
     # mã hoá key provider lưu DB (ĐỔI ở production; KHÔNG commit)
     llm_keystore_secret: str = "change-me-in-production"
-    # embedder English: bge-small(384,mặc định) | bge-base | mxbai-large | hashing(dev)
-    llm_embedder: str = "bge-small"
+    # embedder đa ngôn ngữ (query VN): bge-m3(1024,mặc định) | e5-base | bge-base(EN) | hashing(dev)
+    llm_embedder: str = "bge-m3"
+    # cross-encoder reranker (hybrid RAG); rỗng = tắt rerank
+    llm_reranker: str = "BAAI/bge-reranker-v2-m3"
+    # số ứng viên lấy ở mỗi nhánh (dense + lexical) trước khi fuse + rerank
+    rag_candidates: int = 20
 
     storage_dir: str = "./storage"
     energyplus_bin: str = ""

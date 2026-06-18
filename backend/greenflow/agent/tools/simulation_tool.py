@@ -88,6 +88,93 @@ def quick_estimate(action: Action, zones: list[dict]) -> dict:
             "zones_affected": len(target), "estimate_method": "rule_quick_estimate"}
 
 
+def validate_baseline_against_telemetry(building_id: str,
+                                        *, is_weekend: bool | None = None) -> dict:
+    """Backtest: replay the synthetic no-action baseline against a real,
+    fully-elapsed historical day and report how closely it tracks actual
+    telemetry. The "Energy Saved"/"Peak Reduction" KPIs on Control &
+    Simulation are deltas against this same baseline, so this answers the
+    MVP_DELIVERY_PLAN.md risk "Simulation bị xem là giả" with a number
+    instead of an assertion."""
+    normalized = load_normalized()
+    with db_conn() as conn:
+        n_zones = fetch_one(conn, "SELECT count(*) n FROM zones WHERE building_id = :b",
+                            b=building_id)["n"]
+        days = fetch_all(conn, """
+            SELECT day, n, (EXTRACT(ISODOW FROM day) IN (6, 7)) AS is_weekend
+            FROM (SELECT date_trunc('day', timestamp) AS day, count(*) AS n
+                  FROM telemetry_zone_15m WHERE building_id = :b GROUP BY 1) s
+            ORDER BY day DESC LIMIT 14
+        """, b=building_id)
+        full_steps = n_zones * 96
+        day = next((d for d in days if d["n"] >= full_steps
+                   and (is_weekend is None or bool(d["is_weekend"]) == is_weekend)), None)
+        if day is None:
+            return {"error": "no fully-elapsed historical day available to validate against"}
+
+        real_rows = fetch_all(conn, """
+            SELECT z.entity_key AS zone_key, z.name AS zone_name,
+                   t.timestamp, t.total_power_kw
+            FROM telemetry_zone_15m t JOIN zones z ON z.id = t.zone_id
+            WHERE t.building_id = :b AND t.timestamp >= :d AND t.timestamp < :d + interval '1 day'
+        """, b=building_id, d=day["day"])
+
+    sim = run_simulation(normalized, [], is_weekend=bool(day["is_weekend"]))
+    sim_by_step: dict[int, dict[str, float]] = {}
+    for r in sim.records:
+        sim_by_step.setdefault(r.minutes, {})[r.zone_key] = r.total_kw
+
+    real_by_step: dict[int, dict[str, float]] = {}
+    zone_names: dict[str, str] = {}
+    for r in real_rows:
+        ts = r["timestamp"].astimezone(TZ)  # stored UTC; engine's "hour" is Hanoi local
+        minutes = ts.hour * 60 + ts.minute
+        real_by_step.setdefault(minutes, {})[r["zone_key"]] = float(r["total_power_kw"] or 0.0)
+        zone_names[r["zone_key"]] = r["zone_name"]
+
+    steps = sorted(set(real_by_step) & set(sim_by_step))
+    series, abs_err, sq_err, real_total_kw, sim_total_kw = [], 0.0, 0.0, 0.0, 0.0
+    for m in steps:
+        real_kw = sum(real_by_step[m].values())
+        sim_kw = sum(sim_by_step[m].values())
+        series.append({"minutes": m, "time": f"{m // 60:02d}:{m % 60:02d}",
+                       "real_kw": round(real_kw, 2), "sim_kw": round(sim_kw, 2)})
+        abs_err += abs(real_kw - sim_kw)
+        sq_err += (real_kw - sim_kw) ** 2
+        real_total_kw += real_kw
+        sim_total_kw += sim_kw
+    n = len(steps) or 1
+    mape = round(100.0 * abs_err / real_total_kw, 1) if real_total_kw else None
+    rmse = round((sq_err / n) ** 0.5, 2)
+    peak_real = max(series, key=lambda p: p["real_kw"]) if series else None
+    peak_sim = max(series, key=lambda p: p["sim_kw"]) if series else None
+
+    zone_errors = []
+    for zk, name in zone_names.items():
+        real_kwh = sum(real_by_step[m].get(zk, 0.0) for m in steps) / 4.0
+        sim_kwh = sum(sim_by_step[m].get(zk, 0.0) for m in steps) / 4.0
+        error_pct = round(100.0 * abs(real_kwh - sim_kwh) / real_kwh, 1) if real_kwh else None
+        zone_errors.append({"zone_key": zk, "zone_name": name,
+                            "real_kwh": round(real_kwh, 1), "sim_kwh": round(sim_kwh, 1),
+                            "error_pct": error_pct})
+    zone_errors.sort(key=lambda z: -(z["error_pct"] or 0))
+
+    verdict = ("well calibrated" if mape is not None and mape <= 8
+              else "acceptable, minor drift" if mape is not None and mape <= 20
+              else "needs recalibration")
+    return {
+        "date": str(day["day"].date()), "is_weekend": bool(day["is_weekend"]),
+        "engine": sim.engine,
+        "real_kwh": round(real_total_kw / 4.0, 1), "sim_kwh": round(sim_total_kw / 4.0, 1),
+        "mape_pct": mape, "rmse_kw": rmse, "verdict": verdict,
+        "peak_real_kw": peak_real["real_kw"] if peak_real else None,
+        "peak_real_time": peak_real["time"] if peak_real else None,
+        "peak_sim_kw": peak_sim["sim_kw"] if peak_sim else None,
+        "peak_sim_time": peak_sim["time"] if peak_sim else None,
+        "series": series, "zones": zone_errors,
+    }
+
+
 def get_latest_comparison(building_id: str) -> dict:
     with db_conn() as conn:
         row = fetch_one(conn, """

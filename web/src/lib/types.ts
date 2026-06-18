@@ -175,6 +175,24 @@ export interface ComparisonKpi {
   peak_window_optimized_kw?: number;
 }
 
+export interface ValidationResult {
+  date: string;
+  is_weekend: boolean;
+  engine: string;
+  real_kwh: number;
+  sim_kwh: number;
+  mape_pct: number | null;
+  rmse_kw: number;
+  verdict: "well calibrated" | "acceptable, minor drift" | "needs recalibration";
+  peak_real_kw: number | null;
+  peak_real_time: string | null;
+  peak_sim_kw: number | null;
+  peak_sim_time: string | null;
+  series: { minutes: number; time: string; real_kw: number; sim_kw: number }[];
+  zones: { zone_key: string; zone_name: string; real_kwh: number; sim_kwh: number;
+           error_pct: number | null }[];
+}
+
 export interface ChatResponse {
   run_id: string;
   answer: string;

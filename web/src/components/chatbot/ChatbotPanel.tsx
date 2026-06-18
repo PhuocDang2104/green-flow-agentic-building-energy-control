@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { History, Loader2, MessageCircle, Plus, Send, Sparkles, X } from "lucide-react";
+import { BookOpen, History, Loader2, MessageCircle, Plus, Send, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { SUGGESTED_PROMPTS } from "@/lib/constants";
 import { useAppStore } from "@/stores/appStore";
@@ -207,6 +207,17 @@ export default function ChatbotPanel() {
                 .map((t, ti) => (
                   <InlineRunSteps key={ti} runId={t.result.run_id} action={t.result.action} />
                 ))}
+              {m.role === "assistant" && m.meta?.sources && m.meta.sources.length > 0 && (
+                <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                  <BookOpen size={11} className="text-text-muted" />
+                  {m.meta.sources.map((s, si) => (
+                    <span key={si}
+                          className="rounded-full bg-teal-soft px-2 py-0.5 text-[10px] font-medium text-teal">
+                      {s}
+                    </span>
+                  ))}
+                </div>
+              )}
             </div>
           </div>
         ))}

@@ -17,6 +17,7 @@ from greenflow.db import fetch_all, fetch_one
 from greenflow.llm.keystore import decrypt_key
 from greenflow.llm.provider import LLMProvider, make_provider
 from greenflow.vector.embedder import Embedder, get_embedder
+from greenflow.vector.reranker import rerank
 from greenflow.vector.store import VectorStore
 
 SYSTEM_PROMPT = (
@@ -39,6 +40,8 @@ class ChatRuntime:
     provider: LLMProvider
     embedder: Embedder
     store: VectorStore
+    reranker_model: str = ""
+    rag_candidates: int = 20
 
     @classmethod
     def build(cls, conn, settings) -> "ChatRuntime":
@@ -52,22 +55,47 @@ class ChatRuntime:
             provider = make_provider("groq", settings.groq_api_key, settings.groq_model)
         embedder = get_embedder(settings.llm_embedder)
         store = VectorStore(dim=embedder.dim, path=settings.vector_index_path)
-        return cls(provider, embedder, store)
+        return cls(provider, embedder, store,
+                   settings.llm_reranker, settings.rag_candidates)
 
-    # ---- retrieval ----
+    # ---- retrieval (hybrid: dense + lexical -> RRF -> cross-encoder rerank) ----
     def retrieve(self, conn, message: str, k: int = 4) -> list[dict]:
+        candidates = self._gather_candidates(conn, message, n=self.rag_candidates)
+        if not candidates:
+            return []
+        # cross-encoder chấm lại; thiếu model -> giữ thứ tự RRF (rerank() tự fallback)
+        return rerank(message, candidates, top_k=k, model_name=self.reranker_model)
+
+    def _gather_candidates(self, conn, message: str, n: int) -> list[dict]:
+        """2 nhánh song song rồi fuse bằng Reciprocal Rank Fusion (RRF)."""
+        # nhánh DENSE: bi-encoder bge-m3 -> turbovec
+        dense_ids: list[int] = []
         try:
             qv = self.embedder.embed([message], kind="query")[0]
-            hits = self.store.search(qv, k=k)
-        except Exception:  # noqa: BLE001 — RAG hỏng không được làm chết chat
+            dense_ids = [i for i, _ in self.store.search(qv, k=n)]
+        except Exception:  # noqa: BLE001 — embedder/index hỏng -> chỉ còn lexical
+            pass
+        # nhánh LEXICAL: Postgres full-text, config 'simple' (không stem -> hợp đa ngôn ngữ)
+        sparse_ids: list[int] = []
+        try:
+            rows = fetch_all(conn, """
+                SELECT id FROM kb_chunks
+                WHERE to_tsvector('simple', coalesce(title,'') || ' ' || content)
+                      @@ websearch_to_tsquery('simple', :q)
+                ORDER BY ts_rank(
+                    to_tsvector('simple', coalesce(title,'') || ' ' || content),
+                    websearch_to_tsquery('simple', :q)) DESC
+                LIMIT :n""", q=message, n=n)
+            sparse_ids = [r["id"] for r in rows]
+        except Exception:  # noqa: BLE001
+            pass
+        fused = _rrf_fuse(dense_ids, sparse_ids)[:n]
+        if not fused:
             return []
-        if not hits:
-            return []
-        ids = [h[0] for h in hits]
         rows = {r["id"]: r for r in fetch_all(
-            conn, "SELECT id, title, content FROM kb_chunks WHERE id = ANY(:ids)", ids=ids)}
-        return [{"title": rows[i]["title"], "content": rows[i]["content"], "score": s}
-                for i, s in hits if i in rows]
+            conn, "SELECT id, title, content FROM kb_chunks WHERE id = ANY(:ids)", ids=fused)}
+        return [{"id": i, "title": rows[i]["title"], "content": rows[i]["content"]}
+                for i in fused if i in rows]
 
     # ---- main ----
     def answer(self, conn, session_id: str | None, message: str, building_id: str) -> dict:
@@ -110,6 +138,21 @@ class ChatRuntime:
         _save_message(conn, session_id, "assistant", answer_text, tools_used)
         return {"session_id": session_id, "answer": answer_text,
                 "tools_used": tools_used, "sources": [s["title"] for s in snippets]}
+
+
+# ------------------------------------------------------------------- retrieval
+def _rrf_fuse(*ranked_lists: list[int], k: int = 60) -> list[int]:
+    """Reciprocal Rank Fusion: gộp nhiều danh sách xếp hạng thành một.
+
+    Mỗi id góp 1/(k+rank) từ mỗi danh sách -> id xuất hiện ở cả 2 nhánh (dense +
+    lexical) được cộng dồn, nổi lên trên. k=60 là hằng chuẩn (Cormack 2009),
+    giảm ảnh hưởng của các vị trí xếp hạng thấp.
+    """
+    scores: dict[int, float] = {}
+    for lst in ranked_lists:
+        for rank, doc_id in enumerate(lst):
+            scores[doc_id] = scores.get(doc_id, 0.0) + 1.0 / (k + rank + 1)
+    return [doc_id for doc_id, _ in sorted(scores.items(), key=lambda kv: -kv[1])]
 
 
 # --------------------------------------------------------------------------- DB
