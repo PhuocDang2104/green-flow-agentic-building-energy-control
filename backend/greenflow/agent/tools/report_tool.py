@@ -33,6 +33,21 @@ def save_report(building_id: str, report_type: str, title: str,
     md_path.write_text(markdown, encoding="utf-8")
     _markdown_to_pdf(title, markdown, pdf_path)
 
+    # Upload to MinIO (object storage). pdf_path/markdown_path in DB store the
+    # OBJECT KEY (reports/<base>.pdf); the reports router serves them via
+    # /media/<key>. Fall back to the legacy /storage relative path if MinIO is
+    # unreachable so report generation never hard-fails.
+    md_key = f"reports/{base}.md"
+    pdf_key = f"reports/{base}.pdf"
+    try:
+        from ...storage import objectstore
+        objectstore.put_file(md_key, md_path, "text/markdown")
+        objectstore.put_file(pdf_key, pdf_path, "application/pdf")
+    except Exception as exc:  # noqa: BLE001 — object store down -> dùng /storage
+        print(f"report upload to object storage failed ({exc}); using /storage")
+        md_key = md_path.relative_to(s.storage_path).as_posix()
+        pdf_key = pdf_path.relative_to(s.storage_path).as_posix()
+
     report_id = uuid.uuid4()
     import json
     with db_conn() as conn:
@@ -43,11 +58,16 @@ def save_report(building_id: str, report_type: str, title: str,
                     cast(:summary as jsonb))
         """), {"id": report_id, "b": building_id, "run": agent_run_id,
                "rt": report_type, "title": title,
-               "md": md_path.relative_to(s.storage_path).as_posix(),
-               "pdf": pdf_path.relative_to(s.storage_path).as_posix(),
+               "md": md_key, "pdf": pdf_key,
                "summary": json.dumps(summary or {})})
-    return {"report_id": str(report_id), "pdf_path": f"/storage/{pdf_path.relative_to(s.storage_path).as_posix()}",
-            "markdown_path": f"/storage/{md_path.relative_to(s.storage_path).as_posix()}"}
+    return {"report_id": str(report_id),
+            "pdf_path": _media_url(pdf_key), "markdown_path": _media_url(md_key)}
+
+
+def _media_url(key: str) -> str:
+    """Object key -> URL the frontend can resolve. MinIO keys go through the
+    /media proxy; legacy /storage relative paths keep the /storage mount."""
+    return f"/media/{key}" if not key.startswith("processed/") else f"/storage/{key}"
 
 
 class _ReportPDF(FPDF):

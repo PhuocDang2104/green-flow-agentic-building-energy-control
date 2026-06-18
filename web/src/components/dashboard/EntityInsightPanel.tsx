@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
-import { api } from "@/lib/api";
+import { api, mediaUrl } from "@/lib/api";
 import { fmtKw, fmtTemp, titleCase } from "@/lib/format";
 import StatusPill from "@/components/shared/StatusPill";
 import EmptyState from "@/components/shared/EmptyState";
@@ -97,7 +97,7 @@ export default function EntityInsightPanel() {
                   .map((c: Camera) => (
                     <div key={c.id} className="overflow-hidden rounded-xl border border-border/70">
                       <video
-                        src={c.video_source!}
+                        src={mediaUrl(c.video_source)}
                         className="w-full bg-black"
                         autoPlay
                         loop

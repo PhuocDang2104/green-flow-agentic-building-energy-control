@@ -213,12 +213,14 @@ def seed_tariffs(conn) -> None:
 # zones round-robin (stable by entity_key sort) so same-type zones don't all
 # show the identical loop. lobby has 1 clip; amenity has no good public clip
 # yet -> camera row omitted rather than forcing a wrong fit.
+# video_source = /media/cctv/<file> -> served from MinIO via the API /media proxy
+# (upload the clips first with scripts/upload_media.py).
 CAMERA_CLIPS_BY_ROOM_TYPE = {
-    "open_office": ["/cctv/open_office_1.webm", "/cctv/open_office_2.webm"],
-    "office": ["/cctv/office_1.webm", "/cctv/office_2.webm", "/cctv/office_3.webm"],
-    "meeting_room": ["/cctv/meeting_room_1.webm"],
-    "circulation": ["/cctv/circulation_1.webm", "/cctv/circulation_2.webm"],
-    "lobby": ["/cctv/lobby_1.webm"],
+    "open_office": ["/media/cctv/open_office_1.webm", "/media/cctv/open_office_2.webm"],
+    "office": ["/media/cctv/office_1.webm", "/media/cctv/office_2.webm", "/media/cctv/office_3.webm"],
+    "meeting_room": ["/media/cctv/meeting_room_1.webm"],
+    "circulation": ["/media/cctv/circulation_1.webm", "/media/cctv/circulation_2.webm"],
+    "lobby": ["/media/cctv/lobby_1.webm"],
 }
 
 

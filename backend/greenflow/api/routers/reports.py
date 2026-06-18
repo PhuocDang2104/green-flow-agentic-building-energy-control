@@ -1,4 +1,4 @@
-"""Report listing and metadata (files served from /storage static mount)."""
+"""Report listing and metadata (PDF in MinIO via /media; legacy via /storage)."""
 
 from __future__ import annotations
 
@@ -11,6 +11,14 @@ from ..deps import default_building_id
 router = APIRouter()
 
 
+def _file_url(path: str | None) -> str | None:
+    """Build a browser URL from a stored path: object keys -> /media proxy,
+    legacy storage-relative paths -> /storage static mount."""
+    if not path:
+        return None
+    return f"/storage/{path}" if path.startswith("processed/") else f"/media/{path}"
+
+
 @router.get("/reports")
 def list_reports(building_id: str = Query(default=None), limit: int = 20):
     with db_conn() as conn:
@@ -19,7 +27,7 @@ def list_reports(building_id: str = Query(default=None), limit: int = 20):
             ORDER BY created_at DESC LIMIT :lim
         """, b=building_id or default_building_id(), lim=limit)]
     for r in rows:
-        r["pdf_url"] = f"/storage/{r['pdf_path']}" if r.get("pdf_path") else None
+        r["pdf_url"] = _file_url(r.get("pdf_path"))
     return rows
 
 
@@ -30,5 +38,5 @@ def get_report(report_id: str):
     if not row:
         raise HTTPException(404, "report not found")
     out = _clean(row)
-    out["pdf_url"] = f"/storage/{out['pdf_path']}" if out.get("pdf_path") else None
+    out["pdf_url"] = _file_url(out.get("pdf_path"))
     return out

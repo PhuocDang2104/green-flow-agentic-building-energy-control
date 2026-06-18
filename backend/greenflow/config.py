@@ -36,6 +36,13 @@ class Settings(BaseSettings):
     rag_candidates: int = 20
 
     storage_dir: str = "./storage"
+    # Object storage (MinIO, S3-compatible). Objects (reports, CCTV, images) are
+    # served to the browser via the API /media proxy, so MinIO stays internal.
+    s3_endpoint: str = "minio:9000"
+    s3_access_key: str = "greenflow"
+    s3_secret_key: str = "greenflow-minio-dev"
+    s3_bucket: str = "greenflow"
+    s3_secure: bool = False
     energyplus_bin: str = ""
     weather_epw: str = "./storage/raw/weather/hanoi.epw"
     idf_path: str = "./data/greenflow_archetype.idf"

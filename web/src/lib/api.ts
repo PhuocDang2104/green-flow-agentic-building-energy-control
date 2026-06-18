@@ -90,6 +90,18 @@ export const api = {
   scenarios: () => get<any[]>("/scenarios"),
 };
 
+// Resolve a stored media/report path to an absolute URL against the API origin.
+// `/media/...` is under the API's /api prefix; legacy `/storage/...` is at the
+// API root. Works same-origin (BASE="/api") and cross-origin on Vercel
+// (BASE="https://host/api").
+const API_ORIGIN = BASE.replace(/\/api\/?$/, "");
+export function mediaUrl(path: string | null | undefined): string {
+  if (!path) return "";
+  if (/^https?:\/\//.test(path)) return path;
+  if (path.startsWith("/media")) return `${BASE}${path}`;
+  return `${API_ORIGIN}${path.startsWith("/") ? path : "/" + path}`;
+}
+
 export function wsUrl(buildingId: string): string {
   if (typeof window === "undefined") return "";
   const proto = window.location.protocol === "https:" ? "wss" : "ws";

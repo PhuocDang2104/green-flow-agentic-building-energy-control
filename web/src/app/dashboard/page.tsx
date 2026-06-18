@@ -7,7 +7,7 @@ import PageHeader from "@/components/shell/PageHeader";
 import KpiCard from "@/components/dashboard/KpiCard";
 import EntityInsightPanel from "@/components/dashboard/EntityInsightPanel";
 import ZoneStateTable from "@/components/dashboard/ZoneStateTable";
-import { api } from "@/lib/api";
+import { api, mediaUrl } from "@/lib/api";
 import { fmtKw, fmtPct } from "@/lib/format";
 import { useAppStore } from "@/stores/appStore";
 import type { Kpis, Zone } from "@/lib/types";
@@ -66,7 +66,7 @@ export default function DashboardPage() {
         actions={
           <div className="flex items-center gap-2">
             {reportUrl && (
-              <a href={reportUrl} target="_blank" className="btn-secondary text-[13px]">
+              <a href={mediaUrl(reportUrl)} target="_blank" className="btn-secondary text-[13px]">
                 <FileDown size={15} /> Open PDF
               </a>
             )}

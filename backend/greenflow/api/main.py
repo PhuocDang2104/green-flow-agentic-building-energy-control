@@ -11,7 +11,7 @@ from fastapi.staticfiles import StaticFiles
 
 from ..config import get_settings
 from .routers import (actions, agent, buildings, chat, entities, forecast,
-                      reports, simulations, states, viewer)
+                      media, reports, simulations, states, viewer)
 from .ws import manager, replay_ticker
 
 
@@ -40,7 +40,7 @@ app.add_middleware(
 
 for router in (buildings.router, entities.router, states.router, viewer.router,
                agent.router, actions.router, simulations.router, reports.router,
-               chat.router, forecast.router):
+               chat.router, forecast.router, media.router):
     app.include_router(router, prefix="/api")
 
 settings.storage_path.mkdir(parents=True, exist_ok=True)

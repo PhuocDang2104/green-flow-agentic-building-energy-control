@@ -5,7 +5,7 @@ import { Bot, FileText, FlaskConical } from "lucide-react";
 import PageHeader from "@/components/shell/PageHeader";
 import StatusPill from "@/components/shared/StatusPill";
 import EmptyState from "@/components/shared/EmptyState";
-import { api } from "@/lib/api";
+import { api, mediaUrl } from "@/lib/api";
 import { fmtTime, titleCase } from "@/lib/format";
 import type { AgentRun, Report, SimulationRun } from "@/lib/types";
 
@@ -68,7 +68,7 @@ export default function ArchivePage() {
                     <p className="text-[11px] text-text-muted">{fmtTime(r.created_at)}</p>
                   </div>
                   {r.pdf_url && (
-                    <a href={r.pdf_url} target="_blank"
+                    <a href={mediaUrl(r.pdf_url)} target="_blank"
                        className="btn-secondary shrink-0 !px-3 !py-1.5 text-xs">Open PDF</a>
                   )}
                 </div>
