@@ -207,34 +207,36 @@ def seed_tariffs(conn) -> None:
                "ps": start, "pe": end})
 
 
-# Every zone whose room_type has real public-domain demo clips (CC-BY,
-# intel-iot-devkit/sample-videos) gets its own camera row -> clicking any of
-# those zones shows that room type's feed. Room types with >1 clip assign
-# zones round-robin (stable by entity_key sort) so same-type zones don't all
-# show the identical loop. lobby has 1 clip; amenity has no good public clip
-# yet -> camera row omitted rather than forcing a wrong fit.
-# video_source = /media/cctv/<file> -> served from MinIO via the API /media proxy
-# (upload the clips first with scripts/upload_media.py).
-CAMERA_CLIPS_BY_ROOM_TYPE = {
-    "open_office": ["/media/cctv/open_office_1.webm", "/media/cctv/open_office_2.webm"],
-    "office": ["/media/cctv/office_1.webm", "/media/cctv/office_2.webm", "/media/cctv/office_3.webm"],
-    "meeting_room": ["/media/cctv/meeting_room_1.webm"],
-    "circulation": ["/media/cctv/circulation_1.webm", "/media/cctv/circulation_2.webm"],
-    "lobby": ["/media/cctv/lobby_1.webm"],
+# Per-zone CCTV mapping. Each clip is a real office/CCTV video annotated OFFLINE
+# with YOLO person detection (bounding boxes + live people count overlay) — see
+# scripts/annotate_cctv_yolo.py. video_source = /media/cctv/<file> -> served from
+# MinIO via the API /media proxy (upload clips first: scripts/upload_media.py).
+# Mapped by zone NAME so each space shows a fitting feed (conference->meeting,
+# restaurant->restaurant, elevator->staircase, presentation->auditorium, ...).
+CAMERA_CLIP_BY_ZONE_NAME = {
+    "Open Office 220": "/media/cctv/open_office_1.webm",
+    "Open Office 230": "/media/cctv/open_office_2.webm",
+    "Open Office 330": "/media/cctv/open_office_3.webm",
+    "Open Office 430": "/media/cctv/open_office_4.webm",
+    "Meeting 547": "/media/cctv/meeting_room_1.webm",
+    "Restaurant 1000": "/media/cctv/restaurant_1.webm",
+    "Auditorium 130": "/media/cctv/auditorium_1.webm",
+    "Business Space 140": "/media/cctv/business_1.webm",
+    "Parking 150": "/media/cctv/security_1.webm",
+    "Lobby 100": "/media/cctv/lobby_1.webm",
+    "Staircase 201": "/media/cctv/elevator_1.webm",
+    "Staircase 302": "/media/cctv/elevator_1.webm",
+    "Staircase 401": "/media/cctv/elevator_1.webm",
+    "Kitchen 110": "/media/cctv/kitchen_1.webm",
 }
 
 
 def seed_cameras(conn, normalized, ids) -> None:
     zone_ids = ids["zones"]
-    next_index: dict[str, int] = {}
-    for z in sorted(normalized["zones"], key=lambda z: z["entity_key"]):
-        room_type = z["room_type"]
-        clips = CAMERA_CLIPS_BY_ROOM_TYPE.get(room_type)
-        if not clips:
+    for z in normalized["zones"]:
+        video = CAMERA_CLIP_BY_ZONE_NAME.get(z["name"])
+        if not video:
             continue
-        i = next_index.get(room_type, 0)
-        video = clips[i % len(clips)]
-        next_index[room_type] = i + 1
         conn.execute(text("""
             INSERT INTO cameras (id, building_id, floor_id, zone_id, name,
                                  video_source, privacy_mode)
