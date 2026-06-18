@@ -58,6 +58,21 @@ def get_devices(building_id: str, zone_id: str | None = None) -> list[dict]:
         return [_clean(r) for r in fetch_all(conn, sql + " ORDER BY d.name", **params)]
 
 
+def get_cameras(building_id: str, zone_id: str | None = None) -> list[dict]:
+    with db_conn() as conn:
+        sql = """
+            SELECT c.id, c.name, c.video_source, c.privacy_mode, c.zone_id,
+                   z.entity_key AS zone_key
+            FROM cameras c LEFT JOIN zones z ON z.id = c.zone_id
+            WHERE c.building_id = :b
+        """
+        params: dict = {"b": building_id}
+        if zone_id:
+            sql += " AND c.zone_id = :z"
+            params["z"] = zone_id
+        return [_clean(r) for r in fetch_all(conn, sql + " ORDER BY c.name", **params)]
+
+
 def get_latest_zone_state(building_id: str) -> dict[str, dict]:
     """entity_key -> latest telemetry row per zone."""
     with db_conn() as conn:

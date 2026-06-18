@@ -51,6 +51,14 @@ export interface Device {
   zone_name?: string | null;
 }
 
+export interface Camera {
+  id: string;
+  name: string;
+  video_source?: string | null;
+  privacy_mode?: string;
+  zone_key?: string | null;
+}
+
 export interface Kpis {
   timestamp?: string;
   total_kw?: number;
@@ -174,6 +182,27 @@ export interface ChatResponse {
   related_entities?: { entity_key: string; entity_type: string; label: string }[];
   viewer_updates?: ViewerUpdate[];
   suggested_buttons?: string[];
+}
+
+export interface ChatQueryResponse {
+  session_id: string;
+  answer: string;
+  tools_used?: { name: string; args: Record<string, unknown>; result?: any }[];
+  sources?: string[];
+}
+
+export interface ChatSessionSummary {
+  id: string;
+  created_at: string;
+  first_message: string | null;
+  n_messages: number;
+}
+
+export interface ChatMessageRow {
+  role: "user" | "assistant" | "system" | "tool";
+  content: string;
+  tool_calls?: { name: string; args: Record<string, unknown>; result?: any }[];
+  created_at: string;
 }
 
 export interface Report {

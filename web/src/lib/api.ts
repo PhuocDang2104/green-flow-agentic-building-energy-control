@@ -2,8 +2,9 @@
 // and Caddy in production both route them to the FastAPI backend.
 
 import type {
-  ActionItem, AgentLog, AgentRun, Approval, Building, ChatResponse,
-  ComparisonKpi, Device, Kpis, Report, SimulationRun, Zone,
+  ActionItem, AgentLog, AgentRun, Approval, Building, ChatMessageRow,
+  ChatQueryResponse, ChatResponse, ChatSessionSummary, ComparisonKpi, Device,
+  Kpis, Report, SimulationRun, Zone,
 } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
@@ -53,6 +54,13 @@ export const api = {
   agentRuns: () => get<AgentRun[]>("/agent/runs"),
   agentRun: (id: string) => get<AgentRun>(`/agent/runs/${id}`),
   agentRunLogs: (id: string) => get<AgentLog[]>(`/agent/runs/${id}/logs`),
+
+  // data-query chatbot (RAG + SQL function-calling, persisted conversation)
+  chatQuery: (message: string, session_id?: string | null) =>
+    post<ChatQueryResponse>("/chat", { message, session_id: session_id || undefined }),
+  chatSessions: () => get<ChatSessionSummary[]>("/chat/sessions"),
+  chatSessionMessages: (sessionId: string) =>
+    get<ChatMessageRow[]>(`/chat/sessions/${sessionId}/messages`),
 
   // actions / approvals
   actions: (status?: string) =>

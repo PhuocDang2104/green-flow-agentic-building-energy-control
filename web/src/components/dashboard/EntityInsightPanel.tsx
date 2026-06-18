@@ -8,7 +8,7 @@ import StatusPill from "@/components/shared/StatusPill";
 import EmptyState from "@/components/shared/EmptyState";
 import Skeleton from "@/components/shared/Skeleton";
 import { useAppStore } from "@/stores/appStore";
-import type { Device } from "@/lib/types";
+import type { Camera, Device } from "@/lib/types";
 
 export default function EntityInsightPanel() {
   const selectedEntityKey = useAppStore((s) => s.selectedEntityKey);
@@ -85,6 +85,34 @@ export default function EntityInsightPanel() {
             <StatusPill status={st?.peak_risk} label={`peak ${st?.peak_risk || "–"}`} />
             {st?.anomaly_label && <StatusPill status="high" label={titleCase(st.anomaly_label)} />}
           </div>
+
+          {entity.cameras?.some((c: Camera) => c.video_source) && (
+            <div>
+              <h4 className="mb-1.5 text-xs font-semibold text-text-secondary">
+                CCTV occupancy feed
+              </h4>
+              <div className="space-y-2">
+                {entity.cameras
+                  .filter((c: Camera) => c.video_source)
+                  .map((c: Camera) => (
+                    <div key={c.id} className="overflow-hidden rounded-xl border border-border/70">
+                      <video
+                        src={c.video_source!}
+                        className="w-full bg-black"
+                        autoPlay
+                        loop
+                        muted
+                        playsInline
+                      />
+                      <div className="flex items-center justify-between bg-surface-muted/50 px-3 py-1.5">
+                        <p className="text-[11px] text-text-muted">{c.name}</p>
+                        <StatusPill status="normal" label={c.privacy_mode || "count_only"} />
+                      </div>
+                    </div>
+                  ))}
+              </div>
+            </div>
+          )}
 
           {entity.devices?.length > 0 && (
             <div>

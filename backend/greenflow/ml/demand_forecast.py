@@ -58,9 +58,17 @@ def forecast_building(conn, building_id, issued_ts: datetime, horizon_h: int = 2
         hot = index[int(np.argmax(np.where(aft, w["temp"], -99)))]
         alerts.append(f"Pre-cool đề xuất: chiều {hot:%d/%m} nóng {w['temp'][aft].max():.0f}°C "
                       f"-> pre-cool sáng {hot.replace(hour=6, minute=0):%H:%M} (E+ validate mức giảm)")
+
+    # Structured pre-cool recommendation (downstream control reads this, không parse string).
+    # Đón đầu: peak rơi vào cửa sổ chiều -> charge khối nhiệt sáng sớm (điện rẻ, ngoài trời mát).
+    recommend_precool = bool(alerts) or (peak_ts.hour in PEAK_WINDOW)
+    precool_window = {"start_hour": 6, "end_hour": 8} if recommend_precool else None
     return {
         "issued_at": str(issued_ts), "horizon_hours": horizon_h,
         "peak_hvac_kw": round(peak_kw, 1), "peak_at": str(peak_ts),
+        "peak_hour": peak_ts.hour,
+        "recommend_precool": recommend_precool,
+        "precool_window": precool_window,
         "series": [{"ts": str(t), "hvac_kw": round(float(k), 1)}
                    for t, k in zip(index, hvac_kw)],
         "alerts": alerts,

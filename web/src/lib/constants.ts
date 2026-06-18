@@ -45,8 +45,8 @@ export const ROOM_TYPE_LABELS: Record<string, string> = {
 };
 
 export const SUGGESTED_PROMPTS = [
-  "Zone nào đang lãng phí điện?",
-  "Nếu tăng setpoint 1°C ở open office thì sao?",
-  "Tòa nhà có vấn đề gì không?",
-  "Peak risk hôm nay thế nào?",
+  "Tòa nhà tiêu thụ bao nhiêu điện hôm nay?",
+  "Zone nào tiêu thụ điện nhiều nhất tuần này?",
+  "Có cảnh báo nào đang mở không?",
+  "Liệt kê các zone trong tòa nhà",
 ];

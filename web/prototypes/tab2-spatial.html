@@ -1,0 +1,253 @@
+<!doctype html>
+<html lang="vi">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<title>GreenFlow · Agent & Actions — Spatial wall</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+:root{--ink:#f1f5f3;--muted:#aeb8bd;--faint:#7c868d;--hair:rgba(255,255,255,.12);--hair-2:rgba(255,255,255,.22);
+  --emerald:#34e0a1;--amber:#ffce5c;--rose:#ff8a98;--ease:cubic-bezier(.32,.72,0,1);--r:20px}
+*{box-sizing:border-box;margin:0;padding:0}
+html,body{height:100%;overflow:hidden}
+body{font-family:"Plus Jakarta Sans",sans-serif;color:var(--ink);background:#03060a;-webkit-font-smoothing:antialiased;touch-action:none}
+.display{font-family:"Space Grotesk",sans-serif;letter-spacing:-.02em}
+
+/* ---------- a wide CONCAVE glass wall over ONE continuous city image ---------- */
+.stage{position:fixed;inset:0;z-index:10;perspective:1500px;perspective-origin:50% 50%}
+.rig{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}   /* mouse lean */
+.pan{position:absolute;inset:0;transform-style:preserve-3d;will-change:transform}   /* look around (pan) */
+/* ONE smooth panorama plane (no slicing -> NO TEARING); shares .pan with the cards
+   -> image & cards move at the EXACT same speed & same direction (locked together). */
+.bg{position:absolute;left:50%;top:50%;width:3000px;height:1750px;transform:translate(-50%,-50%);
+  background:linear-gradient(180deg,rgba(3,6,10,.5),rgba(3,6,10,.62)),url("assets/panorama.jpg") center/cover no-repeat}
+.mullions{position:absolute;left:50%;top:50%;width:3000px;height:1750px;transform:translate(-50%,-50%);pointer-events:none;
+  background:repeating-linear-gradient(90deg,transparent 0 318px,rgba(255,255,255,.05) 318px 320px);
+  -webkit-mask:linear-gradient(180deg,transparent,#000 12%,#000 80%,transparent);mask:linear-gradient(180deg,transparent,#000 12%,#000 80%,transparent)}
+.vignette{position:fixed;inset:0;z-index:30;pointer-events:none;
+  background:radial-gradient(135% 100% at 50% 44%,transparent 50%,rgba(3,6,10,.5) 100%),
+    linear-gradient(180deg,rgba(3,6,10,.3),transparent 22%,transparent 64%,rgba(3,6,10,.62) 100%)}
+.grain{position:fixed;inset:0;z-index:60;pointer-events:none;opacity:.03;mix-blend-mode:overlay;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E")}
+
+.topbar{position:fixed;z-index:40;top:22px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:8px;
+  padding:8px 10px 8px 16px;border-radius:999px;background:rgba(8,12,16,.5);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--hair)}
+.brand{font-weight:700;font-size:14px;padding-right:6px}
+.tab{font-size:12.5px;font-weight:600;color:var(--muted);padding:7px 14px;border-radius:999px;cursor:pointer}
+.tab.on{color:#04140d;background:linear-gradient(180deg,#2ee29f,#16b681)}
+
+/* ---------- many cards spread across the wall, each tilted toward centre ---------- */
+.card{position:absolute;left:50%;top:50%;width:340px;transform-origin:center;will-change:transform}
+.card.big{width:430px}
+.shell{padding:5px;border-radius:calc(var(--r)+5px);background:rgba(255,255,255,.05);border:1px solid var(--hair);box-shadow:0 1px 0 rgba(255,255,255,.06) inset;
+  animation:cardIn .9s var(--ease) both;animation-delay:var(--d,0s)}
+.glass{position:relative;border-radius:var(--r);overflow:hidden;border:1px solid var(--hair-2);
+  background:linear-gradient(180deg,rgba(13,18,23,.84),rgba(7,11,15,.9));
+  box-shadow:0 34px 80px -30px rgba(0,0,0,.82),inset 0 1px 0 rgba(255,255,255,.18),inset 0 0 36px rgba(52,224,161,.05);
+  transition:border-color .5s var(--ease),box-shadow .5s var(--ease);
+  animation:floaty var(--ft,7s) ease-in-out var(--fd,0s) infinite}
+@keyframes cardIn{from{opacity:0;transform:translateY(34px) scale(.95);filter:blur(10px)}to{opacity:1;transform:none;filter:none}}
+@keyframes floaty{0%,100%{transform:translateY(0)}50%{transform:translateY(-7px)}}
+.reduced .shell,.reduced .glass{animation:none!important}
+.card:hover .glass{border-color:rgba(52,224,161,.4);box-shadow:0 46px 100px -34px rgba(0,0,0,.85),0 0 0 1px rgba(52,224,161,.16),inset 0 1px 0 rgba(255,255,255,.24),inset 0 0 46px rgba(52,224,161,.09)}
+.glass::after{content:"";position:absolute;inset:0;border-radius:inherit;pointer-events:none;opacity:0;transition:opacity .5s var(--ease);
+  background:radial-gradient(240px 240px at var(--mx,50%) var(--my,0%),rgba(255,255,255,.16),transparent 60%)}
+.card:hover .glass::after{opacity:1}
+.pad{padding:18px 20px}
+.eyebrow{font-size:9.5px;letter-spacing:.22em;text-transform:uppercase;color:var(--faint);font-weight:600}
+.h-xl{font-size:clamp(20px,2vw,28px);font-weight:600;line-height:1.06;margin:10px 0 8px}
+.h-card{font-size:14px;font-weight:600}
+.sub{color:var(--muted);font-size:12px;line-height:1.55}
+.num{font-family:"Space Grotesk",sans-serif;font-weight:600}
+.pill{display:inline-flex;align-items:center;gap:6px;border-radius:999px;padding:5px 9px;font-size:10px;font-weight:600;border:1px solid var(--hair);background:rgba(255,255,255,.05)}
+.dot{width:6px;height:6px;border-radius:50%}
+.b-auto{color:#7df0c2;border-color:rgba(52,224,161,.4);background:rgba(52,224,161,.12)}
+.b-appr{color:#ffd98a;border-color:rgba(255,206,92,.4);background:rgba(255,206,92,.1)}
+.b-rej{color:#ff97a4;border-color:rgba(255,122,138,.4);background:rgba(255,122,138,.1)}
+.btn{display:inline-flex;align-items:center;gap:9px;border-radius:999px;padding:9px 10px 9px 16px;font-weight:600;font-size:12px;
+  border:1px solid var(--hair-2);cursor:pointer;color:var(--ink);background:rgba(255,255,255,.06);font-family:inherit;transition:transform .5s var(--ease),background .4s}
+.btn:hover{background:rgba(255,255,255,.1)}.btn:active{transform:scale(.97)}
+.btn.primary{background:linear-gradient(180deg,#2ee29f,#16b681);color:#04140d;border-color:transparent}
+.btn .ic{width:24px;height:24px;border-radius:50%;display:grid;place-items:center;background:rgba(0,0,0,.18)}
+.row{display:flex;align-items:center;gap:10px;padding:8px 10px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07);margin-top:7px}
+.row .glyph{width:28px;height:28px;border-radius:9px;display:grid;place-items:center;flex:0 0 auto;background:rgba(52,224,161,.1);border:1px solid rgba(52,224,161,.2)}
+.row.rej .glyph{background:rgba(255,122,138,.08);border-color:rgba(255,122,138,.18);color:var(--rose)}
+.row.warn .glyph{background:rgba(255,206,92,.1);border-color:rgba(255,206,92,.22)}
+.row .meta{flex:1;min-width:0}.row .t{font-size:12px;font-weight:600}.row .d{font-size:10.5px;color:var(--muted)}
+.kv{font-family:"Space Grotesk",sans-serif;font-size:11.5px;font-weight:600;color:var(--emerald)}.kv.neg{color:var(--amber)}
+.kpi-grid{display:grid;grid-template-columns:1fr 1fr;gap:7px;margin-top:7px}
+.kpi-cell{padding:11px 12px;border-radius:13px;background:rgba(255,255,255,.04);border:1px solid rgba(255,255,255,.07)}
+.kpi-cell .v{font-size:19px}.kpi-cell .l{font-size:9px;color:var(--faint);letter-spacing:.05em;margin-top:3px}
+.orb-core{width:42px;height:42px;border-radius:50%;flex:0 0 auto;background:radial-gradient(circle at 35% 30%,#9bffe0,#2ee29f 45%,#0c8f67 100%);
+  box-shadow:0 0 24px rgba(52,224,161,.55),inset 0 -5px 10px rgba(0,0,0,.25);animation:pulse 3.4s var(--ease) infinite}
+@keyframes pulse{0%,100%{transform:scale(1)}50%{transform:scale(1.07)}}
+.chat-input{display:flex;align-items:center;gap:8px;margin-top:11px;padding:7px 7px 7px 13px;border-radius:999px;background:rgba(255,255,255,.05);border:1px solid var(--hair)}
+.chat-input input{flex:1;background:none;border:0;outline:0;color:var(--ink);font-size:12px;font-family:inherit}
+.chat-input input::placeholder{color:var(--faint)}
+.bar{height:6px;border-radius:99px;background:rgba(255,255,255,.1);overflow:hidden;margin-top:8px}.bar i{display:block;height:100%;background:linear-gradient(90deg,#2ee29f,#16b681)}
+
+.controls{position:fixed;z-index:40;bottom:24px;left:50%;transform:translateX(-50%);display:flex;align-items:center;gap:14px;padding:8px;border-radius:999px;
+  background:rgba(8,12,16,.5);-webkit-backdrop-filter:blur(20px);backdrop-filter:blur(20px);border:1px solid var(--hair)}
+.nav{width:44px;height:44px;border-radius:50%;display:grid;place-items:center;cursor:pointer;font-size:18px;background:rgba(255,255,255,.06);border:1px solid var(--hair-2);transition:transform .5s var(--ease),background .4s}
+.nav:hover{background:rgba(255,255,255,.12)}.nav:active{transform:scale(.92)}
+.ctitle{min-width:150px;text-align:center}.c-eyebrow{font-size:9px;letter-spacing:.2em;color:var(--faint);text-transform:uppercase}.c-name{font-size:13px;font-weight:600;font-family:"Space Grotesk",sans-serif}
+.hud{position:fixed;z-index:40;right:22px;bottom:26px;display:flex;gap:8px}
+.toggle{font-size:11px;font-weight:600;color:var(--muted);padding:8px 13px;border-radius:999px;cursor:pointer;background:rgba(8,12,16,.5);-webkit-backdrop-filter:blur(18px);backdrop-filter:blur(18px);border:1px solid var(--hair)}
+.toggle.on{color:var(--emerald);border-color:rgba(52,224,161,.4)}
+#fps{font-family:"Space Grotesk",sans-serif;font-variant-numeric:tabular-nums}
+.hint{position:fixed;z-index:40;left:22px;bottom:28px;font-size:11px;color:var(--faint);max-width:240px;line-height:1.5}
+.reduced .rig,.reduced .pan{transition:none}
+</style>
+</head>
+<body>
+<div class="vignette"></div><div class="grain"></div>
+
+<div class="topbar">
+  <span class="brand display">GreenFlow</span>
+  <span class="tab">Dashboard</span><span class="tab on">Agent &amp; Actions</span><span class="tab">Simulation</span>
+</div>
+
+<div class="stage" id="stage"><div class="rig" id="rig"><div class="pan" id="pan">
+  <div class="bg"></div><div class="mullions"></div>
+
+  <article class="card" data-x="-1240" data-y="-150"><div class="shell"><div class="glass"><div class="pad">
+    <div class="eyebrow">Năng lượng · realtime</div>
+    <div class="h-card" style="margin:8px 0 6px">Tải tức thời</div>
+    <div class="kpi-grid"><div class="kpi-cell"><div class="v num">41<span style="font-size:10px;color:var(--faint)"> kW</span></div><div class="l">HVAC</div></div>
+      <div class="kpi-cell"><div class="v num">9<span style="font-size:10px;color:var(--faint)"> kW</span></div><div class="l">ĐÈN</div></div></div>
+  </div></div></div></article>
+
+  <article class="card" data-x="-870" data-y="-175"><div class="shell"><div class="glass"><div class="pad">
+    <div class="eyebrow">Audit · hôm nay</div>
+    <div class="row" style="margin-top:10px"><div class="meta"><div class="t">Eco · Meeting 02</div><div class="d">14:12 · auto</div></div><span class="pill b-auto">✓</span></div>
+    <div class="row"><div class="meta"><div class="t">Đèn off · Hành lang 3</div><div class="d">13:50 · auto</div></div><span class="pill b-auto">✓</span></div>
+    <div class="row"><div class="meta"><div class="t">Setback · Server</div><div class="d">policy</div></div><span class="pill b-rej">⨯</span></div>
+  </div></div></div></article>
+
+  <article class="card" data-x="-870" data-y="190"><div class="shell"><div class="glass"><div class="pad">
+    <div class="eyebrow">KPI · hôm nay</div>
+    <div class="kpi-grid">
+      <div class="kpi-cell"><div class="v num">339.9<span style="font-size:10px;color:var(--faint)"> kWh</span></div><div class="l">NĂNG LƯỢNG</div></div>
+      <div class="kpi-cell"><div class="v num">816<span style="font-size:10px;color:var(--faint)">k ₫</span></div><div class="l">CHI PHÍ</div></div>
+      <div class="kpi-cell"><div class="v num" style="color:var(--amber)">227<span style="font-size:10px;color:var(--faint)"> kW</span></div><div class="l">PEAK</div></div>
+      <div class="kpi-cell"><div class="v num" style="color:var(--emerald)">2.2<span style="font-size:10px;color:var(--faint)"> kg</span></div><div class="l">CO₂↓</div></div>
+    </div>
+  </div></div></div></article>
+
+  <article class="card" data-x="-460" data-y="-180"><div class="shell"><div class="glass"><div class="pad">
+    <div class="eyebrow">ARK Office · Hà Nội</div>
+    <div class="h-xl display">Chào buổi chiều.</div>
+    <div class="sub">Agent vừa tối ưu — 2 tự động · 1 chờ duyệt · tiết kiệm <span class="kv">3.6 kWh</span> giờ cao điểm.</div>
+    <div style="margin-top:14px"><button class="btn primary">Run Optimization <span class="ic">→</span></button></div>
+  </div></div></div></article>
+
+  <article class="card big" data-x="0" data-y="30"><div class="shell"><div class="glass"><div class="pad">
+    <div style="display:flex;justify-content:space-between;align-items:center"><div class="h-card">Kế hoạch hành động</div><span class="pill"><span class="dot" style="background:var(--emerald)"></span>surrogate 0.94</span></div>
+    <div class="row"><div class="glyph">❄</div><div class="meta"><div class="t">Eco +1.5°C · Open Office</div><div class="d">trống 30′ · giờ nóng</div></div><div style="text-align:right"><div class="kv">−0.63</div><span class="pill b-auto">AUTO</span></div></div>
+    <div class="row"><div class="glyph">☀</div><div class="meta"><div class="t">Giảm đèn 70%</div><div class="d">không người</div></div><div style="text-align:right"><div class="kv">−2.94</div><span class="pill b-auto">AUTO</span></div></div>
+    <div class="row warn"><div class="glyph">↡</div><div class="meta"><div class="t">Pre-cool −1°C</div><div class="d">heatwave 38°C</div></div><div style="text-align:right"><div class="kv neg">+0.85</div><span class="pill b-appr">DUYỆT</span></div></div>
+    <div class="row rej"><div class="glyph">⨯</div><div class="meta"><div class="t">Eco +3°C · vượt giới hạn</div><div class="d">comfort +120′</div></div><span class="pill b-rej">CHẶN</span></div>
+  </div></div></div></article>
+
+  <article class="card" data-x="470" data-y="-180"><div class="shell"><div class="glass"><div class="pad">
+    <div class="eyebrow">Chờ duyệt · rủi ro vừa</div>
+    <div class="h-card" style="margin:8px 0 6px">Pre-cooling −1°C</div>
+    <div class="sub">Chiều 38°C + đông. Pre-cool sáng 06:00 off-peak sạc khối nhiệt để cắt peak.</div>
+    <div style="display:flex;gap:7px;margin-top:12px"><button class="btn primary" style="flex:1">Duyệt <span class="ic">✓</span></button><button class="btn" style="flex:1">Từ chối <span class="ic">✕</span></button></div>
+  </div></div></div></article>
+
+  <article class="card" data-x="470" data-y="190"><div class="shell"><div class="glass"><div class="pad">
+    <div class="eyebrow">Safe-to-fail · regret</div>
+    <div class="h-card" style="margin:8px 0 6px">Vì sao Eco +3°C bị chặn</div>
+    <div class="row rej"><div class="glyph">⨯</div><div class="meta"><div class="t">Comfort +120′</div><div class="d">vượt ngưỡng 15′</div></div></div>
+    <div class="row warn"><div class="glyph">Δ</div><div class="meta"><div class="t">Δsetpoint 3°C &gt; 1.5°C</div><div class="d">guardrail</div></div></div>
+  </div></div></div></article>
+
+  <article class="card" data-x="880" data-y="-160"><div class="shell"><div class="glass"><div class="pad">
+    <div class="eyebrow">Đón đầu · 24h tới</div>
+    <div class="h-card" style="margin:8px 0 4px">Peak 227 kW · 15:00</div>
+    <div class="sub">Chiều 38°C + đông → rủi ro peak cao.</div>
+    <div class="bar"><i style="width:78%"></i></div>
+    <div class="row warn" style="margin-top:10px"><div class="glyph">↡</div><div class="meta"><div class="t">Pre-cool 06:00</div><div class="d">E+ validate</div></div></div>
+  </div></div></div></article>
+
+  <article class="card" data-x="880" data-y="190"><div class="shell"><div class="glass"><div class="pad">
+    <div style="display:flex;gap:11px;align-items:center"><div class="orb-core"></div><div><div class="h-card">Trợ lý</div><div class="sub" style="font-size:10.5px">Hỏi dữ liệu lịch sử</div></div></div>
+    <div class="chat-input"><input placeholder="Tầng nào tốn điện nhất?" /><button class="btn primary" style="padding:6px"><span class="ic">→</span></button></div>
+  </div></div></div></article>
+
+  <article class="card" data-x="1250" data-y="20"><div class="shell"><div class="glass"><div class="pad">
+    <div class="eyebrow">Anomaly · cảnh báo</div>
+    <div class="row warn" style="margin-top:10px"><div class="glyph">!</div><div class="meta"><div class="t">HVAC zone trống</div><div class="d">Open Office · 30′</div></div></div>
+    <div class="row warn"><div class="glyph">CO₂</div><div class="meta"><div class="t">CO₂ cao · Meeting 01</div><div class="d">1120 ppm</div></div></div>
+    <div class="row rej"><div class="glyph">⚡</div><div class="meta"><div class="t">FCU lỗi · tầng 4</div><div class="d">reallocation</div></div></div>
+  </div></div></div></article>
+
+</div></div></div>
+
+<div class="controls">
+  <div class="nav" id="prev">‹</div>
+  <div class="ctitle"><div class="c-eyebrow">Tường dashboard</div><div class="c-name" id="cname">Trung tâm</div></div>
+  <div class="nav" id="next">›</div>
+</div>
+<div class="hint">Kéo ngang / ‹ › / ← → để <b>lia góc nhìn</b> — ảnh &amp; card dịch CÙNG nhau</div>
+<div class="hud"><span class="toggle on" id="motionBtn">⦿ Motion</span><span class="toggle" id="fpsBox">FPS <b id="fps">–</b></span></div>
+
+<script>
+(function(){
+  const rig=document.getElementById('rig'), pan=document.getElementById('pan');
+  const cards=[...document.querySelectorAll('.card')];
+  let panX=0, cpan=0, mx=0,my=0, cx=0,cy=0, reduced=false;
+  if(location.hash.indexOf('static')>=0){reduced=true;document.body.classList.add('reduced');}  // chụp/kiểm tra: tắt animation
+  const PANMAX=700, TILT_K=1/55, TILT_MAX=17;   // nghiêng theo vị trí ngang -> tường lõm
+
+  // đặt card cố định trên tường + NGHIÊNG VÀO TÂM (trái nghiêng phải, phải nghiêng trái)
+  // + stagger entry/float để mỗi thẻ trôi lệch pha nhau
+  cards.forEach((c,i)=>{
+    const x=+c.dataset.x, y=+c.dataset.y;
+    const tilt=Math.max(-TILT_MAX,Math.min(TILT_MAX,-x*TILT_K));
+    c.style.transform=`translate(-50%,-50%) translate3d(${x}px,${y}px,0) rotateY(${tilt}deg)`;
+    c.querySelector('.shell').style.setProperty('--d',(i*0.06)+'s');
+    const gl=c.querySelector('.glass');
+    gl.style.setProperty('--ft',(6.4+(i%5)*0.7)+'s');
+    gl.style.setProperty('--fd',(i*0.35)+'s');
+  });
+
+  function tick(){
+    cpan+=(panX-cpan)*.08; cx+=(mx-cx)*.06; cy+=(my-cy)*.06;
+    if(!reduced){
+      // sway tự động: cảnh sống ngay cả khi không chạm chuột
+      const t=performance.now()*0.001, sx=Math.sin(t*0.23)*0.13, sy=Math.sin(t*0.17+1)*0.09;
+      rig.style.transform=`rotateX(${-(cy+sy)*3.5}deg) rotateY(${(cx+sx)*4}deg)`;  // nghiêng đầu + sway
+      pan.style.transform=`translate3d(${cpan}px,0,0)`;                            // ẢNH + CARD dịch CHUNG
+    }
+    let best='Trung tâm',bd=9e9;
+    cards.forEach(c=>{const sx=(+c.dataset.x)+cpan; const eb=c.querySelector('.eyebrow');
+      if(eb&&Math.abs(sx)<bd){bd=Math.abs(sx);best=eb.textContent.split('·')[0].trim();}});  // guard null -> không chết rAF
+    document.getElementById('cname').textContent=best;
+    requestAnimationFrame(tick);
+  }
+  tick();
+
+  const STEP=520;
+  document.getElementById('next').onclick=()=>panX=Math.max(-PANMAX,panX-STEP);
+  document.getElementById('prev').onclick=()=>panX=Math.min(PANMAX,panX+STEP);
+  addEventListener('keydown',e=>{if(e.key==='ArrowRight')panX=Math.max(-PANMAX,panX-STEP);if(e.key==='ArrowLeft')panX=Math.min(PANMAX,panX+STEP);});
+  let dragX=null,base=0;
+  stage.addEventListener('pointerdown',e=>{dragX=e.clientX;base=panX;});
+  addEventListener('pointermove',e=>{ mx=(e.clientX/innerWidth-.5)*2; my=(e.clientY/innerHeight-.5)*2;
+    if(dragX!==null)panX=Math.max(-PANMAX,Math.min(PANMAX, base+(e.clientX-dragX)));},{passive:true});
+  addEventListener('pointerup',()=>{dragX=null;});
+  document.querySelectorAll('.glass').forEach(g=>g.addEventListener('pointermove',e=>{
+    const r=g.getBoundingClientRect();g.style.setProperty('--mx',((e.clientX-r.left)/r.width*100)+'%');g.style.setProperty('--my',((e.clientY-r.top)/r.height*100)+'%');},{passive:true}));
+
+  const mBtn=document.getElementById('motionBtn');
+  mBtn.onclick=()=>{reduced=!reduced;document.body.classList.toggle('reduced',reduced);mBtn.classList.toggle('on',!reduced);mBtn.textContent=reduced?'○ Motion':'⦿ Motion';};
+  let f=0,last=performance.now(),fe=document.getElementById('fps');
+  (function fps(n){f++;if(n-last>=500){fe.textContent=Math.round(f*1000/(n-last));f=0;last=n;}requestAnimationFrame(fps);})(performance.now());
+})();
+</script>
+</body>
+</html>

@@ -29,6 +29,8 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const viewerRef = useRef<XeokitViewer | null>(null);
   const modelsRef = useRef<Record<string, any>>({});
   const objectMapRef = useRef<Record<string, ObjectMapEntry>>({});
+  const xeokitRef = useRef<{ SceneModel: any; buildSphereGeometry: any } | null>(null);
+  const occupancyModelRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null);
@@ -47,11 +49,13 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
 
     (async () => {
       try {
-        const [{ Viewer, XKTLoaderPlugin, SceneModel }, manifestRes] = await Promise.all([
-          import("@xeokit/xeokit-sdk"),
-          fetch(MANIFEST_URL),
-        ]);
+        const [{ Viewer, XKTLoaderPlugin, SceneModel, buildSphereGeometry }, manifestRes] =
+          await Promise.all([
+            import("@xeokit/xeokit-sdk"),
+            fetch(MANIFEST_URL),
+          ]);
         if (disposed || !canvasRef.current) return;
+        xeokitRef.current = { SceneModel, buildSphereGeometry };
         const manifest: ViewerManifest = await manifestRes.json();
 
         const objectMap: ObjectMapEntry[] = await (
@@ -160,6 +164,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
 
     return () => {
       disposed = true;
+      occupancyModelRef.current = null;
       viewerRef.current?.destroy?.();
       viewerRef.current = null;
       modelsRef.current = {};
@@ -218,6 +223,50 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       const styled = applyMetricColor(entity, st, activeMetric);
       if (!styled) styleSpace(entity, entry);
     }
+  }, [zoneStates, activeMetric, ready]);
+
+  // --- occupancy dots: one red dot per person, scattered in the zone footprint
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const xk = xeokitRef.current;
+    if (!viewer || !ready || !xk) return;
+
+    occupancyModelRef.current?.destroy?.();
+    occupancyModelRef.current = null;
+    if (activeMetric !== "occupancy") return;
+
+    const model = new xk.SceneModel(viewer.scene, { id: "occupancy_dots", isModel: true });
+    const dotGeo = xk.buildSphereGeometry({ radius: 0.45, heightSegments: 8, widthSegments: 8 });
+    model.createGeometry({ id: "dot", primitive: "triangles", positions: dotGeo.positions,
+      normals: dotGeo.normals, indices: dotGeo.indices });
+
+    const MAX_DOTS_PER_ZONE = 60;
+    let meshCount = 0;
+    for (const [id, entry] of Object.entries(objectMapRef.current)) {
+      if (entry.layer !== "spaces" || !entry.live) continue;
+      const st = zoneStates[entry.entity_key];
+      const count = Math.min(st?.occupancy_count || 0, MAX_DOTS_PER_ZONE);
+      if (count <= 0) continue;
+      const entity = viewer.scene.objects[id];
+      const aabb = entity?.aabb;
+      if (!aabb) continue;
+      const [xmin, ymin, zmin, xmax, , zmax] = aabb;
+      // small inset so dots don't spawn flush against walls
+      const padX = (xmax - xmin) * 0.08;
+      const padZ = (zmax - zmin) * 0.08;
+      for (let i = 0; i < count; i++) {
+        const rnd = seededRandom(`${entry.entity_key}_${i}`);
+        const x = xmin + padX + rnd() * Math.max(0.01, xmax - xmin - 2 * padX);
+        const z = zmin + padZ + rnd() * Math.max(0.01, zmax - zmin - 2 * padZ);
+        const meshId = `dot_${id}_${i}`;
+        model.createMesh({ id: meshId, geometryId: "dot", position: [x, ymin + 0.5, z],
+          color: [0.86, 0.15, 0.15] });
+        model.createEntity({ id: meshId, meshIds: [meshId], isObject: false, pickable: false });
+        meshCount++;
+      }
+    }
+    if (meshCount > 0) model.finalize();
+    occupancyModelRef.current = model;
   }, [zoneStates, activeMetric, ready]);
 
   // --- agent viewer updates -------------------------------------------------
@@ -317,4 +366,23 @@ function hexToRgb(hex: string): [number, number, number] {
     parseInt(m.slice(2, 4), 16) / 255,
     parseInt(m.slice(4, 6), 16) / 255,
   ];
+}
+
+/**
+ * Deterministic PRNG keyed by a string seed (mulberry32), so each person-dot
+ * keeps the same scattered position across re-renders instead of jittering
+ * every time zoneStates refreshes.
+ */
+function seededRandom(seed: string): () => number {
+  let h = 1779033703 ^ seed.length;
+  for (let i = 0; i < seed.length; i++) {
+    h = Math.imul(h ^ seed.charCodeAt(i), 3432918353);
+    h = (h << 13) | (h >>> 19);
+  }
+  return () => {
+    h = Math.imul(h ^ (h >>> 16), 2246822507);
+    h = Math.imul(h ^ (h >>> 13), 3266489909);
+    h ^= h >>> 16;
+    return (h >>> 0) / 4294967296;
+  };
 }

@@ -24,7 +24,12 @@ SYSTEM_PROMPT = (
     "building's historical operational data (energy, cost, peak power, comfort, "
     "occupancy, alerts). ALWAYS call the provided tools to get real numbers — never "
     "invent figures. Keep answers concise and factual. If retrieved context is given, "
-    "use it for definitions and policy. Answer in the user's language."
+    "use it for definitions and policy. Answer in the user's language.\n\n"
+    "You can also START a real agentic run with trigger_agent_action (run_optimization, "
+    "peak_strategy, run_prediction) when the user explicitly asks to run/start/trigger one — "
+    "not when they're just asking a question. The run executes in the background and its "
+    "live progress is shown to the user separately, so just confirm briefly that you started "
+    "it (e.g. which one and why); do not describe step-by-step results you don't have yet."
 )
 MAX_TOOL_ROUNDS = 4
 
@@ -95,7 +100,7 @@ class ChatRuntime:
                         result = dispatch(tc["name"], tc["arguments"], conn, building_id)
                 except Exception as e:  # noqa: BLE001
                     result = {"error": str(e)}
-                tools_used.append({"name": tc["name"], "args": tc["arguments"]})
+                tools_used.append({"name": tc["name"], "args": tc["arguments"], "result": result})
                 messages.append({"role": "tool", "tool_call_id": tc["id"],
                                  "content": json.dumps(result, default=str)})
         else:

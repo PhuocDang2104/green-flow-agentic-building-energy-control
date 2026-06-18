@@ -69,6 +69,9 @@ def main(days: int = 7) -> None:
         print("Seeding tariff rules ...")
         seed_tariffs(conn)
 
+        print("Seeding demo CCTV cameras ...")
+        seed_cameras(conn, normalized, ids)
+
         print(f"Seeding {days} days of 15-min telemetry ...")
         seed_telemetry(conn, normalized, ids, days)
 
@@ -202,6 +205,42 @@ def seed_tariffs(conn) -> None:
             VALUES (:b, :mt, :p, 'VND', :ps, :pe, '2026-01-01')
         """), {"b": BUILDING_ID, "mt": f"electricity_{name}", "p": price,
                "ps": start, "pe": end})
+
+
+# Every zone whose room_type has real public-domain demo clips (CC-BY,
+# intel-iot-devkit/sample-videos) gets its own camera row -> clicking any of
+# those zones shows that room type's feed. Room types with >1 clip assign
+# zones round-robin (stable by entity_key sort) so same-type zones don't all
+# show the identical loop. lobby has 1 clip; amenity has no good public clip
+# yet -> camera row omitted rather than forcing a wrong fit.
+CAMERA_CLIPS_BY_ROOM_TYPE = {
+    "open_office": ["/cctv/open_office_1.webm", "/cctv/open_office_2.webm"],
+    "office": ["/cctv/office_1.webm", "/cctv/office_2.webm", "/cctv/office_3.webm"],
+    "meeting_room": ["/cctv/meeting_room_1.webm"],
+    "circulation": ["/cctv/circulation_1.webm", "/cctv/circulation_2.webm"],
+    "lobby": ["/cctv/lobby_1.webm"],
+}
+
+
+def seed_cameras(conn, normalized, ids) -> None:
+    zone_ids = ids["zones"]
+    next_index: dict[str, int] = {}
+    for z in sorted(normalized["zones"], key=lambda z: z["entity_key"]):
+        room_type = z["room_type"]
+        clips = CAMERA_CLIPS_BY_ROOM_TYPE.get(room_type)
+        if not clips:
+            continue
+        i = next_index.get(room_type, 0)
+        video = clips[i % len(clips)]
+        next_index[room_type] = i + 1
+        conn.execute(text("""
+            INSERT INTO cameras (id, building_id, floor_id, zone_id, name,
+                                 video_source, privacy_mode)
+            VALUES (:id, :b, :f, :z, :name, :src, 'count_only')
+        """), {"id": uuid.uuid4(), "b": BUILDING_ID,
+               "f": ids["floors"].get(z["floor_key"]),
+               "z": zone_ids[z["entity_key"]],
+               "name": f"CAM_{z['name']}", "src": video})
 
 
 def seed_telemetry(conn, normalized, ids, days: int) -> None:

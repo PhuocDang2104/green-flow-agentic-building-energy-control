@@ -27,6 +27,30 @@ def peak_risk_from_utilization(utilization: float) -> float:
     return round(min(1.0, max(0.0, (utilization - 0.45) * 2.2)), 2)
 
 
+def _day_ahead_demand(building_id: str) -> dict:
+    """Day-ahead (24h) building HVAC demand via LightGBM surrogate + learned
+    occupancy profile -> anticipates the afternoon peak so the Control Agent can
+    pre-cool in the morning. Best-effort: needs the `ml` extra + a trained model;
+    returns {} otherwise so the schedule-aware P0 forecast still works."""
+    try:
+        from ...db import db_conn
+        from ...ml.demand_forecast import forecast_building
+    except Exception:
+        return {}
+    try:
+        with db_conn() as conn:
+            demand = forecast_building(conn, building_id, datetime.now(TZ), horizon_h=24)
+        if demand.get("error"):
+            return {}
+        peak_kw = demand.get("peak_hvac_kw", 0.0)
+        demand["peak_utilization"] = round(peak_kw / CAPACITY_KW, 2) if CAPACITY_KW else 0.0
+        demand["peak_level"] = ("high" if peak_kw > 0.85 * CAPACITY_KW else
+                                "watch" if peak_kw > 0.6 * CAPACITY_KW else "normal")
+        return demand
+    except Exception:
+        return {}
+
+
 def run(state: GreenFlowState) -> dict:
     horizon = state.get("forecast_horizon_minutes", 60)
     zones = state.get("zones", [])
@@ -102,6 +126,8 @@ def run(state: GreenFlowState) -> dict:
         "notes": "P0 deterministic forecast; LightGBM surrogate planned for P1.",
     }
 
+    demand_forecast = _day_ahead_demand(state["building_id"])
+
     return {
         "forecast_result": {
             "zone_load_forecast": zone_load_forecast,
@@ -115,6 +141,7 @@ def run(state: GreenFlowState) -> dict:
                       "level": "high" if peak_risk_value > 0.7 else
                                ("watch" if peak_risk_value > 0.4 else "normal"),
                       "in_peak_window": in_peak_window},
+        "demand_forecast": demand_forecast,
         "forecast_confidence": confidence,
         "prediction_explanation": explanation,
     }

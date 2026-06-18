@@ -1,13 +1,22 @@
-"""Tools truy vấn LỊCH SỬ tòa nhà cho LLM gọi (function-calling).
+"""Tools truy vấn LỊCH SỬ tòa nhà + kích hành động agent thật cho LLM gọi
+(function-calling).
 
-Nguyên tắc an toàn: LLM KHÔNG sinh SQL tự do. Mỗi tool là 1 query THAM SỐ HOÁ
-cố định, chỉ nhận tham số có kiểu/whitelist -> không injection, không quét bậy.
-LLM chỉ chọn tool + điền tham số; thực thi là code này.
+Nguyên tắc an toàn: LLM KHÔNG sinh SQL tự do. Mỗi tool đọc dữ liệu là 1 query
+THAM SỐ HOÁ cố định, chỉ nhận tham số có kiểu/whitelist -> không injection,
+không quét bậy. LLM chỉ chọn tool + điền tham số; thực thi là code này.
+
+Tool `trigger_agent_action` là ngoại lệ duy nhất có side-effect: nó chỉ được
+phép khởi chạy 1 trong 3 button_action cố định (whitelist, giống hệt workflow
+nút bấm ở trang Agents & Actions) — không tự ý chạy gì khác. Action thật vẫn
+phải qua simulation + policy gate như mọi nơi khác, chat không bypass audit.
 
 "Bây giờ" = replay clock = max(timestamp) trong telemetry (dữ liệu là quá khứ).
 """
 from __future__ import annotations
 
+import threading
+
+from greenflow.agent import service as agent_service
 from greenflow.db import fetch_all, fetch_one
 
 WINDOW_INTERVAL = {"day": "1 day", "week": "7 days", "month": "30 days"}
@@ -86,6 +95,29 @@ def list_zones(conn, building_id) -> dict:
     return {"zones": [dict(r) for r in rows]}
 
 
+ACTION_BUTTONS = {"run_optimization", "peak_strategy", "run_prediction"}
+
+
+def trigger_agent_action(conn, building_id, action: str) -> dict:
+    """Start a real LangGraph run (whitelisted button_action) in the
+    background; mirrors the dashboard buttons exactly, including
+    simulation + policy gate. Returns immediately with a run_id the
+    frontend polls (/agent/runs/{id}, /agent/runs/{id}/logs) for live
+    step-by-step progress — this tool never blocks the chat request."""
+    if action not in ACTION_BUTTONS:
+        return {"error": f"action must be one of {sorted(ACTION_BUTTONS)}"}
+    run_id = agent_service.start_run(building_id, "button", button_action=action)
+    thread = threading.Thread(
+        target=agent_service.execute_run,
+        args=(run_id, building_id, "button"),
+        kwargs={"button_action": action},
+        daemon=True)
+    thread.start()
+    return {"run_id": run_id, "status": "running", "action": action,
+            "note": "Run started; poll /agent/runs/{run_id} and "
+                    "/agent/runs/{run_id}/logs for live progress."}
+
+
 # OpenAI/Groq function-calling schemas
 TOOL_SPECS = [
     {"type": "function", "function": {
@@ -117,11 +149,24 @@ TOOL_SPECS = [
         "name": "list_zones",
         "description": "List zones with name, room type, area.",
         "parameters": {"type": "object", "properties": {}}}},
+    {"type": "function", "function": {
+        "name": "trigger_agent_action",
+        "description": (
+            "Start a REAL agentic workflow run in the background — only call this when the "
+            "user explicitly asks to run/start/trigger something, never just to answer a "
+            "question. run_optimization: full optimize (predict->control->simulate->policy-> "
+            "execute). peak_strategy: pre-cool/peak-shaving strategy for the afternoon peak. "
+            "run_prediction: short-horizon forecast only, no actions. Returns a run_id "
+            "immediately; the run itself takes a few seconds and is shown to the user as live "
+            "step-by-step progress, so do not wait for it — just confirm you started it."),
+        "parameters": {"type": "object", "properties": {
+            "action": {"type": "string", "enum": sorted(ACTION_BUTTONS)}},
+            "required": ["action"]}}},
 ]
 
 _DISPATCH = {"get_building_kpi": get_building_kpi, "get_zone_timeseries": get_zone_timeseries,
              "get_top_consumers": get_top_consumers, "get_alerts": get_alerts,
-             "list_zones": list_zones}
+             "list_zones": list_zones, "trigger_agent_action": trigger_agent_action}
 
 
 def dispatch(name: str, args: dict, conn, building_id) -> dict:

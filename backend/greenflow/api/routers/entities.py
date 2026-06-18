@@ -60,6 +60,7 @@ def get_entity(entity_ref: str, building_id: str = Query(default=None)):
 
     if entity_type == "ThermalZone":
         result["devices"] = db_tool.get_devices(b, data["id"])
+        result["cameras"] = db_tool.get_cameras(b, data["id"])
         state = db_tool.get_latest_zone_state(b)
         result["latest_state"] = state.get(entity_ref)
     elif entity_type == "Device":

@@ -50,6 +50,7 @@ class GreenFlowState(TypedDict, total=False):
     forecast_result: dict
     comfort_risk: dict
     peak_risk: dict
+    demand_forecast: dict  # day-ahead 24h HVAC demand + pre-cool recommendation
     forecast_confidence: float
     prediction_explanation: dict
 

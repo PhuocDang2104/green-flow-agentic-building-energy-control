@@ -21,6 +21,7 @@ def run(state: GreenFlowState) -> dict:
     findings = state.get("abnormal_findings", [])
     comfort_risk = state.get("comfort_risk", {})
     peak_risk = state.get("peak_risk", {})
+    demand = state.get("demand_forecast", {})
     zones = state.get("zones", [])
     now_hour = datetime.now(TZ).hour
     peak_mode = bool(state.get("scenario_config", {}).get("peak_strategy"))
@@ -51,10 +52,22 @@ def run(state: GreenFlowState) -> dict:
             start_hour=now_hour, end_hour=min(now_hour + 3, 24),
             reason="Low comfort risk allows +0.5C setback in selected zones"))
 
-    if peak_risk.get("level") in ("watch", "high") or peak_mode:
-        candidates.append(make_action(
-            "pre_cooling", [], start_hour=11, end_hour=13,
-            reason="Charge thermal mass before the 13:00-16:00 peak window"))
+    # Day-ahead surrogate forecast can anticipate the afternoon peak before the
+    # short-horizon (60 min) forecast sees it -> proactive morning pre-cool.
+    day_ahead = demand.get("peak_level") in ("watch", "high") or demand.get("recommend_precool")
+    if peak_risk.get("level") in ("watch", "high") or peak_mode or day_ahead:
+        pw = demand.get("precool_window")
+        if pw and demand.get("recommend_precool"):
+            peak_at = (demand.get("peak_at") or "")[11:16]  # HH:MM from "YYYY-MM-DD HH:MM:SS..."
+            candidates.append(make_action(
+                "pre_cooling", [], start_hour=pw["start_hour"], end_hour=pw["end_hour"],
+                reason=f"Day-ahead forecast peaks {demand.get('peak_hvac_kw')} kW around "
+                       f"{peak_at}; pre-cool early ({pw['start_hour']:02d}:00) to charge "
+                       f"thermal mass while power is cheaper and outdoor air is cooler"))
+        else:
+            candidates.append(make_action(
+                "pre_cooling", [], start_hour=11, end_hour=13,
+                reason="Charge thermal mass before the 13:00-16:00 peak window"))
         candidates.append(make_action(
             "peak_load_reduction", [], start_hour=13, end_hour=16,
             reason="Raise setpoints and dim lighting through the peak window"))
