@@ -59,7 +59,8 @@ def _result_from_telemetry(building_id: str, day_start) -> "SimResult | None":
             plug_kw=float(r["plug_power_kw"] or 0),
             hvac_kw=float(r["hvac_power_kw"] or 0),
             total_kw=float(r["total_power_kw"] or 0),
-            comfort_violated=(r["comfort_risk"] == "high")))
+            comfort_violated=bool((r["occupancy_count"] or 0) >= 0.5
+                                  and (r["temperature_c"] or 0) > 26.5)))
     _fill_totals(res)
     return res
 

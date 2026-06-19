@@ -24,6 +24,7 @@ def run(state: GreenFlowState) -> dict:
     peak_risk = state.get("peak_risk", {})
     demand = state.get("demand_forecast", {})
     zones = state.get("zones", [])
+    zone_state = state.get("latest_zone_state", {})
     now_hour = anchor().hour
     peak_mode = bool(state.get("scenario_config", {}).get("peak_strategy"))
 
@@ -57,6 +58,9 @@ def run(state: GreenFlowState) -> dict:
     # short-horizon (60 min) forecast sees it -> proactive morning pre-cool.
     day_ahead = demand.get("peak_level") in ("watch", "high") or demand.get("recommend_precool")
     if peak_risk.get("level") in ("watch", "high") or peak_mode or day_ahead:
+        # Comfort-aware peak strategy: savings that DON'T make occupied zones
+        # hotter. (1) pre-cool charges thermal mass before the peak -> lower peak
+        # AND cooler (better comfort) during 13:00-16:00.
         pw = demand.get("precool_window")
         if pw and demand.get("recommend_precool"):
             peak_at = (demand.get("peak_at") or "")[11:16]  # HH:MM from "YYYY-MM-DD HH:MM:SS..."
@@ -69,14 +73,25 @@ def run(state: GreenFlowState) -> dict:
             candidates.append(make_action(
                 "pre_cooling", [], start_hour=11, end_hour=13,
                 reason="Charge thermal mass before the 13:00-16:00 peak window"))
-        candidates.append(make_action(
-            "peak_load_reduction", [], start_hour=13, end_hour=16,
-            reason="Raise setpoints and dim lighting through the peak window"))
-        big_zones = sorted(zones, key=lambda z: -(z.get("area_m2") or 0))[:2]
+        # (2) dim lighting in the largest zones — comfort-neutral (daylight compensates).
+        big_zones = sorted(zones, key=lambda z: -(z.get("area_m2") or 0))[:4]
         candidates.append(make_action(
             "lighting_reduction", [z["entity_key"] for z in big_zones],
             start_hour=13, end_hour=16,
             reason="Dim large zones during peak; daylight compensates"))
+        # (3) eco-mode HVAC ONLY in unoccupied zones — no one to discomfort.
+        empty_zones = [k for k, st in zone_state.items() if (st.get("occupancy_count") or 0) == 0]
+        if empty_zones:
+            candidates.append(make_action(
+                "hvac_eco_mode", empty_zones[:6], start_hour=13, end_hour=16,
+                reason="Eco-mode HVAC in unoccupied zones during the peak (no comfort impact)"))
+        # (4) setpoint setback ONLY where comfort can absorb it (cool, low-risk zones) —
+        #     never raise setpoints in zones already at/above the comfort limit.
+        comfort_safe = [k for k, v in comfort_risk.items() if v < 0.3]
+        if comfort_safe:
+            candidates.append(make_action(
+                "peak_load_reduction", comfort_safe[:6], start_hour=13, end_hour=16,
+                reason="Setpoint setback only in cool, low-comfort-risk zones during the peak"))
 
     if not candidates:
         candidates.append(make_action(
