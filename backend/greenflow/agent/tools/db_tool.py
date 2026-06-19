@@ -74,7 +74,12 @@ def get_cameras(building_id: str, zone_id: str | None = None) -> list[dict]:
 
 
 def get_latest_zone_state(building_id: str) -> dict[str, dict]:
-    """entity_key -> latest telemetry row per zone."""
+    """entity_key -> telemetry row per zone AT the replay 'now' (anchor).
+
+    Telemetry là một năm đã ghi được phát lại; "latest" phải là <= replay anchor
+    (vd ngày hè đã ghim), KHÔNG phải max(timestamp)=cuối năm (đông, tải thấp) —
+    nếu không agent đọc trạng thái sai mùa, lệch với dashboard."""
+    from ...replayclock import anchor
     with db_conn() as conn:
         rows = fetch_all(conn, """
             SELECT DISTINCT ON (t.zone_id) z.entity_key, z.name, z.room_type,
@@ -84,13 +89,14 @@ def get_latest_zone_state(building_id: str) -> dict[str, dict]:
                    t.total_power_kw, t.setpoint_c, t.comfort_risk, t.peak_risk,
                    t.anomaly_label
             FROM telemetry_zone_15m t JOIN zones z ON z.id = t.zone_id
-            WHERE t.building_id = :b
+            WHERE t.building_id = :b AND t.timestamp <= :anchor
             ORDER BY t.zone_id, t.timestamp DESC
-        """, b=building_id)
+        """, b=building_id, anchor=anchor(conn, building_id))
         return {r["entity_key"]: _clean(r) for r in rows}
 
 
 def get_latest_device_state(building_id: str) -> dict[str, dict]:
+    from ...replayclock import anchor
     with db_conn() as conn:
         rows = fetch_all(conn, """
             SELECT DISTINCT ON (t.device_id) d.entity_key, d.name, d.device_subtype,
@@ -99,9 +105,9 @@ def get_latest_device_state(building_id: str) -> dict[str, dict]:
             FROM telemetry_device_15m t
             JOIN devices d ON d.id = t.device_id
             LEFT JOIN zones z ON z.id = t.zone_id
-            WHERE t.building_id = :b
+            WHERE t.building_id = :b AND t.timestamp <= :anchor
             ORDER BY t.device_id, t.timestamp DESC
-        """, b=building_id)
+        """, b=building_id, anchor=anchor(conn, building_id))
         return {r["entity_key"]: _clean(r) for r in rows}
 
 
