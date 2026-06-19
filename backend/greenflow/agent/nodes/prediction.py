@@ -12,6 +12,7 @@ import json
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 
+from ...replayclock import anchor
 from ..state import GreenFlowState
 
 TZ = timezone(timedelta(hours=7))
@@ -39,7 +40,7 @@ def _day_ahead_demand(building_id: str) -> dict:
         return {}
     try:
         with db_conn() as conn:
-            demand = forecast_building(conn, building_id, datetime.now(TZ), horizon_h=24)
+            demand = forecast_building(conn, building_id, anchor(conn, building_id), horizon_h=24)
         if demand.get("error"):
             return {}
         peak_kw = demand.get("peak_hvac_kw", 0.0)
@@ -59,7 +60,7 @@ def run(state: GreenFlowState) -> dict:
     schedules = normalized["schedules"]
     sched_by_zone = {z["entity_key"]: z for z in normalized["zones"]}
 
-    now = datetime.now(TZ)
+    now = anchor()
     hour_now = now.hour + now.minute / 60.0
     hour_next = (hour_now + horizon / 60.0) % 24
     is_weekend = now.weekday() >= 5

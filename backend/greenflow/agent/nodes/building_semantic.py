@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+from ...replayclock import anchor
 from ..state import GreenFlowState
 from ..tools import db_tool, graph_tool
 
@@ -61,7 +62,7 @@ def run(state: GreenFlowState) -> dict:
 def _abnormal_findings(zones: list[dict], zone_state: dict[str, dict],
                        equipment_map: dict) -> list[dict]:
     findings: list[dict] = []
-    now_hour = datetime.now(TZ).hour
+    now_hour = anchor().hour
     in_work_hours = WORK_START <= now_hour < WORK_END
 
     for z in zones:

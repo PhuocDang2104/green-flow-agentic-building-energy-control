@@ -9,6 +9,7 @@ from __future__ import annotations
 
 from datetime import datetime, timedelta, timezone
 
+from ...replayclock import anchor
 from ...sim.actions import make_action
 from ..llm import llm_text
 from ..state import GreenFlowState
@@ -23,7 +24,7 @@ def run(state: GreenFlowState) -> dict:
     peak_risk = state.get("peak_risk", {})
     demand = state.get("demand_forecast", {})
     zones = state.get("zones", [])
-    now_hour = datetime.now(TZ).hour
+    now_hour = anchor().hour
     peak_mode = bool(state.get("scenario_config", {}).get("peak_strategy"))
 
     candidates = []

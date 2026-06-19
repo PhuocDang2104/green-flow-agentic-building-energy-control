@@ -7,6 +7,7 @@ from fastapi import APIRouter, Query
 from ...agent.tools import db_tool, timeseries_tool
 from ...agent.tools.db_tool import _clean
 from ...db import db_conn, fetch_all
+from ...replayclock import anchor
 from ..deps import default_building_id, resolve_zone
 
 router = APIRouter()
@@ -40,9 +41,10 @@ def building_timeseries(hours: int = 24, building_id: str = Query(default=None))
                    sum(plug_power_kw) AS plug_power_kw,
                    sum(occupancy_count) AS occupancy
             FROM telemetry_zone_15m
-            WHERE building_id = :b AND timestamp > now() - interval '{int(hours)} hours'
+            WHERE building_id = :b AND timestamp > :anchor - interval '{int(hours)} hours'
+              AND timestamp <= :anchor
             GROUP BY timestamp ORDER BY timestamp
-        """, b=b)]
+        """, b=b, anchor=anchor(conn, b))]
 
 
 @router.get("/kpi/current")
