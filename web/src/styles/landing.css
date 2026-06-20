@@ -1,0 +1,227 @@
+/* GreenFlow cinematic landing — scoped under .landing-root so it never leaks
+   into the app theme. Dark mode = .landing-root.dark. */
+
+.landing-root {
+  --gf-green: #007a3d;
+  --gf-green-dark: #00582d;
+  --gf-green-soft: #eaf7ef;
+  --gf-leaf: #65bd45;
+  --gf-cyan: #16a6c7;
+  --gf-ink: #111713;
+  --gf-muted: #5f6f65;
+  --gf-bg: #f8fbf6;
+  --gf-bg-2: #eef7ef;
+  --gf-card: rgba(255, 255, 255, 0.86);
+  --gf-card-solid: #ffffff;
+  --gf-border: rgba(0, 122, 61, 0.22);
+  --gf-nav: rgba(255, 255, 255, 0.72);
+  --gf-warm: rgba(220, 90, 60, 0.16);
+
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow: hidden;
+  background: var(--gf-bg);
+  color: var(--gf-ink);
+  font-family: var(--font-inter, Inter, ui-sans-serif, system-ui, sans-serif);
+  transition: background 0.9s ease, color 0.6s ease;
+}
+
+.landing-root.dark {
+  --gf-green-soft: rgba(101, 189, 69, 0.12);
+  --gf-ink: #eaf4ec;
+  --gf-muted: #9bb3a4;
+  --gf-bg: #06140e;
+  --gf-bg-2: #0a1f16;
+  --gf-card: rgba(12, 32, 24, 0.72);
+  --gf-card-solid: #0c2018;
+  --gf-border: rgba(101, 189, 69, 0.28);
+  --gf-nav: rgba(10, 28, 20, 0.6);
+}
+
+/* ----- stage / sections ----- */
+.gf-stage {
+  position: absolute;
+  inset: 0;
+  z-index: 2;
+}
+.gf-section {
+  position: absolute;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  padding: 92px clamp(24px, 6vw, 110px) 64px;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  will-change: transform, opacity, filter;
+}
+.gf-section.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+}
+
+/* ----- earth fixed wrapper (single shared canvas) ----- */
+.gf-earth-stage {
+  position: fixed;
+  inset: 0;
+  z-index: 1;
+  pointer-events: none;
+  will-change: transform;
+}
+
+/* ----- background glows per mood ----- */
+.gf-bg-glow {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  transition: opacity 0.9s ease;
+  background:
+    radial-gradient(60% 50% at 50% 78%, rgba(22, 166, 199, 0.16), transparent 70%),
+    radial-gradient(45% 40% at 78% 30%, rgba(101, 189, 69, 0.14), transparent 70%);
+}
+.landing-root.dark .gf-bg-glow {
+  background:
+    radial-gradient(60% 55% at 50% 75%, rgba(22, 166, 199, 0.22), transparent 70%),
+    radial-gradient(50% 45% at 75% 28%, rgba(0, 122, 61, 0.3), transparent 72%);
+}
+.gf-heat-glow {
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  background: radial-gradient(45% 55% at 72% 50%, var(--gf-warm), transparent 70%);
+  opacity: 0;
+  transition: opacity 0.8s ease;
+}
+
+/* ----- cards ----- */
+.gf-card {
+  background: var(--gf-card);
+  border: 1px solid var(--gf-border);
+  border-radius: 18px;
+  box-shadow: 0 18px 50px rgba(0, 60, 30, 0.1);
+  backdrop-filter: blur(6px);
+}
+.gf-em {
+  color: var(--gf-green);
+  font-style: italic;
+  font-weight: 500;
+}
+.landing-root.dark .gf-em {
+  color: var(--gf-leaf);
+}
+
+/* ----- headline line-mask reveal ----- */
+.gf-line-mask {
+  overflow: hidden;
+  display: block;
+}
+.gf-line-inner {
+  display: block;
+  will-change: transform;
+}
+
+/* ----- nav ----- */
+.gf-nav {
+  position: fixed;
+  top: 18px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 30;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  padding: 8px 10px 8px 14px;
+  border-radius: 999px;
+  background: var(--gf-nav);
+  border: 1px solid var(--gf-border);
+  box-shadow: 0 10px 30px rgba(0, 60, 30, 0.12);
+  backdrop-filter: blur(12px);
+}
+
+/* ----- section dots ----- */
+.gf-dots {
+  position: fixed;
+  right: 26px;
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 30;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+.gf-dot {
+  width: 9px;
+  height: 9px;
+  border-radius: 999px;
+  border: 1px solid var(--gf-border);
+  background: transparent;
+  transition: all 0.3s ease;
+  cursor: pointer;
+}
+.gf-dot.is-active {
+  background: var(--gf-green);
+  border-color: var(--gf-green);
+  height: 26px;
+}
+
+/* ----- cloud wipe ----- */
+.gf-cloud-wipe {
+  position: fixed;
+  inset: -10%;
+  z-index: 20;
+  pointer-events: none;
+  opacity: 0;
+  background:
+    radial-gradient(40% 40% at 30% 40%, rgba(255, 255, 255, 0.95), transparent 70%),
+    radial-gradient(45% 45% at 70% 55%, rgba(255, 255, 255, 0.92), transparent 72%),
+    radial-gradient(60% 60% at 50% 50%, rgba(238, 247, 239, 0.96), transparent 75%);
+  filter: blur(8px);
+}
+
+/* ----- heatwave lines (section 5 bg) ----- */
+@keyframes gf-heatwave {
+  0% { transform: translateY(0) scaleY(1); opacity: 0.5; }
+  50% { transform: translateY(-6px) scaleY(1.04); opacity: 0.8; }
+  100% { transform: translateY(0) scaleY(1); opacity: 0.5; }
+}
+.gf-heatline {
+  animation: gf-heatwave 3.4s ease-in-out infinite;
+}
+
+/* ----- magnetic button ----- */
+.gf-cta {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 14px 26px;
+  border-radius: 999px;
+  background: var(--gf-green);
+  color: #fff;
+  font-weight: 600;
+  font-size: 15px;
+  border: none;
+  cursor: pointer;
+  box-shadow: 0 14px 34px rgba(0, 122, 61, 0.32);
+  will-change: transform;
+}
+
+/* hide scrollbars on the deck */
+.landing-root ::-webkit-scrollbar { width: 0; height: 0; }
+
+@media (prefers-reduced-motion: reduce) {
+  .gf-heatline { animation: none; }
+  .landing-root, .gf-section, .gf-bg-glow { transition-duration: 0.2s; }
+}
+
+/* small screens: allow a softer stacked fallback feel */
+@media (max-width: 768px) {
+  .gf-section { padding: 86px 20px 80px; }
+  .gf-dots { right: 12px; }
+}
