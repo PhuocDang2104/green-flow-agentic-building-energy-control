@@ -1,0 +1,111 @@
+{
+  "source": "final_ai_training_timeseries (EnergyPlus + Open-Meteo 2025, 30-min)",
+  "models": {
+    "building": {
+      "target": "building_total_kw",
+      "features": [
+        "outdoor_temp_c",
+        "outdoor_rh_pct",
+        "global_horizontal_radiation_wh_m2",
+        "wind_speed_m_s",
+        "cloud_cover_pct",
+        "hour_sin",
+        "hour_cos",
+        "dayofweek_sin",
+        "dayofweek_cos",
+        "month_sin",
+        "month_cos",
+        "office_hours_flag",
+        "avg_setpoint_c",
+        "conditioned_area_m2"
+      ],
+      "best_iter": 156,
+      "test_metrics": {
+        "r2": 0.8709,
+        "mae_kw": 51.0409,
+        "mape_pct": 19.24,
+        "n": 2928
+      },
+      "top_features": [
+        {
+          "f": "avg_setpoint_c",
+          "gain": 12938765918
+        },
+        {
+          "f": "global_horizontal_radiation_wh_m2",
+          "gain": 1271847556
+        },
+        {
+          "f": "outdoor_temp_c",
+          "gain": 1268672737
+        },
+        {
+          "f": "dayofweek_cos",
+          "gain": 414839959
+        },
+        {
+          "f": "hour_sin",
+          "gain": 352108998
+        },
+        {
+          "f": "dayofweek_sin",
+          "gain": 260898205
+        }
+      ]
+    },
+    "zone": {
+      "target": "zone_total_kw",
+      "features": [
+        "outdoor_temp_c",
+        "outdoor_rh_pct",
+        "global_horizontal_radiation_wh_m2",
+        "wind_speed_m_s",
+        "cloud_cover_pct",
+        "hour_sin",
+        "hour_cos",
+        "dayofweek_sin",
+        "dayofweek_cos",
+        "month_sin",
+        "month_cos",
+        "office_hours_flag",
+        "cooling_setpoint_c",
+        "area_m2",
+        "volume_m3",
+        "ceiling_height_m"
+      ],
+      "best_iter": 135,
+      "test_metrics": {
+        "r2": 0.9223,
+        "mae_kw": 0.2184,
+        "mape_pct": 27.03,
+        "n": 893040
+      },
+      "top_features": [
+        {
+          "f": "cooling_setpoint_c",
+          "gain": 337876929
+        },
+        {
+          "f": "area_m2",
+          "gain": 300925785
+        },
+        {
+          "f": "volume_m3",
+          "gain": 163344314
+        },
+        {
+          "f": "ceiling_height_m",
+          "gain": 48651027
+        },
+        {
+          "f": "outdoor_temp_c",
+          "gain": 30989428
+        },
+        {
+          "f": "global_horizontal_radiation_wh_m2",
+          "gain": 24282269
+        }
+      ]
+    }
+  }
+}

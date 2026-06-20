@@ -10,6 +10,7 @@ from datetime import datetime
 
 import numpy as np
 
+from . import realforecast
 from .forecast_service import (COMFORT_MAX_C, STEP_MIN, ForecastService,
                                archetype_of, tariff_vnd)
 
@@ -35,18 +36,29 @@ def score_zone_action(svc: ForecastService, action_type: str, room_type: str,
     horizon = max(STEP_MIN, int((end_hour - start_hour) * 60))
     start = _start(start_hour)
     delta = SETPOINT_DELTA.get(action_type)
+    method = "surrogate_what_if"
 
     if delta is not None:
-        wi = svc.what_if(arche, area_m2, start, horizon, setpoint_base, delta,
-                         occ_intensity=occ_intensity, weather=weather)
-        save = float((wi.baseline_elec_kwh - wi.action_elec_kwh).sum())
-        cost = float(sum((b - a) * tariff_vnd(t.hour) for b, a, t in
-                         zip(wi.baseline_elec_kwh, wi.action_elec_kwh, wi.timestamps)))
-        peak = float(wi.baseline_elec_kwh.max() - wi.action_elec_kwh.max()) / (STEP_MIN / 60)
-        cmax = COMFORT_MAX_C.get(arche, 26.0)
-        comfort_delta = float(((wi.action_temp_c > cmax).sum()
-                               - (wi.baseline_temp_c > cmax).sum()) * STEP_MIN)
-        conf = wi.confidence
+        # Prefer the REAL surrogate (trained on a year of E+ + Open-Meteo); the
+        # synthetic DoE model is the fallback. comfort_delta stays 0 here — the
+        # authoritative comfort impact is computed in the real-baseline simulation.
+        rf = realforecast.what_if_setpoint(area_m2, setpoint_base, delta, start_hour, end_hour)
+        if rf is not None:
+            save, peak, conf = rf["saving_kwh"], rf["peak_reduction_kw"], rf["confidence"]
+            cost = save * tariff_vnd(int(start_hour))
+            comfort_delta = 0.0
+            method = "real_surrogate"
+        else:
+            wi = svc.what_if(arche, area_m2, start, horizon, setpoint_base, delta,
+                             occ_intensity=occ_intensity, weather=weather)
+            save = float((wi.baseline_elec_kwh - wi.action_elec_kwh).sum())
+            cost = float(sum((b - a) * tariff_vnd(t.hour) for b, a, t in
+                             zip(wi.baseline_elec_kwh, wi.action_elec_kwh, wi.timestamps)))
+            peak = float(wi.baseline_elec_kwh.max() - wi.action_elec_kwh.max()) / (STEP_MIN / 60)
+            cmax = COMFORT_MAX_C.get(arche, 26.0)
+            comfort_delta = float(((wi.action_temp_c > cmax).sum()
+                                   - (wi.baseline_temp_c > cmax).sum()) * STEP_MIN)
+            conf = wi.confidence
     elif action_type in LIGHTING_FACTOR:
         hours = (end_hour - start_hour)
         save = area_m2 * LPD_W_M2 / 1000.0 * (1 - LIGHTING_FACTOR[action_type]) * hours * 0.8
@@ -60,7 +72,7 @@ def score_zone_action(svc: ForecastService, action_type: str, room_type: str,
         "saving_kwh": round(save, 3), "cost_saving_vnd": round(cost, 0),
         "peak_reduction_kw": round(peak, 3), "comfort_violation_delta_min": round(comfort_delta, 1),
         "co2_avoided_kg": round(save * 0.62, 3), "rebound_kwh": 0.0,  # rebound: E+ validate
-        "confidence": round(float(conf), 3), "estimate_method": "surrogate_what_if",
+        "confidence": round(float(conf), 3), "estimate_method": method,
     }
 
 
@@ -77,7 +89,7 @@ def estimate_action(action, zones: list[dict], weather=None) -> dict | None:
     action_type = getattr(action, "action_type", "hvac_eco_mode")
     agg = {"saving_kwh": 0.0, "cost_saving_vnd": 0.0, "peak_reduction_kw": 0.0,
            "comfort_violation_delta_min": 0.0, "co2_avoided_kg": 0.0}
-    confs = []
+    confs, method = [], "surrogate_what_if"
     for z in targets:
         k = score_zone_action(svc, action_type, z.get("room_type"), z.get("area_m2") or 50.0,
                               getattr(action, "start_hour", 13.0),
@@ -85,8 +97,9 @@ def estimate_action(action, zones: list[dict], weather=None) -> dict | None:
         for key in agg:
             agg[key] += k[key]
         confs.append(k["confidence"])
+        method = k["estimate_method"]
     return {"expected_saving_kwh": round(agg["saving_kwh"], 2),
             "zones_affected": len(targets),
-            "estimate_method": "surrogate_what_if",
+            "estimate_method": method,
             "confidence": round(float(np.mean(confs)) if confs else 0.5, 3),
             "kpi": {k: round(v, 2) for k, v in agg.items()}}
