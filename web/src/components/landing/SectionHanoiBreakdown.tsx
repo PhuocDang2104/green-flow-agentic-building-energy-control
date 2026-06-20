@@ -7,15 +7,16 @@ export default function SectionHanoiBreakdown({ active }: { active: boolean }) {
   return (
     <div className="gf-section" data-section="3">
       <div className="grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
-        <div data-reveal className="flex justify-center" style={{ perspective: "1200px" }}>
+        <div className="flex justify-center">
           <img
+            data-pie
             src="/assets/landing/HVAC_light_pie.png"
             alt="Ha Noi commercial building energy breakdown — HVAC and lighting share"
             draggable={false}
-            className="w-[78%] max-w-md select-none"
+            className="w-[96%] max-w-lg select-none"
             style={{
               objectFit: "contain",
-              filter: "drop-shadow(0 30px 46px rgba(0,60,30,0.22))",
+              filter: "drop-shadow(0 34px 52px rgba(0,60,30,0.24))",
             }}
           />
         </div>

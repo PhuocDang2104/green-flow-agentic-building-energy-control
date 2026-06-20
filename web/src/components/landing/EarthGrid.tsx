@@ -13,15 +13,17 @@ export default function EarthGrid({ themeMix }: { themeMix: number }) {
     const g = new THREE.EdgesGeometry(new THREE.SphereGeometry(1.012, 24, 16));
     return g;
   }, []);
-  const day = useMemo(() => new THREE.Color("#bfe6cf"), []);
+  const day = useMemo(() => new THREE.Color("#cfeede"), []);
   const dark = useMemo(() => new THREE.Color("#27e6c2"), []);
   const ref = useRef<THREE.LineSegments>(null);
 
   useFrame((_, delta) => {
-    if (ref.current) ref.current.rotation.y += delta * 0.05;
+    // spin in lock-step with the Earth surface
+    if (ref.current) ref.current.rotation.y += Math.min(delta, 0.05) * 0.045;
     if (matRef.current) {
       (matRef.current.color as THREE.Color).copy(day).lerp(dark, themeMix);
-      matRef.current.opacity = 0.12 + themeMix * 0.5;
+      // near-invisible in light mode (clean planet), glowing grid in dark mode
+      matRef.current.opacity = 0.03 + themeMix * 0.5;
     }
   });
 

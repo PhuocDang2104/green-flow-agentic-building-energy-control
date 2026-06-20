@@ -52,7 +52,11 @@ export default function LandingExperience() {
     <div className={`landing-root ${theme === "dark" ? "dark" : ""}`} ref={parallaxRef}>
       <div className="gf-bg-glow" />
 
-      <div className="gf-earth-stage" data-parallax="0.25">
+      <div
+        className="gf-earth-stage"
+        data-parallax="0.25"
+        style={{ opacity: active <= 1 ? 1 : 0, transition: "opacity 0.9s ease" }}
+      >
         <EarthScene section={active} themeMix={themeMix} reduced={!!reduced} />
       </div>
 
@@ -66,7 +70,7 @@ export default function LandingExperience() {
       <div className="gf-stage" ref={stageRef}>
         <SectionHero />
         <SectionGlobalEnergy />
-        <SectionControllableLoads />
+        <SectionControllableLoads active={active === 2} themeMix={themeMix} />
         <SectionHanoiBreakdown active={active === 3} />
         <SectionElNino />
         <SectionProblem />

@@ -69,9 +69,43 @@ export function useFullPageNavigation({ stageRef, cloudRef, count, setActive }: 
         onComplete: () => {
           curEl.classList.remove("is-active");
           nextEl.classList.add("is-active");
+          gsap.set([curEl, nextEl], { clearProps: "zIndex" });
           animating.current = false;
         },
       });
+
+      // ----- "keep the pie" shared-element transition between section 2 and 3 -----
+      const pieFlip = !reduced && ((cur === 2 && next === 3) || (cur === 3 && next === 2));
+      const outPie = pieFlip ? curEl.querySelector<HTMLElement>("[data-pie]") : null;
+      const inPie = pieFlip ? nextEl.querySelector<HTMLElement>("[data-pie]") : null;
+      if (pieFlip && outPie && inPie) {
+        const r1 = outPie.getBoundingClientRect();
+        const r2 = inPie.getBoundingClientRect();
+        const dx = r1.left - r2.left;
+        const dy = r1.top - r2.top;
+        const sx = r2.width ? r1.width / r2.width : 1;
+
+        // incoming section sits on top, visible; its other content waits
+        gsap.set(nextEl, { autoAlpha: 1, y: 0, scale: 1, filter: "blur(0px)", pointerEvents: "auto", zIndex: 5 });
+        gsap.set(curEl, { zIndex: 4 });
+        const nextKids = Array.from(nextEl.querySelectorAll<HTMLElement>("[data-reveal]"));
+        gsap.set(nextKids, { autoAlpha: 0, y: 24 });
+
+        // the flying pie starts exactly over the outgoing one, then glides down + grows
+        gsap.set(inPie, { transformOrigin: "top left", x: dx, y: dy, scale: sx, autoAlpha: 1 });
+        gsap.set(outPie, { autoAlpha: 0 });
+
+        const outKids = Array.from(curEl.querySelectorAll<HTMLElement>("[data-reveal]"));
+        tl.to(outKids, { autoAlpha: 0, y: forward ? -20 : 20, duration: dur * 0.5, stagger: 0.04 }, 0);
+        tl.to(curEl, { autoAlpha: 0, duration: dur * 0.6, pointerEvents: "none" }, dur * 0.2);
+        tl.to(inPie, { x: 0, y: 0, scale: 1, duration: dur, ease: "power3.inOut" }, 0);
+        tl.add(() => revealChildren(nextEl, reduced, false), dur * 0.6);
+        tl.add(() => {
+          gsap.set(outPie, { autoAlpha: 1, clearProps: "transform" });
+          gsap.set(inPie, { clearProps: "transform" });
+        });
+        return tl;
+      }
 
       tl.to(curEl, {
         autoAlpha: 0,

@@ -1,0 +1,23 @@
+import puppeteer from "puppeteer-core";
+const base = process.argv[2] || "http://localhost:3000/";
+const prefix = process.argv[3] || (process.env.TEMP + "\\gfloads");
+const { webSocketDebuggerUrl } = await (await fetch("http://localhost:9222/json/version")).json();
+const browser = await puppeteer.connect({ browserWSEndpoint: webSocketDebuggerUrl, defaultViewport: { width: 1480, height: 940 } });
+const page = await browser.newPage();
+const errs = [];
+page.on("pageerror", (e) => errs.push(String(e).slice(0, 200)));
+await page.goto(base, { waitUntil: "domcontentloaded", timeout: 120000 });
+await new Promise((r) => setTimeout(r, 9000));
+await page.keyboard.press("ArrowDown");
+await new Promise((r) => setTimeout(r, 1800));
+await page.keyboard.press("ArrowDown");
+await new Promise((r) => setTimeout(r, 6000)); // building grow
+await page.screenshot({ path: `${prefix}_loads_light.png` });
+console.log("loads light");
+await page.evaluate(() => { const b=[...document.querySelectorAll("nav button")]; b[b.length-1]?.click(); });
+await new Promise((r) => setTimeout(r, 3500));
+await page.screenshot({ path: `${prefix}_loads_dark.png` });
+console.log("loads dark");
+console.log("ERRORS", errs.length, errs.slice(0,5));
+await page.close();
+await browser.disconnect();
