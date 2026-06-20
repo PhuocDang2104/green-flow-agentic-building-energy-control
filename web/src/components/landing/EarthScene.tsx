@@ -16,24 +16,39 @@ import AtmosphereGlow from "./AtmosphereGlow";
 import EarthGrid from "./EarthGrid";
 import EarthBuildings from "./EarthBuildings";
 
-// Per-section Earth placement (world units). x/y in viewport-ish offsets, scale.
-const LAYOUT: Record<number, { x: number; y: number; scale: number }> = {
-  0: { x: 0.1, y: -2.55, scale: 2.25 },  // hero: big globe rising from the bottom
-  1: { x: 2.7, y: -0.7, scale: 1.2 },    // global energy: spun down to the right
-  2: { x: 0.4, y: 0.0, scale: 3.9 },     // loads: rushes toward viewer (zoom-in)
-  3: { x: -4.6, y: 2.4, scale: 0.8 },
-  4: { x: -4.6, y: 2.4, scale: 0.8 },
-  5: { x: -4.6, y: 2.4, scale: 0.8 },
-  6: { x: 4.0, y: -2.4, scale: 1.0 },
-};
+// Per-section Earth keyframes (world units). Interpolated continuously by the
+// scroll progress so the globe scales/drifts smoothly as you scroll the page.
+const LAYOUT: { x: number; y: number; scale: number }[] = [
+  { x: 0.1, y: -2.55, scale: 2.25 }, // hero: big globe rising from the bottom
+  { x: 2.7, y: -0.7, scale: 1.2 },   // global energy: spun down to the right
+  { x: 0.4, y: 0.6, scale: 3.6 },    // loads: rushes toward viewer (zoom-in / fades out)
+  { x: -4.6, y: 2.4, scale: 0.8 },
+  { x: -4.6, y: 2.4, scale: 0.8 },
+  { x: -4.6, y: 2.4, scale: 0.8 },
+  { x: 4.0, y: -2.4, scale: 1.0 },
+];
 
-function Rig({ section, themeMix, reduced }: {
-  section: number; themeMix: number; reduced: boolean;
+const smooth = (t: number) => t * t * (3 - 2 * t);
+
+function layoutAt(p: number) {
+  const i = Math.max(0, Math.min(LAYOUT.length - 1, Math.floor(p)));
+  const j = Math.min(LAYOUT.length - 1, i + 1);
+  const f = smooth(Math.max(0, Math.min(1, p - i)));
+  const a = LAYOUT[i], b = LAYOUT[j];
+  return {
+    x: a.x + (b.x - a.x) * f,
+    y: a.y + (b.y - a.y) * f,
+    scale: a.scale + (b.scale - a.scale) * f,
+  };
+}
+
+function Rig({ progress, themeMix, reduced }: {
+  progress: number; themeMix: number; reduced: boolean;
 }) {
   const group = useRef<THREE.Group>(null);
   const target = useRef(new THREE.Vector3(0.1, -2.55, 0));
   const curScale = useRef(2.25);
-  const prevSection = useRef(section);
+  const prevProgress = useRef(progress);
   const spinBoost = useRef(0);
 
   useFrame((_, delta) => {
@@ -41,18 +56,16 @@ function Rig({ section, themeMix, reduced }: {
     if (!g) return;
     const d = Math.min(delta, 0.05);
 
-    // kick a strong spin whenever we move to a new section
-    if (section !== prevSection.current) {
-      spinBoost.current += section > prevSection.current ? 2.4 : 1.4;
-      prevSection.current = section;
-    }
-    spinBoost.current *= 0.94;
+    // spin harder the faster you scroll (scroll-velocity driven)
+    const dp = progress - prevProgress.current;
+    prevProgress.current = progress;
+    spinBoost.current += Math.abs(dp) * 7;
+    spinBoost.current *= 0.92;
     g.rotation.y += spinBoost.current * d;
 
-    const l = LAYOUT[section] ?? LAYOUT[6];
+    const l = layoutAt(progress);
     target.current.set(l.x, l.y, 0);
-    // slower drift so the hero->section glide feels deliberate, not a pop
-    const k = reduced ? 1 : Math.min(1, d * 1.25);
+    const k = reduced ? 1 : Math.min(1, d * 6);
     g.position.lerp(target.current, k);
     curScale.current += (l.scale - curScale.current) * k;
     g.scale.setScalar(curScale.current);
@@ -127,8 +140,8 @@ function Particles({ themeMix, reduced }: { themeMix: number; reduced: boolean }
   );
 }
 
-export default function EarthScene({ section, themeMix, reduced }: {
-  section: number; themeMix: number; reduced: boolean;
+export default function EarthScene({ progress, themeMix, reduced }: {
+  progress: number; themeMix: number; reduced: boolean;
 }) {
   return (
     <Canvas
@@ -144,7 +157,7 @@ export default function EarthScene({ section, themeMix, reduced }: {
     >
       <LightRig themeMix={themeMix} />
       <Suspense fallback={null}>
-        <Rig section={section} themeMix={themeMix} reduced={reduced} />
+        <Rig progress={progress} themeMix={themeMix} reduced={reduced} />
       </Suspense>
       <Particles themeMix={themeMix} reduced={reduced} />
     </Canvas>

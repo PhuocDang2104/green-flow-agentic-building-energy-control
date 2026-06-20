@@ -37,15 +37,7 @@ export default function SectionControllableLoads({
           </div>
         </div>
 
-        {/* pie chart — left, behind (flies to section 3 on scroll) */}
-        <img
-          data-pie
-          src="/assets/landing/HVAC_light_pie.png"
-          alt="Energy share by end use — HVAC 48%, Lighting 22%"
-          draggable={false}
-          className="absolute left-[0%] top-[26%] z-10 w-[40%] max-w-[440px] select-none"
-          style={{ filter: "drop-shadow(0 26px 40px rgba(0,60,30,0.22))" }}
-        />
+        {/* pie chart is rendered as a pinned overlay (scrolls/scales 2 -> 3) */}
 
         {/* bar chart — right, behind */}
         <img

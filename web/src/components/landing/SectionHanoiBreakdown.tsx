@@ -7,19 +7,8 @@ export default function SectionHanoiBreakdown({ active }: { active: boolean }) {
   return (
     <div className="gf-section" data-section="3">
       <div className="grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
-        <div className="flex justify-center">
-          <img
-            data-pie
-            src="/assets/landing/HVAC_light_pie.png"
-            alt="Ha Noi commercial building energy breakdown — HVAC and lighting share"
-            draggable={false}
-            className="w-[96%] max-w-lg select-none"
-            style={{
-              objectFit: "contain",
-              filter: "drop-shadow(0 34px 52px rgba(0,60,30,0.24))",
-            }}
-          />
-        </div>
+        {/* left column reserved for the pinned pie overlay (scrolls in from section 2) */}
+        <div aria-hidden className="hidden lg:block" />
         <div data-reveal className="gf-card relative overflow-hidden p-7">
           <div className="absolute -right-6 top-6 hidden h-40 w-3 rounded-full sm:block"
                style={{ background: "linear-gradient(var(--gf-green), var(--gf-leaf))", opacity: 0.5 }} />
