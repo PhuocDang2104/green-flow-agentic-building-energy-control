@@ -20,8 +20,8 @@ import EarthBuildings from "./EarthBuildings";
 // scroll progress so the globe scales/drifts smoothly as you scroll the page.
 const LAYOUT: { x: number; y: number; scale: number }[] = [
   { x: 0.1, y: -2.55, scale: 2.25 }, // hero: big globe rising from the bottom
-  { x: 2.7, y: -0.7, scale: 1.2 },   // global energy: spun down to the right
-  { x: 0.4, y: 0.6, scale: 3.6 },    // loads: rushes toward viewer (zoom-in / fades out)
+  { x: 2.15, y: -0.7, scale: 1.2 },  // global energy: shifted a touch left
+  { x: 0.4, y: 0.6, scale: 3.2 },    // loads: recedes/zooms as it fades out
   { x: -4.6, y: 2.4, scale: 0.8 },
   { x: -4.6, y: 2.4, scale: 0.8 },
   { x: -4.6, y: 2.4, scale: 0.8 },

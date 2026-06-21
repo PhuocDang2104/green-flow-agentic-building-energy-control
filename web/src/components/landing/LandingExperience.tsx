@@ -74,18 +74,8 @@ export default function LandingExperience() {
     return () => io.disconnect();
   }, []);
 
-  // ----- scroll-driven values for the pinned elements -----
-  const earthOpacity = 1 - smooth(1.45, 2.0, progress); // globe fades out into the building
-  const cloudOpacity = reduced
-    ? 0
-    : Math.max(0, 1 - Math.abs(progress - 1.5) / 0.42) * 0.85; // mist flash on 2->3 zoom-in
-
-  // the pie stays pinned and scales up + drifts gently down as you scroll 2 -> 3
-  const pieT = clamp01(progress - 2);
-  const pieOpacity = smooth(1.62, 1.95, progress) * (1 - smooth(3.02, 3.32, progress));
-  const pieWidth = 30 + pieT * 11;   // vw
-  const pieLeft = 4 + pieT * 1.5;    // vw
-  const pieCenter = 50 + pieT * 5;   // vh — vertically centred, drifts gently down
+  // ----- scroll-driven value for the pinned globe -----
+  const earthOpacity = 1 - smooth(1.5, 2.05, progress); // globe recedes/fades as section 2 takes over
 
   // sections don't depend on scroll progress, so memoise them away from re-renders
   const sections = useMemo(
@@ -93,14 +83,14 @@ export default function LandingExperience() {
       <>
         <SectionHero />
         <SectionGlobalEnergy />
-        <SectionControllableLoads active={active === 2} themeMix={themeMix} />
+        <SectionControllableLoads />
         <SectionHanoiBreakdown active={active === 3} />
         <SectionElNino />
         <SectionProblem />
         <SectionFinalCTA />
       </>
     ),
-    [active, themeMix],
+    [active],
   );
 
   return (
@@ -120,25 +110,6 @@ export default function LandingExperience() {
       />
 
       <div className="gf-stage">{sections}</div>
-
-      {/* pinned pie — scrolls smoothly down + scales between section 2 and 3 */}
-      <img
-        src="/assets/landing/HVAC_light_pie.png"
-        alt="Energy share by end use — HVAC 48%, Lighting 22%"
-        aria-hidden={pieOpacity < 0.02}
-        draggable={false}
-        className="gf-pie-fly"
-        style={{
-          left: `${pieLeft}vw`,
-          top: `${pieCenter}vh`,
-          width: `${pieWidth}vw`,
-          transform: "translateY(-50%)",
-          opacity: pieOpacity,
-          visibility: pieOpacity < 0.01 ? "hidden" : "visible",
-        }}
-      />
-
-      <div className="gf-cloud-wipe" style={{ opacity: cloudOpacity }} aria-hidden />
 
       <SectionDots count={COUNT} active={active} onNav={goTo} />
 

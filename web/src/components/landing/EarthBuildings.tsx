@@ -55,10 +55,6 @@ export default function EarthBuildings({ themeMix, reduced }: { themeMix: number
     () => new THREE.MeshStandardMaterial({ color: "#7fe9c2", roughness: 0.3, metalness: 0.2, emissive: "#34f5c4", emissiveIntensity: 0.25 }),
     [],
   );
-  const roofMat = useMemo(
-    () => new THREE.MeshStandardMaterial({ color: "#155f43", roughness: 0.5 }),
-    [],
-  );
 
   // ---- cluster + building geometry data (once) ----
   const { buildings, clusterDirs } = useMemo(() => {
@@ -161,9 +157,6 @@ export default function EarthBuildings({ themeMix, reduced }: { themeMix: number
           </mesh>
           <mesh position={[0, b.base + b.tower / 2, 0]} material={winMat}>
             <boxGeometry args={[b.w, b.tower, b.w]} />
-          </mesh>
-          <mesh position={[0, b.base + b.tower + 0.006, 0]} material={roofMat}>
-            <boxGeometry args={[b.w * 0.45, 0.012, b.w * 0.45]} />
           </mesh>
         </group>
       ))}

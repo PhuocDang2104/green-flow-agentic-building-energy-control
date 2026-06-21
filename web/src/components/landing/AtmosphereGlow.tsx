@@ -18,7 +18,8 @@ const fragment = /* glsl */ `
   uniform vec3 uColor;
   uniform float uIntensity;
   void main(){
-    float f = pow(1.0 - max(dot(vNormal, vec3(0.0,0.0,1.0)), 0.0), 2.2);
+    // soft, thin, transparent rim halo (low intensity)
+    float f = pow(1.0 - max(dot(vNormal, vec3(0.0,0.0,1.0)), 0.0), 3.4);
     gl_FragColor = vec4(uColor, f * uIntensity);
   }
 `;
@@ -27,24 +28,25 @@ export default function AtmosphereGlow({ themeMix }: { themeMix: number }) {
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const uniforms = useMemo(
     () => ({
-      uColor: { value: new THREE.Color("#7fc6ff") },
-      uIntensity: { value: 0.9 },
+      uColor: { value: new THREE.Color("#a9d8ff") },
+      uIntensity: { value: 0.42 },
     }),
     [],
   );
-  const day = useMemo(() => new THREE.Color("#7fc6ff"), []);
-  const dark = useMemo(() => new THREE.Color("#3ef0a6"), []);
+  const day = useMemo(() => new THREE.Color("#a9d8ff"), []);
+  const dark = useMemo(() => new THREE.Color("#46f0b4"), []);
 
   useFrame(() => {
     if (!matRef.current) return;
     const c = matRef.current.uniforms.uColor.value as THREE.Color;
     c.copy(day).lerp(dark, themeMix);
-    matRef.current.uniforms.uIntensity.value = 0.85 + themeMix * 0.6;
+    // low-intensity glow in light mode, a touch stronger in dark
+    matRef.current.uniforms.uIntensity.value = 0.4 + themeMix * 0.5;
   });
 
   return (
-    <mesh scale={1.18}>
-      <sphereGeometry args={[1, 48, 48]} />
+    <mesh scale={1.14}>
+      <sphereGeometry args={[1, 64, 64]} />
       <shaderMaterial
         ref={matRef}
         vertexShader={vertex}

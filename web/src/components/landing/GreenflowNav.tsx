@@ -21,7 +21,7 @@ export default function GreenflowNav({
       <button onClick={() => onNav(0)} className="flex items-center gap-2 pr-1"
               aria-label="GreenFlow home">
         <img src="/assets/landing/greenflow_logo.png" alt="GreenFlow"
-             className="h-7 w-auto" draggable={false} />
+             className="h-10 w-auto" draggable={false} />
       </button>
       <div className="hidden items-center gap-1 sm:flex">
         {NAV.map((n) => {

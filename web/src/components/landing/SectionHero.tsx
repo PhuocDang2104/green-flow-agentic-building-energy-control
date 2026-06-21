@@ -4,11 +4,7 @@ export default function SectionHero() {
   return (
     <div className="gf-section" data-section="0">
       <div className="flex w-full max-w-5xl flex-col items-center text-center"
-           style={{ transform: "translateY(-15vh)" }}>
-        <span data-reveal className="gf-card mb-6 rounded-full px-4 py-1.5 text-[12px] font-medium"
-              style={{ color: "var(--gf-green)" }}>
-          Agentic digital twin · building intelligence
-        </span>
+           style={{ transform: "translateY(-21vh)" }}>
         <h1 className="gf-hero-title text-balance text-[clamp(34px,6vw,68px)] font-semibold leading-[1.05] tracking-tight"
             style={{ color: "var(--gf-ink)" }}>
           <span className="gf-line-mask"><span data-reveal className="gf-line-inner">
