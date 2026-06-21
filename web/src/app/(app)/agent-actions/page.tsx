@@ -8,6 +8,7 @@ import ActionQueue from "@/components/agent/ActionQueue";
 import PredictionPanel from "@/components/agent/PredictionPanel";
 import PolicySummaryCard from "@/components/agent/PolicySummaryCard";
 import AuditTable from "@/components/agent/AuditTable";
+import FaultsPanel from "@/components/agent/FaultsPanel";
 import { useAgentRun } from "@/hooks/useAgentRun";
 import { api } from "@/lib/api";
 import type { ActionItem, Approval } from "@/lib/types";
@@ -95,6 +96,10 @@ export default function AgentActionsPage() {
         <span className="ml-auto text-xs text-text-muted">
           Every action is simulated and policy-checked before execution.
         </span>
+      </div>
+
+      <div className="mb-4">
+        <FaultsPanel />
       </div>
 
       <div className="grid gap-4 xl:grid-cols-[1fr_420px]">

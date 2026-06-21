@@ -46,16 +46,17 @@ COMFORT_LIMIT_C = 26.5  # khớp synthetic_baseline
 DENSITY = {"open_office": 0.10, "office": 0.08, "meeting_room": 0.40, "lobby": 0.05,
            "circulation": 0.02, "amenity": 0.06, "auditorium": 0.5}
 DEFAULT_DENSITY = 0.08
-# fraction occupancy theo giờ (ngày làm việc); cuối tuần ~0.05
-HOUR_OCC = {0: .02, 1: .02, 2: .02, 3: .02, 4: .02, 5: .03, 6: .08, 7: .25, 8: .6,
+# fraction occupancy theo giờ làm việc; ĐÊM = 0 (văn phòng trống, không có "ma"
+# lúc 3h sáng) -> comfort/hvac episode chỉ trong giờ có người, duration thực tế.
+HOUR_OCC = {0: 0, 1: 0, 2: 0, 3: 0, 4: 0, 5: 0, 6: .05, 7: .3, 8: .7,
             9: .95, 10: 1.0, 11: 1.0, 12: .6, 13: .9, 14: 1.0, 15: 1.0, 16: .95,
-            17: .6, 18: .3, 19: .12, 20: .05, 21: .03, 22: .02, 23: .02}
+            17: .6, 18: .25, 19: .08, 20: 0, 21: 0, 22: 0, 23: 0}
 
 
 def occ_fraction(dt) -> float:
-    if dt.weekday() >= 5:
-        return 0.05
-    return HOUR_OCC.get(dt.hour, 0.05)
+    if dt.weekday() >= 5:      # cuối tuần văn phòng đóng
+        return 0.0
+    return HOUR_OCC.get(dt.hour, 0.0)
 
 
 def tariff_vnd(hour: float) -> int:

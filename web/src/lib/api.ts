@@ -2,7 +2,7 @@
 // and Caddy in production both route them to the FastAPI backend.
 
 import type {
-  ActionItem, AgentLog, AgentRun, Approval, Building, ChatMessageRow,
+  ActionItem, AgentLog, AgentRun, Alert, Approval, Building, ChatMessageRow,
   ChatQueryResponse, ChatResponse, ChatSessionSummary, ComparisonKpi, Device,
   Kpis, Report, SimulationRun, ValidationResult, Zone,
 } from "./types";
@@ -72,6 +72,12 @@ export const api = {
     post<any>(`/approvals/${id}/reject`, { decided_by: "demo_user", note }),
   auditLog: () => get<any[]>("/audit-log"),
   policyConfig: () => get<any>("/policy-config"),
+
+  // alerts / fault detection & diagnostics (FDD)
+  alerts: (status = "open") => get<Alert[]>(`/alerts?status=${status}`),
+  alertsSummary: () => get<{ critical: number; warning: number; info: number; total: number }>("/alerts/summary"),
+  acknowledgeAlert: (id: string) => post(`/alerts/${id}/acknowledge`),
+  scanAnomalies: () => post<{ alerts_written: number }>("/agent/scan-anomalies"),
 
   // simulations
   simulations: () => get<SimulationRun[]>("/simulations"),
