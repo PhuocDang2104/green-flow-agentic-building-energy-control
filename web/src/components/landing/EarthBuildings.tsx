@@ -143,7 +143,7 @@ export default function EarthBuildings({ themeMix, reduced }: { themeMix: number
     winMat.emissiveIntensity = 0.25 + themeMix * 1.7;
 
     if (dotsMat.current) {
-      dotsMat.current.opacity = themeMix * (0.7 + Math.sin(performance.now() * 0.004) * 0.25);
+      dotsMat.current.opacity = (0.28 + themeMix * 0.42) + Math.sin(performance.now() * 0.004) * 0.08;
     }
     for (const u of arcUniforms) { u.uTime.value += d; u.uMix.value = themeMix; }
   });
@@ -171,8 +171,8 @@ export default function EarthBuildings({ themeMix, reduced }: { themeMix: number
       ))}
 
       <points geometry={dotsGeo}>
-        <pointsMaterial ref={dotsMat} color="#7dffd9" size={0.05} sizeAttenuation
-          transparent opacity={0} depthWrite={false} blending={THREE.AdditiveBlending} />
+        <pointsMaterial ref={dotsMat} color="#00a651" size={0.05} sizeAttenuation
+          transparent opacity={0.28} depthWrite={false} blending={THREE.AdditiveBlending} />
       </points>
     </group>
   );
@@ -193,10 +193,12 @@ const ARC_FRAG = /* glsl */ `
   void main(){
     float t = fract(vUv.x - uTime * 0.22 + uPhase);
     float pulse = smoothstep(0.0, 0.05, t) * (1.0 - smoothstep(0.05, 0.22, t));
+    vec3 lightGreen = vec3(0.38, 1.0, 0.58);
     vec3 cyan = vec3(0.18, 0.95, 0.85);
     vec3 green = vec3(0.30, 1.0, 0.55);
-    vec3 col = mix(cyan, green, vUv.x) * (0.55 + pulse * 1.6);
-    float a = (0.12 + pulse * 0.9) * uMix;
+    vec3 darkCol = mix(cyan, green, vUv.x);
+    vec3 col = mix(lightGreen, darkCol, uMix) * (0.84 + pulse * mix(1.28, 1.6, uMix));
+    float a = mix(0.38, 0.12, uMix) + pulse * mix(0.72, 0.9, uMix);
     gl_FragColor = vec4(col, a);
   }
 `;

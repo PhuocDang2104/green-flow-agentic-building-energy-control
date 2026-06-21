@@ -25,11 +25,12 @@ const fragment = /* glsl */ `
 `;
 
 export default function AtmosphereGlow({ themeMix }: { themeMix: number }) {
+  const meshRef = useRef<THREE.Mesh>(null);
   const matRef = useRef<THREE.ShaderMaterial>(null);
   const uniforms = useMemo(
     () => ({
       uColor: { value: new THREE.Color("#bff2e2") },
-      uIntensity: { value: 0.24 },
+      uIntensity: { value: 0 },
     }),
     [],
   );
@@ -37,14 +38,15 @@ export default function AtmosphereGlow({ themeMix }: { themeMix: number }) {
   const dark = useMemo(() => new THREE.Color("#46f0b4"), []);
 
   useFrame(() => {
+    if (meshRef.current) meshRef.current.visible = themeMix > 0.04;
     if (!matRef.current) return;
     const c = matRef.current.uniforms.uColor.value as THREE.Color;
     c.copy(day).lerp(dark, themeMix);
-    matRef.current.uniforms.uIntensity.value = 0.22 + themeMix * 0.68;
+    matRef.current.uniforms.uIntensity.value = Math.pow(themeMix, 1.4) * 0.9;
   });
 
   return (
-    <mesh scale={1.2}>
+    <mesh ref={meshRef} scale={1.2} visible={false}>
       <sphereGeometry args={[1, 64, 64]} />
       <shaderMaterial
         ref={matRef}

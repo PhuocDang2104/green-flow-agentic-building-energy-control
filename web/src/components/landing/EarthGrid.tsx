@@ -1,6 +1,6 @@
 "use client";
 
-// Latitude/longitude wireframe wrapping the globe. Faint in light mode, glowing
+// Latitude/longitude wireframe wrapping the globe. Hidden in light mode, glowing
 // cyan in dark mode (energy-network feel).
 
 import { useMemo, useRef } from "react";
@@ -13,7 +13,6 @@ export default function EarthGrid({ themeMix }: { themeMix: number }) {
     const g = new THREE.EdgesGeometry(new THREE.SphereGeometry(1.012, 24, 16));
     return g;
   }, []);
-  const day = useMemo(() => new THREE.Color("#cfeede"), []);
   const dark = useMemo(() => new THREE.Color("#27e6c2"), []);
   const ref = useRef<THREE.LineSegments>(null);
 
@@ -21,15 +20,14 @@ export default function EarthGrid({ themeMix }: { themeMix: number }) {
     // spin in lock-step with the Earth surface
     if (ref.current) ref.current.rotation.y += Math.min(delta, 0.05) * 0.045;
     if (matRef.current) {
-      (matRef.current.color as THREE.Color).copy(day).lerp(dark, themeMix);
-      // near-invisible in light mode (clean planet), glowing grid in dark mode
-      matRef.current.opacity = 0.03 + themeMix * 0.5;
+      (matRef.current.color as THREE.Color).copy(dark);
+      matRef.current.opacity = themeMix * 0.54;
     }
   });
 
   return (
     <lineSegments ref={ref} geometry={geom}>
-      <lineBasicMaterial ref={matRef} transparent opacity={0.15} />
+      <lineBasicMaterial ref={matRef} transparent opacity={0} />
     </lineSegments>
   );
 }

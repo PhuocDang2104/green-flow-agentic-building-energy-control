@@ -69,7 +69,7 @@ body.gf-snap-body {
 /* Stage and sections */
 .gf-stage {
   position: relative;
-  z-index: 3;
+  z-index: 8;
   height: 700vh;
   will-change: transform;
 }
@@ -88,6 +88,7 @@ body.gf-snap-body {
   filter: blur(4px);
   transform: scale(0.988);
   pointer-events: none;
+  perspective: 1200px;
   transition:
     opacity 0.56s ease,
     filter 0.56s ease,
@@ -104,12 +105,13 @@ body.gf-snap-body {
 /* Professional pop reveals. */
 .gf-section [data-reveal] {
   opacity: 0;
-  filter: blur(8px);
-  transform: translate3d(0, 34px, 0) scale(0.965);
+  filter: blur(10px);
+  transform: translate3d(0, 42px, 0) scale(0.94) rotateX(7deg);
+  transform-origin: center bottom;
   transition:
-    opacity 0.68s ease,
-    filter 0.74s ease,
-    transform 0.82s cubic-bezier(0.16, 1, 0.3, 1);
+    opacity 0.78s ease,
+    filter 0.86s ease,
+    transform 0.96s cubic-bezier(0.16, 1, 0.3, 1);
   will-change: opacity, filter, transform;
 }
 
@@ -144,8 +146,8 @@ body.gf-snap-body {
   left: 0;
   top: 0;
   z-index: 7;
-  max-width: min(570px, 45vw);
-  min-width: 290px;
+  max-width: min(500px, 38vw);
+  min-width: 260px;
   will-change: transform, opacity;
   transition: opacity 0.18s linear;
 }
@@ -181,7 +183,7 @@ body.gf-snap-body {
 .gf-chartcard:hover,
 .gf-chartcard:focus-visible {
   transform: translateY(-8px) scale(1.025);
-  z-index: 8;
+  z-index: 14;
 }
 
 .gf-chartcard:hover img,
@@ -191,7 +193,7 @@ body.gf-snap-body {
 
 .gf-chartpop {
   position: absolute;
-  z-index: 9;
+  z-index: 15;
   min-width: 188px;
   max-width: 244px;
   padding: 12px 14px;
@@ -310,6 +312,23 @@ body.gf-snap-body {
     0 22px 54px rgba(11, 67, 44, 0.1),
     0 3px 12px rgba(11, 67, 44, 0.05);
   backdrop-filter: blur(8px);
+  transition:
+    transform 0.32s cubic-bezier(0.16, 1, 0.3, 1),
+    box-shadow 0.32s ease,
+    background 0.32s ease;
+}
+
+.gf-card:hover {
+  transform: translateY(-5px);
+  box-shadow:
+    0 30px 76px rgba(11, 67, 44, 0.14),
+    0 8px 26px rgba(11, 67, 44, 0.08);
+}
+
+.landing-root.dark .gf-card:hover {
+  box-shadow:
+    0 30px 80px rgba(36, 245, 173, 0.12),
+    0 8px 30px rgba(0, 0, 0, 0.22);
 }
 
 .gf-insight-card {
@@ -427,8 +446,208 @@ body.gf-snap-body {
   border-radius: 999px;
   background: var(--gf-nav);
   border: 1px solid var(--gf-border);
-  box-shadow: 0 10px 30px rgba(0, 60, 30, 0.1);
+  box-shadow:
+    0 10px 30px rgba(0, 60, 30, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.46);
   backdrop-filter: blur(14px);
+  transition:
+    box-shadow 0.28s ease,
+    background 0.28s ease,
+    border-color 0.28s ease;
+}
+
+.gf-nav button {
+  transition:
+    transform 0.24s ease,
+    background 0.24s ease,
+    color 0.24s ease,
+    box-shadow 0.24s ease;
+}
+
+.gf-nav:hover {
+  box-shadow:
+    0 16px 42px rgba(0, 80, 45, 0.14),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+}
+
+.gf-nav-home {
+  border-radius: 999px;
+}
+
+.gf-nav button:hover,
+.gf-nav button:focus-visible {
+  transform: translateY(-1px);
+  outline: none;
+}
+
+.gf-nav button:active,
+.gf-login-button:active {
+  transform: translateY(0) scale(0.97);
+}
+
+.gf-nav-link {
+  position: relative;
+  isolation: isolate;
+  min-height: 31px;
+  border-radius: 999px;
+  padding: 0 15px;
+  color: var(--gf-muted);
+  font-size: 13px;
+  font-weight: 600;
+  overflow: hidden;
+  text-shadow: none;
+}
+
+.gf-nav-link::after {
+  content: "";
+  position: absolute;
+  left: 15px;
+  right: 15px;
+  bottom: 4px;
+  height: 2px;
+  border-radius: 999px;
+  background: currentColor;
+  opacity: 0;
+  transform: scaleX(0.55);
+  transform-origin: center;
+  transition:
+    opacity 0.24s ease,
+    transform 0.28s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 0 10px currentColor;
+}
+
+.gf-nav-link:hover,
+.gf-nav-link:focus-visible {
+  color: var(--gf-green);
+  text-shadow:
+    0 0 12px rgba(0, 122, 61, 0.24),
+    0 1px 8px rgba(0, 80, 45, 0.14);
+}
+
+.gf-nav-link:hover::after,
+.gf-nav-link:focus-visible::after,
+.gf-nav-link.is-active::after {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gf-nav-link.is-active {
+  color: var(--gf-green);
+  text-shadow:
+    0 0 10px rgba(0, 122, 61, 0.2),
+    0 1px 8px rgba(0, 80, 45, 0.12);
+}
+
+.gf-theme-toggle {
+  position: relative;
+  width: 38px;
+  height: 40px;
+  flex: 0 0 38px;
+  overflow: hidden;
+  border: 0;
+  border-radius: 999px;
+  cursor: pointer;
+  box-shadow:
+    inset 0 -10px 18px rgba(0, 80, 70, 0.12),
+    0 10px 24px rgba(0, 84, 50, 0.12);
+}
+
+.gf-theme-toggle::before,
+.gf-theme-toggle::after {
+  content: "";
+  position: absolute;
+  pointer-events: none;
+}
+
+.gf-theme-toggle::before {
+  inset: 3px;
+  z-index: 3;
+  border-radius: inherit;
+  border: 1px solid rgba(255, 255, 255, 0.34);
+  box-shadow: inset 0 1px 10px rgba(255, 255, 255, 0.2);
+}
+
+.gf-theme-toggle::after {
+  left: 6px;
+  right: 6px;
+  bottom: 4px;
+  height: 12px;
+  z-index: 1;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.32);
+  filter: blur(8px);
+  opacity: 0.62;
+}
+
+.gf-theme-toggle.is-light {
+  background:
+    radial-gradient(circle at 66% 31%, rgba(255, 255, 255, 0.86) 0 4px, transparent 5px),
+    linear-gradient(180deg, #6bd6f6 0%, #2f95e8 58%, #ff722d 100%);
+}
+
+.gf-theme-toggle.is-dark {
+  background:
+    radial-gradient(circle at 66% 31%, rgba(255, 255, 255, 0.95) 0 4px, transparent 5px),
+    linear-gradient(180deg, #0a0b2f 0%, #154a9a 58%, #17101f 100%);
+}
+
+.gf-theme-stars {
+  position: absolute;
+  inset: 7px 7px auto 7px;
+  height: 11px;
+  opacity: 0;
+  background:
+    radial-gradient(circle, rgba(255, 255, 255, 0.95) 0 1px, transparent 1.6px) 0 0 / 11px 9px,
+    radial-gradient(circle, rgba(255, 255, 255, 0.75) 0 1px, transparent 1.6px) 6px 4px / 13px 10px;
+  transition: opacity 0.28s ease;
+}
+
+.gf-theme-toggle.is-dark .gf-theme-stars {
+  opacity: 1;
+}
+
+.gf-theme-hills {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -1px;
+  height: 18px;
+  background:
+    radial-gradient(16px 14px at 14px 15px, #211426 0 72%, transparent 73%),
+    radial-gradient(20px 16px at 31px 16px, #ffffff 0 64%, transparent 65%),
+    radial-gradient(20px 16px at 37px 16px, #ffda46 0 64%, transparent 65%);
+  transition: filter 0.28s ease, opacity 0.28s ease;
+}
+
+.gf-theme-toggle.is-dark .gf-theme-hills {
+  background:
+    radial-gradient(16px 14px at 14px 15px, #f7f2ff 0 72%, transparent 73%),
+    radial-gradient(22px 17px at 33px 16px, #1c1028 0 64%, transparent 65%);
+}
+
+.gf-theme-orb {
+  position: absolute;
+  right: 7px;
+  top: 34%;
+  z-index: 2;
+  display: grid;
+  width: 15px;
+  height: 15px;
+  place-items: center;
+  color: #fff;
+  transform: translateY(-50%);
+  filter: drop-shadow(0 0 9px rgba(255, 255, 255, 0.75));
+  transition: transform 0.28s ease, filter 0.28s ease;
+}
+
+.gf-theme-toggle:hover {
+  box-shadow:
+    inset 0 -10px 18px rgba(0, 80, 70, 0.12),
+    0 14px 30px rgba(0, 84, 50, 0.18);
+}
+
+.gf-theme-toggle:hover .gf-theme-orb {
+  transform: translateY(-50%) scale(1.08);
 }
 
 .gf-login-button {
@@ -517,6 +736,18 @@ body.gf-snap-body {
   grid-template-columns: 58px 1fr;
   align-items: center;
   column-gap: 18px;
+  margin: -8px -10px;
+  padding: 8px 10px;
+  border-radius: 16px;
+  transition:
+    transform 0.24s ease,
+    color 0.24s ease,
+    background 0.24s ease;
+}
+
+.gf-load-item:hover {
+  transform: translateX(4px);
+  background: rgba(0, 122, 61, 0.045);
 }
 
 .gf-metric-icon {
@@ -535,6 +766,14 @@ body.gf-snap-body {
 
 .gf-load-charts .gf-chartcard img {
   filter: drop-shadow(0 22px 34px rgba(0, 64, 44, 0.16));
+}
+
+.gf-load-charts .gf-chartcard {
+  z-index: 14 !important;
+}
+
+.gf-load-charts .gf-chartpop {
+  z-index: 16;
 }
 
 .gf-article-wrap {
@@ -601,6 +840,18 @@ body.gf-snap-body {
   cursor: pointer;
   box-shadow: 0 14px 32px rgba(0, 122, 61, 0.26);
   will-change: transform;
+  transition:
+    transform 0.24s ease,
+    box-shadow 0.24s ease,
+    background 0.24s ease;
+}
+
+.gf-cta:hover,
+.gf-cta:focus-visible {
+  transform: translateY(-2px);
+  background: var(--gf-green-dark);
+  box-shadow: 0 18px 38px rgba(0, 122, 61, 0.32);
+  outline: none;
 }
 
 .landing-root {

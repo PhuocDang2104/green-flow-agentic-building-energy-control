@@ -11,9 +11,9 @@ const smooth = (start: number, end: number, value: number) => {
 export default function PinnedPieChart({ progress }: { progress: number }) {
   const travel = smooth(2, 3, progress);
   const show = smooth(1.84, 2.06, progress) * (1 - smooth(3.18, 3.42, progress));
-  const x = 79 - 53 * travel;
-  const y = 34 + 18 * travel;
-  const width = 390 + 180 * travel;
+  const x = 82 - 52 * travel;
+  const y = 31 + 17 * travel;
+  const width = 320 + 145 * travel;
   const rotate = -2.5 + 2.5 * travel;
 
   return (

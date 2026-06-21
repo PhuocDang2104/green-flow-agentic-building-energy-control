@@ -32,7 +32,7 @@ export default function SectionFinalCTA() {
             src="/assets/landing/greenflow_product_element.png"
             alt="GreenFlow smart commercial building with live energy and comfort metrics"
             draggable={false}
-            className="w-full max-w-md select-none"
+            className="w-[112%] max-w-lg select-none"
             style={{ objectFit: "contain", filter: "drop-shadow(0 28px 44px rgba(0,60,30,0.2))" }}
           />
         </div>

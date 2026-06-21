@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { Cloud, LogIn, Sun } from "lucide-react";
+import { LogIn, Moon, Sun } from "lucide-react";
 
 const NAV = [
   { label: "Problem", section: 5 },
@@ -19,7 +19,7 @@ export default function GreenflowNav({
 }) {
   return (
     <nav className="gf-nav" aria-label="GreenFlow landing navigation">
-      <button onClick={() => onNav(0)} className="flex items-center gap-2 pr-1"
+      <button onClick={() => onNav(0)} className="gf-nav-home flex items-center gap-2 pr-1"
               aria-label="GreenFlow home">
         <img src="/assets/landing/greenflow_logo.png" alt="GreenFlow"
              className="h-10 w-auto" draggable={false} />
@@ -32,11 +32,7 @@ export default function GreenflowNav({
             <button
               key={n.label}
               onClick={() => onNav(n.section)}
-              className="rounded-full px-3.5 py-1.5 text-[13px] font-medium transition"
-              style={{
-                color: on ? "var(--gf-green)" : "var(--gf-muted)",
-                background: on ? "var(--gf-green-soft)" : "transparent",
-              }}
+              className={`gf-nav-link ${on ? "is-active" : ""}`}
             >
               {n.label}
             </button>
@@ -45,11 +41,14 @@ export default function GreenflowNav({
       </div>
       <button
         onClick={onToggleTheme}
-        className="grid h-9 w-9 place-items-center rounded-full transition"
-        style={{ background: "var(--gf-green-soft)", color: "var(--gf-green)" }}
+        className={`gf-theme-toggle ${theme === "dark" ? "is-dark" : "is-light"}`}
         aria-label={theme === "light" ? "Switch to dark mode" : "Switch to light mode"}
       >
-        {theme === "light" ? <Sun size={16} /> : <Cloud size={16} />}
+        <span className="gf-theme-stars" aria-hidden />
+        <span className="gf-theme-hills" aria-hidden />
+        <span className="gf-theme-orb">
+          {theme === "light" ? <Sun size={13} /> : <Moon size={13} />}
+        </span>
       </button>
       <Link href="/dashboard" className="gf-login-button" aria-label="Login to GreenFlow dashboard">
         <LogIn size={16} />

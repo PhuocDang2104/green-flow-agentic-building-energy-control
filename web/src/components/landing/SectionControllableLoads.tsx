@@ -56,8 +56,8 @@ export default function SectionControllableLoads() {
               { label: "Equipment", value: "12% / 16%" },
               { label: "Vertical transport", value: "8% / 9%" },
             ]}
-            className="absolute left-[1%] top-[44%] z-[2] w-[74%]"
-            popupClass="left-[18%] top-[8%]"
+            className="absolute left-[-2%] top-[57%] z-[2] w-[75%]"
+            popupClass="left-[66%] top-[12%]"
           />
         </div>
       </div>
