@@ -79,14 +79,14 @@ async def broadcast_agent_event(building_id: str, event: dict) -> None:
 
 
 def _distinct_timestamps(building_id: str) -> list:
+    from ..replayclock import anchor
     with db_conn() as conn:
+        a = anchor(conn, building_id)
         rows = fetch_all(conn, """
             SELECT DISTINCT timestamp FROM telemetry_zone_15m
-            WHERE building_id = :b
-              AND timestamp > (SELECT max(timestamp) - interval '24 hours'
-                               FROM telemetry_zone_15m WHERE building_id = :b)
+            WHERE building_id = :b AND timestamp > :a - interval '24 hours' AND timestamp <= :a
             ORDER BY timestamp
-        """, b=building_id)
+        """, b=building_id, a=a)
     return [r["timestamp"].isoformat() for r in rows]
 
 

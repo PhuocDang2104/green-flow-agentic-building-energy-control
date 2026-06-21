@@ -10,12 +10,17 @@ from pathlib import Path
 from sqlalchemy import text
 
 from ...db import db_conn, fetch_all, fetch_one
-from ...sim.actions import Action
+from ...replayclock import anchor
+from ...sim.actions import Action, zone_modifiers_at
 from ...sim.kpi import compare_runs
 from ...sim.runner import run_simulation
 from ...sim.sim_store import read_run_series, write_run_rows
-from ...sim.synthetic_baseline import SimResult
+from ...sim.synthetic_baseline import SimRecord, SimResult, _fill_totals
 from .db_tool import _clean
+
+# Cooling electricity reduction per +1°C cooling setpoint (structural surrogate /
+# EnergyPlus DoE ~ 5–10%/°C; use a conservative 6%).
+HVAC_PCT_PER_C = 0.06
 
 ROOT = Path(__file__).resolve().parents[4]
 SEED_FILE = ROOT / "db" / "seed" / "normalized_building.json"
@@ -26,13 +31,81 @@ def load_normalized() -> dict:
     return json.loads(SEED_FILE.read_text(encoding="utf-8"))
 
 
+def _result_from_telemetry(building_id: str, day_start) -> "SimResult | None":
+    """Baseline = the REAL measured day (IPMVP M&V) from telemetry, not a synthetic
+    re-simulation — so savings are computed against actual building operation and
+    match the dashboard."""
+    with db_conn() as conn:
+        rows = fetch_all(conn, """
+            SELECT z.entity_key AS zk, t.timestamp, t.temperature_c, t.setpoint_c,
+                   t.occupancy_count, t.lighting_power_kw, t.plug_power_kw,
+                   t.hvac_power_kw, t.total_power_kw, t.comfort_risk
+            FROM telemetry_zone_15m t JOIN zones z ON z.id = t.zone_id
+            WHERE t.building_id = :b AND t.timestamp >= :d
+              AND t.timestamp < :d + interval '24 hours'
+            ORDER BY t.timestamp
+        """, b=building_id, d=day_start)
+    if not rows:
+        return None
+    res = SimResult(engine="measured_baseline", step_minutes=30)
+    for r in rows:
+        loc = r["timestamp"].astimezone(TZ)
+        res.records.append(SimRecord(
+            minutes=loc.hour * 60 + loc.minute, zone_key=r["zk"],
+            temperature_c=float(r["temperature_c"] or 25.0),
+            setpoint_c=float(r["setpoint_c"] or 24.0),
+            occupancy_count=float(r["occupancy_count"] or 0),
+            lighting_kw=float(r["lighting_power_kw"] or 0),
+            plug_kw=float(r["plug_power_kw"] or 0),
+            hvac_kw=float(r["hvac_power_kw"] or 0),
+            total_kw=float(r["total_power_kw"] or 0),
+            comfort_violated=bool((r["occupancy_count"] or 0) >= 0.5
+                                  and (r["temperature_c"] or 0) > 26.5)))
+    _fill_totals(res)
+    return res
+
+
+def _apply_actions(baseline: SimResult, actions: list[Action]) -> SimResult:
+    """Optimized counterfactual = real baseline + transparent action effects
+    (lighting dim factor, hvac off, setpoint raise -> HVAC_PCT_PER_C/°C)."""
+    opt = SimResult(engine="measured_optimized", step_minutes=baseline.step_minutes)
+    for r in baseline.records:
+        hour = (r.minutes % 1440) / 60.0
+        m = zone_modifiers_at(actions, r.zone_key, hour)
+        d = m["setpoint_delta_c"]
+        if m["hvac_off"]:
+            hvac = 0.0
+        elif d >= 0:
+            hvac = r.hvac_kw * max(0.0, 1 - HVAC_PCT_PER_C * d)      # raise setpoint -> save
+        else:
+            hvac = r.hvac_kw * (1 + 0.04 * abs(d))                   # pre-cool -> small extra
+        light = r.lighting_kw * m["lighting_factor"]
+        total = light + r.plug_kw + hvac
+        temp = r.temperature_c + d * 0.4
+        opt.records.append(SimRecord(
+            minutes=r.minutes, zone_key=r.zone_key, temperature_c=round(temp, 2),
+            setpoint_c=round(r.setpoint_c + d, 2), occupancy_count=r.occupancy_count,
+            lighting_kw=round(light, 3), plug_kw=r.plug_kw, hvac_kw=round(hvac, 3),
+            total_kw=round(total, 3),
+            comfort_violated=bool(r.occupancy_count >= 0.5 and temp > 26.5)))
+    _fill_totals(opt)
+    return opt
+
+
 def simulate_actions(building_id: str, actions: list[Action],
                      *, persist: bool = True,
                      run_kind: str = "what_if") -> dict:
-    """Baseline + action run on identical inputs; returns KPI comparison."""
-    normalized = load_normalized()
-    baseline = run_simulation(normalized, [])
-    optimized = run_simulation(normalized, actions)
+    """Baseline (REAL measured day if available, else synthetic) vs optimized
+    counterfactual; returns KPI comparison."""
+    day = anchor(building_id=building_id).astimezone(TZ).replace(
+        hour=0, minute=0, second=0, microsecond=0)
+    baseline = _result_from_telemetry(building_id, day)
+    if baseline is not None:
+        optimized = _apply_actions(baseline, actions)
+    else:                                   # no telemetry -> synthetic fallback
+        normalized = load_normalized()
+        baseline = run_simulation(normalized, [])
+        optimized = run_simulation(normalized, actions)
     kpi = compare_runs(baseline, optimized)
     result = {
         "engine": optimized.engine,
@@ -40,7 +113,6 @@ def simulate_actions(building_id: str, actions: list[Action],
         "actions": [a.to_dict() for a in actions],
     }
     if persist:
-        day = datetime.now(TZ).replace(hour=0, minute=0, second=0, microsecond=0)
         with db_conn() as conn:
             base_id = _persist_run(conn, building_id, "baseline_fixed_schedule",
                                    "baseline", [], baseline, day)

@@ -25,9 +25,8 @@ ZONE_METRICS = {"total_power_kw", "hvac_power_kw", "lighting_power_kw",
 
 
 def _now(conn, building_id):
-    row = fetch_one(conn, "SELECT max(timestamp) AS ts FROM telemetry_zone_15m "
-                    "WHERE building_id = :b", b=building_id)
-    return row["ts"] if row else None
+    from greenflow.replayclock import anchor
+    return anchor(conn, building_id)
 
 
 def get_building_kpi(conn, building_id, window: str = "day") -> dict:

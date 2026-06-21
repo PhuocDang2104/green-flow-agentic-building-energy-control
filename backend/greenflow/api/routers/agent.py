@@ -65,6 +65,20 @@ def report_hvac_elec(req: RunRequest, background: BackgroundTasks):
     return _start_button_run("hvac_elec_report", req, background)
 
 
+@router.post("/scan-anomalies")
+def scan_anomalies_endpoint(req: RunRequest):
+    """Run the anomaly engine over the last 24h of the replay clock and write
+    alerts (idempotent rescan)."""
+    from datetime import timedelta
+    from ...agent.anomaly import scan_anomalies
+    from ...replayclock import anchor
+    b = req.building_id or default_building_id()
+    with db_conn() as conn:
+        now = anchor(conn, b)
+        n = scan_anomalies(conn, b, now - timedelta(hours=24), now)
+    return {"alerts_written": n, "window_end": str(now)}
+
+
 @router.post("/chat")
 def chat(req: ChatRequest):
     """Synchronous chatbot: classify -> plan -> execute -> answer."""

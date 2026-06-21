@@ -13,6 +13,7 @@ from datetime import datetime, timedelta, timezone
 from fastapi import APIRouter, HTTPException, Query
 
 from ...db import db_conn, fetch_all
+from ...replayclock import anchor
 from ..deps import default_building_id
 
 router = APIRouter()
@@ -35,7 +36,7 @@ def demand_forecast(building_id: str = Query(default=None),
 
     b = building_id or default_building_id()
     with db_conn() as conn:
-        result = forecast_building(conn, b, datetime.now(TZ),
+        result = forecast_building(conn, b, anchor(conn, b),
                                    horizon_h=horizon_h, weather_shift=weather_shift)
     if result.get("error"):
         raise HTTPException(503, result["error"])
@@ -56,7 +57,7 @@ def occupancy_forecast(building_id: str = Query(default=None),
         raise HTTPException(503, "ml extra not installed (pip install '.[ml]')")
 
     b = building_id or default_building_id()
-    issued = datetime.now(TZ)
+    issued = anchor(building_id=b)
     n = int(horizon_h * 60 / step_min)
     index = [issued + timedelta(minutes=step_min * i) for i in range(n)]
 

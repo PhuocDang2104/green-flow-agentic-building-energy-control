@@ -53,6 +53,10 @@ class Settings(BaseSettings):
 
     default_building_id: str = "b0000000-0000-0000-0000-000000000001"
     replay_speed_seconds: int = 10
+    # Digital-twin "now": telemetry is a recorded year (2025) replayed. Pin to a
+    # day (ISO, e.g. 2025-07-30T14:00:00) so the demo lands on a hot peak day;
+    # empty = max(telemetry timestamp). See greenflow/replayclock.py.
+    replay_now: str = ""
 
     # comma-separated list of allowed frontend origins for CORS
     cors_origins: str = "http://localhost:3000"

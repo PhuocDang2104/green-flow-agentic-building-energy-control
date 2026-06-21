@@ -11,6 +11,7 @@ from fastapi import APIRouter, HTTPException, Query
 from ...agent.tools import db_tool, graph_tool, timeseries_tool
 from ...agent.tools.db_tool import _clean
 from ...db import db_conn, fetch_all, fetch_one
+from ...replayclock import anchor
 from ..deps import default_building_id
 
 router = APIRouter()
@@ -85,9 +86,10 @@ def entity_state(entity_ref: str, building_id: str = Query(default=None),
             history = [_clean(r) for r in fetch_all(conn, f"""
                 SELECT timestamp, status, setpoint_c, power_kw, energy_kwh
                 FROM telemetry_device_15m
-                WHERE device_id = :d AND timestamp > now() - interval '{int(hours)} hours'
+                WHERE device_id = :d AND timestamp > :anchor - interval '{int(hours)} hours'
+                  AND timestamp <= :anchor
                 ORDER BY timestamp
-            """, d=data["id"])]
+            """, d=data["id"], anchor=anchor(conn, b))]
         return {"entity_type": entity_type, "history": history}
     return {"entity_type": entity_type, "history": []}
 

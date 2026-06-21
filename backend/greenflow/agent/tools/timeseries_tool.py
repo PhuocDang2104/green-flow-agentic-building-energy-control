@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 from ...db import db_conn, fetch_all, fetch_one
+from ...replayclock import anchor
 from .db_tool import _clean
 
 
@@ -14,18 +15,15 @@ def get_zone_history(building_id: str, zone_id: str, hours: int = 24) -> list[di
                    comfort_risk, peak_risk
             FROM telemetry_zone_15m
             WHERE building_id = :b AND zone_id = :z
-              AND timestamp > now() - interval '{int(hours)} hours'
+              AND timestamp > :anchor - interval '{int(hours)} hours' AND timestamp <= :anchor
             ORDER BY timestamp
-        """, b=building_id, z=zone_id)]
+        """, b=building_id, z=zone_id, anchor=anchor(conn, building_id))]
 
 
 def get_building_kpis(building_id: str) -> dict:
     """Current KPI card values: total load, occupancy, comfort, actions."""
     with db_conn() as conn:
-        latest = fetch_one(conn, """
-            SELECT max(timestamp) AS ts FROM telemetry_zone_15m WHERE building_id = :b
-        """, b=building_id) or {}
-        ts = latest.get("ts")
+        ts = anchor(conn, building_id)
         if ts is None:
             return {}
         agg = fetch_one(conn, """
