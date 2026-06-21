@@ -10,7 +10,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.staticfiles import StaticFiles
 
 from ..config import get_settings
-from .routers import (actions, agent, buildings, chat, entities, forecast,
+from .routers import (actions, agent, alerts, buildings, chat, entities, forecast,
                       media, reports, simulations, states, viewer)
 from .ws import manager, replay_ticker
 
@@ -40,7 +40,7 @@ app.add_middleware(
 
 for router in (buildings.router, entities.router, states.router, viewer.router,
                agent.router, actions.router, simulations.router, reports.router,
-               chat.router, forecast.router, media.router):
+               chat.router, forecast.router, media.router, alerts.router):
     app.include_router(router, prefix="/api")
 
 settings.storage_path.mkdir(parents=True, exist_ok=True)

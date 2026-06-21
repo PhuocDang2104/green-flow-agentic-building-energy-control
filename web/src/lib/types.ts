@@ -223,6 +223,19 @@ export interface ChatMessageRow {
   created_at: string;
 }
 
+export interface Alert {
+  id: string;
+  alert_type: string;
+  severity: "critical" | "warning" | "info";
+  message: string;
+  created_at: string;
+  resolved_at?: string | null;
+  zone_key?: string | null;
+  zone_name?: string | null;
+  room_type?: string | null;
+  device_name?: string | null;
+}
+
 export interface Report {
   id: string;
   report_type: string;
