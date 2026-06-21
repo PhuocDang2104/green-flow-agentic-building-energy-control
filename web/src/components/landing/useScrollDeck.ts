@@ -7,7 +7,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
  * visual scroll; wheel, keyboard and swipe gestures advance one locked section
  * at a time while `progress` is animated for shared objects.
  */
-const DURATION = 6000;
+const DURATION = 2000;
 const REDUCED_DURATION = 220;
 const WHEEL_TOLERANCE = 0.5;
 
