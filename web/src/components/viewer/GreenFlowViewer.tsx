@@ -14,6 +14,7 @@
 import { useEffect, useRef, useState } from "react";
 import { MANIFEST_URL } from "@/lib/constants";
 import type { ObjectMapEntry, ViewerManifest } from "@/lib/types";
+import { api } from "@/lib/api";
 import { useAppStore } from "@/stores/appStore";
 import LayerPanel from "./LayerPanel";
 import ViewModeToolbar from "./ViewModeToolbar";
@@ -21,8 +22,17 @@ import MetricLegend from "./MetricLegend";
 import EntityTooltip from "./EntityTooltip";
 
 type XeokitViewer = any;
+type AlertSeverity = "critical" | "warning" | "info";
 
 const ZONE_BASE_COLOR: [number, number, number] = [0.06, 0.46, 0.43];
+
+// Fault overlay palette (matches FaultsPanel / MetricLegend severity colors).
+const ALERT_COLOR: Record<AlertSeverity, [number, number, number]> = {
+  critical: [0.86, 0.13, 0.13],
+  warning: [0.96, 0.6, 0.04],
+  info: [0.58, 0.64, 0.7],
+};
+const ALERT_RANK: Record<AlertSeverity, number> = { info: 0, warning: 1, critical: 2 };
 
 export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightClass?: string }) {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -31,9 +41,12 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const objectMapRef = useRef<Record<string, ObjectMapEntry>>({});
   const xeokitRef = useRef<{ SceneModel: any; buildSphereGeometry: any } | null>(null);
   const occupancyModelRef = useRef<any>(null);
+  const alertModelRef = useRef<any>(null);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null);
+  // zone_key -> highest open-alert severity, drives the "Faults" view overlay
+  const [alertByZone, setAlertByZone] = useState<Record<string, AlertSeverity>>({});
 
   const layers = useAppStore((s) => s.layers);
   const activeMetric = useAppStore((s) => s.activeMetric);
@@ -165,6 +178,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     return () => {
       disposed = true;
       occupancyModelRef.current = null;
+      alertModelRef.current = null;
       viewerRef.current?.destroy?.();
       viewerRef.current = null;
       modelsRef.current = {};
@@ -219,11 +233,23 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       if (entry.layer !== "spaces") continue;
       const entity = viewer.scene.objects[id];
       if (!entity) continue;
+      // Faults view: tint zones with an open alert by severity, dim the rest.
+      if (activeMetric === "faults") {
+        const sev = alertByZone[entry.entity_key];
+        if (sev) {
+          entity.colorize = ALERT_COLOR[sev];
+          entity.opacity = sev === "critical" ? 0.62 : 0.5;
+        } else {
+          styleSpace(entity, entry);
+          entity.opacity = 0.1; // recede unaffected zones so faults stand out
+        }
+        continue;
+      }
       const st = zoneStates[entry.entity_key];
       const styled = applyMetricColor(entity, st, activeMetric);
       if (!styled) styleSpace(entity, entry);
     }
-  }, [zoneStates, activeMetric, ready]);
+  }, [zoneStates, activeMetric, ready, alertByZone]);
 
   // --- occupancy dots: one red dot per person, scattered in the zone footprint
   useEffect(() => {
@@ -268,6 +294,63 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     if (meshCount > 0) model.finalize();
     occupancyModelRef.current = model;
   }, [zoneStates, activeMetric, ready]);
+
+  // --- open alerts -> per-zone severity (powers the Faults overlay) ---------
+  useEffect(() => {
+    if (!ready) return;
+    let stop = false;
+    const load = () =>
+      api.alerts("open").then((rows) => {
+        if (stop) return;
+        const m: Record<string, AlertSeverity> = {};
+        for (const a of rows) {
+          const zk = a.zone_key;
+          if (!zk) continue;
+          const sev = a.severity as AlertSeverity;
+          if (!m[zk] || ALERT_RANK[sev] > ALERT_RANK[m[zk]]) m[zk] = sev;
+        }
+        setAlertByZone(m);
+      }).catch(() => null);
+    load();
+    const t = setInterval(load, 15000);
+    return () => { stop = true; clearInterval(t); };
+  }, [ready]);
+
+  // --- alert markers: a severity-colored pin floating above each faulted zone
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    const xk = xeokitRef.current;
+    if (!viewer || !ready || !xk) return;
+
+    alertModelRef.current?.destroy?.();
+    alertModelRef.current = null;
+    if (activeMetric !== "faults") return;
+
+    const model = new xk.SceneModel(viewer.scene, { id: "alert_markers", isModel: true });
+    const pin = xk.buildSphereGeometry({ radius: 0.9, heightSegments: 12, widthSegments: 12 });
+    model.createGeometry({ id: "pin", primitive: "triangles", positions: pin.positions,
+      normals: pin.normals, indices: pin.indices });
+
+    let meshCount = 0;
+    for (const [id, entry] of Object.entries(objectMapRef.current)) {
+      if (entry.layer !== "spaces") continue;
+      const sev = alertByZone[entry.entity_key];
+      if (!sev) continue;
+      const entity = viewer.scene.objects[id];
+      const aabb = entity?.aabb;
+      if (!aabb) continue;
+      const [xmin, , zmin, xmax, ymax, zmax] = aabb;
+      const meshId = `pin_${id}`;
+      // hover a little above the zone ceiling so the pin reads as a marker
+      model.createMesh({ id: meshId, geometryId: "pin",
+        position: [(xmin + xmax) / 2, ymax + 1.4, (zmin + zmax) / 2],
+        color: ALERT_COLOR[sev] });
+      model.createEntity({ id: meshId, meshIds: [meshId], isObject: false, pickable: false });
+      meshCount++;
+    }
+    if (meshCount > 0) model.finalize();
+    alertModelRef.current = model;
+  }, [alertByZone, activeMetric, ready]);
 
   // --- agent viewer updates -------------------------------------------------
   useEffect(() => {

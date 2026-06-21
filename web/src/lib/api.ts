@@ -4,7 +4,7 @@
 import type {
   ActionItem, AgentLog, AgentRun, Alert, Approval, Building, ChatMessageRow,
   ChatQueryResponse, ChatResponse, ChatSessionSummary, ComparisonKpi, Device,
-  Kpis, Report, SimulationRun, ValidationResult, Zone,
+  HealthScore, Kpis, Report, SimulationRun, ValidationResult, Zone,
 } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
@@ -28,6 +28,7 @@ async function post<T>(path: string, body: unknown = {}): Promise<T> {
 export const api = {
   buildings: () => get<Building[]>("/buildings"),
   kpis: () => get<Kpis>("/kpi/current"),
+  healthScore: () => get<HealthScore>("/kpi/health-score"),
   zones: () => get<Zone[]>("/zones"),
   devices: (zoneId?: string) =>
     get<Device[]>(`/devices${zoneId ? `?zone_id=${zoneId}` : ""}`),

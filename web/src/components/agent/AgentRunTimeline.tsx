@@ -2,6 +2,7 @@
 
 import { Check, CircleAlert, Loader2, X } from "lucide-react";
 import type { AgentLog, AgentRun } from "@/lib/types";
+import { fmtTime } from "@/lib/format";
 import EmptyState from "@/components/shared/EmptyState";
 import StatusPill from "@/components/shared/StatusPill";
 
@@ -11,7 +12,14 @@ export default function AgentRunTimeline({
   return (
     <div className="card flex h-full flex-col">
       <div className="flex items-center justify-between border-b border-border px-5 py-3">
-        <h3 className="text-sm font-semibold">Agent run timeline</h3>
+        <div>
+          <h3 className="text-sm font-semibold">Agent run timeline</h3>
+          {run && !running && (
+            <p className="text-[11px] text-text-muted">
+              last run · {fmtTime(run.started_at)}
+            </p>
+          )}
+        </div>
         {run && <StatusPill status={running ? "running" : run.status} />}
       </div>
       <div className="flex-1 overflow-y-auto px-5 py-4">

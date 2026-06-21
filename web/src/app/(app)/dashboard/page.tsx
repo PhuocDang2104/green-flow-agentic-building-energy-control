@@ -5,6 +5,7 @@ import dynamic from "next/dynamic";
 import { FileDown, Loader2 } from "lucide-react";
 import PageHeader from "@/components/shell/PageHeader";
 import KpiCard from "@/components/dashboard/KpiCard";
+import BuildingHealthCard from "@/components/dashboard/BuildingHealthCard";
 import EntityInsightPanel from "@/components/dashboard/EntityInsightPanel";
 import ZoneStateTable from "@/components/dashboard/ZoneStateTable";
 import { api, mediaUrl } from "@/lib/api";
@@ -77,6 +78,10 @@ export default function DashboardPage() {
           </div>
         }
       />
+
+      <div className="mb-3">
+        <BuildingHealthCard />
+      </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         <KpiCard title="Total Load" value={fmtKw(totalKw)}

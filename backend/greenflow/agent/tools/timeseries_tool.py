@@ -51,6 +51,80 @@ def get_building_kpis(building_id: str) -> dict:
                 **_clean(agg), **_clean(day_energy), **_clean(actions)}
 
 
+def get_building_health(building_id: str) -> dict:
+    """Composite 0-100 building-health score from current state + open faults.
+
+    Four transparent sub-scores (each 0-100), each driven by a real signal at
+    the replay anchor, then a weighted overall — an OpenBlue-style "building
+    performance" headline that also *pinpoints which dimension is failing*.
+
+      comfort     thermal comfort risk across zones      (weight 0.30)
+      air         CO2 / indoor air quality               (weight 0.20)
+      energy      peak-demand exposure                   (weight 0.25)
+      reliability equipment + sensor fault load          (weight 0.25)
+
+    Penalties are linear in the share of affected zones; only the energy
+    dimension is softened (0.6) because peak risk concentrates in the afternoon
+    demand window and a single peak hour should not zero it out. Raw counts are
+    returned in `detail` so the underlying truth stays transparent.
+    """
+    with db_conn() as conn:
+        ts = anchor(conn, building_id)
+        if ts is None:
+            return {}
+        row = fetch_one(conn, """
+            SELECT count(*) AS n,
+                   count(*) FILTER (WHERE comfort_risk = 'high')  AS comfort_high,
+                   count(*) FILTER (WHERE comfort_risk = 'watch') AS comfort_watch,
+                   count(*) FILTER (WHERE co2_ppm > 1000)         AS co2_poor,
+                   count(*) FILTER (WHERE co2_ppm > 800 AND co2_ppm <= 1000) AS co2_watch,
+                   count(*) FILTER (WHERE peak_risk = 'high')     AS peak_high
+            FROM telemetry_zone_15m WHERE building_id = :b AND timestamp = :ts
+        """, b=building_id, ts=ts) or {}
+        faults = fetch_one(conn, """
+            SELECT count(*) FILTER (WHERE alert_type = 'device_fault') AS device_faults,
+                   count(*) FILTER (WHERE alert_type = 'sensor_stuck') AS sensor_faults
+            FROM alerts WHERE building_id = :b AND resolved_at IS NULL
+        """, b=building_id) or {}
+
+    n = max(1, int(row.get("n") or 0))
+    ch, cw = int(row.get("comfort_high") or 0), int(row.get("comfort_watch") or 0)
+    aq_poor, aq_watch = int(row.get("co2_poor") or 0), int(row.get("co2_watch") or 0)
+    peak = int(row.get("peak_high") or 0)
+    dev_f, sen_f = int(faults.get("device_faults") or 0), int(faults.get("sensor_faults") or 0)
+
+    def score(penalty: float) -> int:
+        return max(0, min(100, round(100 * (1 - min(1.0, penalty)))))
+
+    comfort = score((ch + 0.5 * cw) / n)
+    air = score((aq_poor + 0.5 * aq_watch) / n)
+    energy = score(0.6 * (peak / n))
+    reliability = score(dev_f * 0.34 + sen_f * 0.15)
+
+    dims = [
+        {"key": "comfort", "label": "Thermal comfort", "score": comfort, "weight": 0.30,
+         "detail": f"{ch} high · {cw} watch / {n} zones"},
+        {"key": "air", "label": "Air quality", "score": air, "weight": 0.20,
+         "detail": f"{aq_poor} >1000ppm · {aq_watch} elevated CO₂"},
+        {"key": "energy", "label": "Energy / demand", "score": energy, "weight": 0.25,
+         "detail": f"{peak}/{n} zones in peak-demand risk"},
+        {"key": "reliability", "label": "Equipment reliability", "score": reliability, "weight": 0.25,
+         "detail": f"{dev_f} device · {sen_f} sensor faults"},
+    ]
+    overall = max(0, min(100, round(sum(d["score"] * d["weight"] for d in dims))))
+    if overall >= 85:
+        grade, color = "Excellent", "success"
+    elif overall >= 70:
+        grade, color = "Good", "teal"
+    elif overall >= 50:
+        grade, color = "Fair", "warning"
+    else:
+        grade, color = "Poor", "danger"
+
+    return {"timestamp": ts.isoformat(), "score": overall, "grade": grade,
+            "color": color, "zones": n, "dimensions": dims}
+
+
 def get_baseline_summary(building_id: str) -> dict:
     """Latest completed baseline run + totals (parsed from notes JSON)."""
     import json
