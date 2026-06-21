@@ -167,6 +167,14 @@ def main() -> None:
                        "FROM telemetry_zone_15m WHERE building_id=:b", b=BUILDING_ID)[0]
     print(f"replaced telemetry: {n0:,} -> {n1['c']:,} rows; range {n1['lo']} .. {n1['hi']}")
 
+    # scan anomalies over the replay window so the alerts feature has real data
+    from greenflow.agent.anomaly import scan_anomalies
+    from greenflow.replayclock import anchor
+    with db_conn() as conn:
+        now = anchor(conn, BUILDING_ID)
+        n_alerts = scan_anomalies(conn, BUILDING_ID, now - timedelta(hours=24), now)
+    print(f"anomaly scan: {n_alerts} alerts written (window end {now})")
+
 
 if __name__ == "__main__":
     main()
