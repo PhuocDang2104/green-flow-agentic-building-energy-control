@@ -1,7 +1,9 @@
 "use client";
 
 import { useEffect, useMemo, useRef, useState } from "react";
+import type React from "react";
 import "@/styles/landing.css";
+import { AuroraBackground } from "@/components/ui/aurora-background";
 import EarthScene from "./EarthScene";
 import GreenflowNav from "./GreenflowNav";
 import SectionDots from "./SectionDots";
@@ -12,6 +14,7 @@ import SectionHanoiBreakdown from "./SectionHanoiBreakdown";
 import SectionElNino from "./SectionElNino";
 import SectionProblem from "./SectionProblem";
 import SectionFinalCTA from "./SectionFinalCTA";
+import PinnedPieChart from "./PinnedPieChart";
 import { useScrollDeck } from "./useScrollDeck";
 
 const COUNT = 7;
@@ -32,14 +35,6 @@ export default function LandingExperience() {
 
   const { progress, active, goTo } = useScrollDeck(COUNT);
 
-  // turn on slide-style scroll-snap on the document only while the landing is mounted
-  useEffect(() => {
-    const html = document.documentElement;
-    html.classList.add("gf-snap");
-    return () => html.classList.remove("gf-snap");
-  }, []);
-
-  // smoothly animate themeMix toward target so the Earth + background morph
   useEffect(() => {
     const target = theme === "dark" ? 1 : 0;
     let raf = 0;
@@ -55,29 +50,28 @@ export default function LandingExperience() {
     return () => cancelAnimationFrame(raf);
   }, [theme]);
 
-  // reveal section content as each section scrolls into view
   useEffect(() => {
     const root = rootRef.current;
     if (!root) return;
     const sections = Array.from(root.querySelectorAll<HTMLElement>(".gf-section"));
-    const io = new IntersectionObserver(
-      (entries) => {
-        for (const e of entries) {
-          if (e.isIntersecting) e.target.classList.add("is-visible");
-        }
-      },
-      { threshold: 0.4 }, // root = viewport (window scroll)
-    );
-    sections.forEach((s) => io.observe(s));
-    // hero is visible immediately
-    sections[0]?.classList.add("is-visible");
-    return () => io.disconnect();
-  }, []);
+    sections.forEach((section, index) => {
+      const visible = index === active;
+      section.classList.toggle("is-visible", visible);
+      section.setAttribute("aria-hidden", visible ? "false" : "true");
+    });
+  }, [active]);
 
-  // ----- scroll-driven value for the pinned globe -----
-  const earthOpacity = 1 - smooth(1.5, 2.05, progress); // globe recedes/fades as section 2 takes over
+  const earthOpacity = 1 - smooth(1.5, 2.05, progress);
+  const auroraOpacity = 0.68 * (1 - smooth(0.2, 1.25, progress));
+  const glowStyle = {
+    "--gf-a-x": `${50 + Math.sin(progress * 0.9) * 10}%`,
+    "--gf-a-y": `${78 - progress * 3}%`,
+    "--gf-b-x": `${78 - Math.min(progress, 6) * 5}%`,
+    "--gf-b-y": `${30 + Math.sin(progress * 0.7) * 9}%`,
+    "--gf-shift-x": `${Math.sin(progress * 1.1) * 18}px`,
+    "--gf-shift-y": `${Math.cos(progress * 0.8) * 14}px`,
+  } as React.CSSProperties;
 
-  // sections don't depend on scroll progress, so memoise them away from re-renders
   const sections = useMemo(
     () => (
       <>
@@ -95,9 +89,18 @@ export default function LandingExperience() {
 
   return (
     <div className={`landing-root ${theme === "dark" ? "dark" : ""}`} ref={rootRef}>
-      <div className="gf-bg-glow" />
+      <div className="gf-bg-glow" style={glowStyle} />
+      <AuroraBackground
+        className="gf-hero-aurora bg-transparent dark:bg-transparent"
+        showRadialGradient
+        style={{
+          opacity: auroraOpacity,
+          transform: `translate3d(${progress * -18}px, ${progress * 10}px, 0)`,
+        }}
+      >
+        <span className="sr-only">GreenFlow aurora background</span>
+      </AuroraBackground>
 
-      {/* pinned globe — scrubbed by scroll progress */}
       <div className="gf-earth-stage" style={{ opacity: earthOpacity }}>
         <EarthScene progress={progress} themeMix={themeMix} reduced={!!reduced} />
       </div>
@@ -109,13 +112,22 @@ export default function LandingExperience() {
         onNav={goTo}
       />
 
-      <div className="gf-stage">{sections}</div>
+      <PinnedPieChart progress={progress} />
+
+      <div
+        className="gf-stage"
+        style={{ transform: `translate3d(0, -${progress * 100}vh, 0)` }}
+      >
+        {sections}
+      </div>
 
       <SectionDots count={COUNT} active={active} onNav={goTo} />
 
-      <footer className="pointer-events-none fixed bottom-3 left-1/2 z-20 -translate-x-1/2 text-[11px]"
-              style={{ color: "var(--gf-muted)" }}>
-        GreenFlow · Scroll to explore
+      <footer
+        className="pointer-events-none fixed bottom-3 left-1/2 z-20 -translate-x-1/2 text-[11px]"
+        style={{ color: "var(--gf-muted)" }}
+      >
+        GreenFlow - Scroll to explore
       </footer>
     </div>
   );

@@ -1,135 +1,151 @@
 "use client";
 
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 
 /**
- * Native long-scroll deck with a GENTLE, slow auto-glide between sections so the
- * pinned scroll-driven animations are clearly visible. The page is still one
- * real scrollable document (scrollbar works); a wheel/key/swipe gesture eases
- * smoothly to the adjacent section over ~1.15s, and dragging the scrollbar
- * softly completes to the nearest section when it goes idle. `progress` is a
- * continuous value (section units) read from window.scrollY for the scrub.
+ * Virtual full-page deck navigation. The browser document does not perform the
+ * visual scroll; wheel, keyboard and swipe gestures advance one locked section
+ * at a time while `progress` is animated for shared objects.
  */
-const DUR = 1150; // ms — slow on purpose, to reveal the animation
-const easeInOut = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
+const DURATION = 6000;
+const REDUCED_DURATION = 220;
+const WHEEL_TOLERANCE = 0.5;
+
+const clamp = (value: number, min: number, max: number) =>
+  Math.max(min, Math.min(max, value));
+
+const easeInOut = (t: number) =>
+  t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2;
 
 export function useScrollDeck(count: number) {
   const [progress, setProgress] = useState(0);
   const [active, setActive] = useState(0);
-  const reportRaf = useRef(0);
+  const progressRef = useRef(0);
+  const activeRef = useRef(0);
   const animating = useRef(false);
-  const idxRef = useRef(0);
-  const goToRef = useRef<(i: number) => void>(() => {});
+  const animId = useRef(0);
+  const reducedRef = useRef(false);
 
-  useEffect(() => {
-    const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    const vh = () => window.innerHeight || 1;
+  const goTo = useCallback(
+    (index: number) => {
+      const next = clamp(index, 0, count - 1);
+      if (next === activeRef.current && !animating.current) return;
+      if (animating.current) return;
 
-    const report = () => {
-      reportRaf.current = 0;
-      const p = Math.max(0, Math.min(count - 1, window.scrollY / vh()));
-      setProgress(p);
-      setActive(Math.round(p));
-    };
-    const queueReport = () => {
-      if (!reportRaf.current) reportRaf.current = requestAnimationFrame(report);
-    };
+      const from = progressRef.current;
+      const to = next;
+      const duration = reducedRef.current ? REDUCED_DURATION : DURATION;
 
-    idxRef.current = Math.round(window.scrollY / vh());
+      window.dispatchEvent(
+        new CustomEvent("gf-section-change", {
+          detail: { from: activeRef.current, to: next },
+        }),
+      );
 
-    let animId = 0;
-    const animateTo = (i: number) => {
-      i = Math.max(0, Math.min(count - 1, i));
-      idxRef.current = i;
-      const from = window.scrollY;
-      const to = i * vh();
-      if (reduced || Math.abs(to - from) < 2) {
-        window.scrollTo(0, to);
+      activeRef.current = next;
+      setActive(next);
+      cancelAnimationFrame(animId.current);
+
+      if (Math.abs(to - from) < 0.001) {
+        progressRef.current = to;
+        setProgress(to);
         return;
       }
-      cancelAnimationFrame(animId);
+
       animating.current = true;
       const start = performance.now();
+
       const step = (now: number) => {
-        const t = Math.min(1, (now - start) / DUR);
-        window.scrollTo(0, from + (to - from) * easeInOut(t));
-        if (t < 1) animId = requestAnimationFrame(step);
-        else animating.current = false;
+        const t = clamp((now - start) / duration, 0, 1);
+        const value = from + (to - from) * easeInOut(t);
+        progressRef.current = value;
+        setProgress(value);
+
+        if (t < 1) {
+          animId.current = requestAnimationFrame(step);
+          return;
+        }
+
+        progressRef.current = to;
+        setProgress(to);
+        animating.current = false;
       };
-      animId = requestAnimationFrame(step);
-    };
-    goToRef.current = animateTo;
 
-    // one slow section-glide per wheel gesture
-    let wheelCooldown = 0;
-    const onWheel = (e: WheelEvent) => {
-      if (reduced || e.ctrlKey) return; // let native scroll / pinch-zoom through
-      e.preventDefault();
+      animId.current = requestAnimationFrame(step);
+    },
+    [count],
+  );
+
+  useEffect(() => {
+    reducedRef.current = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const html = document.documentElement;
+    const body = document.body;
+    html.classList.add("gf-snap");
+    body.classList.add("gf-snap-body");
+    window.scrollTo(0, 0);
+
+    const navigateBy = (direction: 1 | -1) => {
       if (animating.current) return;
-      const now = performance.now();
-      if (now < wheelCooldown) return;
-      const dir = e.deltaY > 0 ? 1 : e.deltaY < 0 ? -1 : 0;
-      if (!dir) return;
-      wheelCooldown = now + DUR + 140;
-      animateTo(idxRef.current + dir);
+      goTo(activeRef.current + direction);
     };
 
-    const onKey = (e: KeyboardEvent) => {
-      if (["ArrowDown", "PageDown", " ", "Spacebar"].includes(e.key)) {
-        e.preventDefault();
-        if (!animating.current) animateTo(idxRef.current + 1);
-      } else if (["ArrowUp", "PageUp"].includes(e.key)) {
-        e.preventDefault();
-        if (!animating.current) animateTo(idxRef.current - 1);
-      } else if (e.key === "Home") {
-        e.preventDefault(); animateTo(0);
-      } else if (e.key === "End") {
-        e.preventDefault(); animateTo(count - 1);
+    const onWheel = (event: WheelEvent) => {
+      if (event.ctrlKey) return;
+      event.preventDefault();
+      if (Math.abs(event.deltaY) < WHEEL_TOLERANCE) return;
+      navigateBy(event.deltaY > 0 ? 1 : -1);
+    };
+
+    const onKey = (event: KeyboardEvent) => {
+      const target = event.target as HTMLElement | null;
+      if (target?.closest("input, textarea, select, [contenteditable='true']")) return;
+
+      if (["ArrowDown", "PageDown", " ", "Spacebar"].includes(event.key)) {
+        event.preventDefault();
+        navigateBy(1);
+      } else if (["ArrowUp", "PageUp"].includes(event.key)) {
+        event.preventDefault();
+        navigateBy(-1);
+      } else if (event.key === "Home") {
+        event.preventDefault();
+        goTo(0);
+      } else if (event.key === "End") {
+        event.preventDefault();
+        goTo(count - 1);
       }
     };
 
     let touchY = 0;
-    const onTouchStart = (e: TouchEvent) => { touchY = e.touches[0].clientY; };
-    const onTouchEnd = (e: TouchEvent) => {
-      if (reduced || animating.current) return;
-      const dy = touchY - e.changedTouches[0].clientY;
-      if (Math.abs(dy) > 45) animateTo(idxRef.current + (dy > 0 ? 1 : -1));
+    const onTouchStart = (event: TouchEvent) => {
+      touchY = event.touches[0]?.clientY ?? 0;
     };
-
-    // scrollbar drag / other native scroll: gently complete to nearest on idle
-    let idle = 0;
-    const onScroll = () => {
-      queueReport();
-      if (reduced || animating.current) return;
-      clearTimeout(idle);
-      idle = window.setTimeout(() => {
-        if (animating.current) return;
-        const i = Math.round(window.scrollY / vh());
-        idxRef.current = i;
-        if (Math.abs(window.scrollY - i * vh()) > 4) animateTo(i);
-      }, 240);
+    const onTouchMove = (event: TouchEvent) => {
+      event.preventDefault();
+    };
+    const onTouchEnd = (event: TouchEvent) => {
+      const endY = event.changedTouches[0]?.clientY ?? touchY;
+      const dy = touchY - endY;
+      if (Math.abs(dy) > 22) navigateBy(dy > 0 ? 1 : -1);
     };
 
     window.addEventListener("wheel", onWheel, { passive: false });
     window.addEventListener("keydown", onKey);
     window.addEventListener("touchstart", onTouchStart, { passive: true });
+    window.addEventListener("touchmove", onTouchMove, { passive: false });
     window.addEventListener("touchend", onTouchEnd, { passive: true });
-    window.addEventListener("scroll", onScroll, { passive: true });
-    window.addEventListener("resize", queueReport);
-    report();
 
     return () => {
+      html.classList.remove("gf-snap");
+      body.classList.remove("gf-snap-body");
       window.removeEventListener("wheel", onWheel);
       window.removeEventListener("keydown", onKey);
       window.removeEventListener("touchstart", onTouchStart);
+      window.removeEventListener("touchmove", onTouchMove);
       window.removeEventListener("touchend", onTouchEnd);
-      window.removeEventListener("scroll", onScroll);
-      window.removeEventListener("resize", queueReport);
-      cancelAnimationFrame(animId);
-      if (reportRaf.current) cancelAnimationFrame(reportRaf.current);
-      clearTimeout(idle);
+      cancelAnimationFrame(animId.current);
     };
-  }, [count]);
+  }, [count, goTo]);
 
-  return { progress, active, goTo: (i: number) => goToRef.current(i) };
+  return { progress, active, goTo };
 }

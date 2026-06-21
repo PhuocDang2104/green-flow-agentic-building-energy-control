@@ -1,6 +1,7 @@
 "use client";
 
-import { Cloud, Sun } from "lucide-react";
+import Link from "next/link";
+import { Cloud, LogIn, Sun } from "lucide-react";
 
 const NAV = [
   { label: "Problem", section: 5 },
@@ -50,6 +51,10 @@ export default function GreenflowNav({
       >
         {theme === "light" ? <Sun size={16} /> : <Cloud size={16} />}
       </button>
+      <Link href="/dashboard" className="gf-login-button" aria-label="Login to GreenFlow dashboard">
+        <LogIn size={16} />
+        <span className="hidden sm:inline">Login</span>
+      </Link>
     </nav>
   );
 }

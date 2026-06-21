@@ -8,7 +8,7 @@ export default function SectionFinalCTA() {
     <div className="gf-section" data-section="6">
       <div className="grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1fr_0.9fr]">
         <div>
-          <h2 data-reveal className="text-[clamp(28px,4.6vw,54px)] font-semibold leading-[1.06] tracking-tight"
+          <h2 data-reveal className="text-[34px] font-semibold leading-[1.08] sm:text-[42px] lg:text-[48px]"
               style={{ color: "var(--gf-ink)" }}>
             Smarter building operations<br />
             <span className="gf-em">start with</span>{" "}
@@ -16,7 +16,7 @@ export default function SectionFinalCTA() {
               <Leaf size={34} className="inline" /> greenflow
             </span>
           </h2>
-          <p data-reveal className="mt-5 max-w-md text-[15px]" style={{ color: "var(--gf-muted)" }}>
+          <p data-reveal className="mt-5 max-w-md text-[16px] leading-7" style={{ color: "var(--gf-muted)" }}>
             An AI-powered building intelligence platform for reducing energy
             waste without compromising comfort.
           </p>

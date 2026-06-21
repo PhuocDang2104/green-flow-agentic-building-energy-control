@@ -8,7 +8,7 @@ export default function SectionGlobalEnergy() {
     <div className="gf-section" data-section="1">
       <div className="grid w-full max-w-6xl items-center gap-10 lg:grid-cols-[1fr_0.8fr]">
         <div>
-          <h2 data-reveal className="text-[clamp(26px,4vw,46px)] font-semibold leading-[1.1] tracking-tight"
+          <h2 data-reveal className="text-[30px] font-semibold leading-[1.12] sm:text-[36px] lg:text-[42px]"
               style={{ color: "var(--gf-ink)" }}>
             Commercial buildings are<br />
             a <span className="gf-em">global-scale</span> energy challenge

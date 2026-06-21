@@ -12,7 +12,7 @@ export default function SectionProblem() {
   return (
     <div className="gf-section" data-section="5">
       <div className="flex w-full max-w-4xl flex-col items-center text-center">
-        <h2 data-reveal className="text-[clamp(28px,4.4vw,52px)] font-semibold leading-[1.08] tracking-tight"
+        <h2 data-reveal className="text-[34px] font-semibold leading-[1.1] sm:text-[42px] lg:text-[48px]"
             style={{ color: "var(--gf-ink)" }}>
           <span className="gf-line-mask"><span className="gf-line-inner">Data is everywhere.</span></span>
           <span className="gf-line-mask"><span className="gf-line-inner gf-em">Clear action is not.</span></span>
@@ -22,7 +22,7 @@ export default function SectionProblem() {
           <p className="mb-2 text-[13px] font-semibold" style={{ color: "var(--gf-green)" }}>
             Key Problem
           </p>
-          <p className="text-[15px] leading-relaxed" style={{ color: "var(--gf-ink)" }}>
+          <p className="text-[16px] leading-relaxed" style={{ color: "var(--gf-ink)" }}>
             Building owners and facility managers need a reliable way to reduce
             energy waste and operating costs while keeping occupants safe during
             extreme weather.
@@ -32,11 +32,10 @@ export default function SectionProblem() {
         <div className="mt-4 grid w-full max-w-2xl grid-cols-1 gap-3 sm:grid-cols-3">
           {SMALL.map((s) => (
             <div key={s.text} data-reveal className="gf-card flex flex-col items-start gap-2.5 p-4 text-left">
-              <span className="grid h-9 w-9 place-items-center rounded-xl"
-                    style={{ background: "var(--gf-green-soft)", color: "var(--gf-green)" }}>
+              <span className="gf-small-icon" style={{ color: "var(--gf-green)" }}>
                 {s.icon}
               </span>
-              <span className="text-[13px] font-medium" style={{ color: "var(--gf-ink)" }}>
+              <span className="text-[14px] font-medium leading-snug" style={{ color: "var(--gf-ink)" }}>
                 {s.text}
               </span>
             </div>
