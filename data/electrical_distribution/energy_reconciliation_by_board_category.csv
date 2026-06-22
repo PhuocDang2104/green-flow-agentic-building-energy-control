@@ -1,0 +1,4 @@
+﻿category,zone_allocated_kwh,board_allocated_kwh,diff_kwh,diff_pct,building_meter_name,building_meter_kwh,board_vs_meter_pct,note
+lights,1220855.4,1220855.4,-0.0,0.0,InteriorLights:Electricity,1220855.4,100.0,board layer redistributes zone energy (no double count)
+equipment,1038181.5,1038181.5,-0.0,0.0,InteriorEquipment:Electricity,1038181.5,100.0,board layer redistributes zone energy (no double count)
+hvac,847572.3,847572.3,0.0,0.0,Electricity:HVAC,847572.3,100.0,board layer redistributes zone energy (no double count)

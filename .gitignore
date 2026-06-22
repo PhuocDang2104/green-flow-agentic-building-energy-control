@@ -35,6 +35,13 @@ web/public/cctv/*.webm
 web/public/assets/buildings/*/geometry/geometry.json
 web/public/assets/buildings/*/glb/
 
+# Electrical KG: large regenerable board timeseries (Parquet) + DuckDB scratch.
+# The committed CSV summaries + graph + reports capture the results; regenerate
+# the Parquet with: python scripts/build_electrical_kg.py --phase timeseries
+data/electrical_distribution/board_estimated_timeseries.parquet
+data/electrical_distribution/board_load_category_timeseries.parquet
+data/electrical_distribution/_duck_tmp/
+
 # OS / editor
 .DS_Store
 Thumbs.db

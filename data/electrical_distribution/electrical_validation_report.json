@@ -1,0 +1,119 @@
+{
+  "building": "Nordic LCA Office",
+  "scenario_id": "openmeteo_2025_30min_baseline",
+  "summary": {
+    "checks": 12,
+    "fail": 0,
+    "warn": 1,
+    "manual_review_items": 57
+  },
+  "checks": [
+    {
+      "check": "no_double_count_by_category",
+      "status": "pass",
+      "detail": "max board-vs-zone category mismatch 0.0000% (tol 0.5%)",
+      "value": 0.0
+    },
+    {
+      "check": "board_total_equals_allocated_zone_total",
+      "status": "pass",
+      "detail": "zone total 3106609 kWh vs board total 3106609 kWh (only allocated categories are summed; boards are not added to zone totals)",
+      "value": null
+    },
+    {
+      "check": "building_meter_facility_present",
+      "status": "pass",
+      "detail": "Electricity:Facility = 3106609 kWh",
+      "value": null
+    },
+    {
+      "check": "boards_with_rating",
+      "status": "warn",
+      "detail": "57/57 boards have no/zero rated current → overload=rating_missing",
+      "value": 57
+    },
+    {
+      "check": "boards_voltage_phase",
+      "status": "pass",
+      "detail": "boards missing voltage: 0, missing phase: 0",
+      "value": null
+    },
+    {
+      "check": "unmapped_allocations",
+      "status": "pass",
+      "detail": "0 (zone,category) allocations unmapped",
+      "value": 0
+    },
+    {
+      "check": "load_points_with_board",
+      "status": "pass",
+      "detail": "0 consuming load points not assigned to a board/circuit",
+      "value": 0
+    },
+    {
+      "check": "load_points_with_zone",
+      "status": "info",
+      "detail": "0 load points without a zone (floor-only; not required for allocation)",
+      "value": 0
+    },
+    {
+      "check": "low_confidence_allocations",
+      "status": "info",
+      "detail": "766/1032 allocations are low/manual confidence (estimated)",
+      "value": 766
+    },
+    {
+      "check": "circuits_pseudo_vs_real",
+      "status": "info",
+      "detail": "54 system-grouped (naming evidence) vs 26 pseudo circuits",
+      "value": null
+    },
+    {
+      "check": "explicit_zero_placeholders",
+      "status": "info",
+      "detail": "635 explicit-zero power/current values flagged for review",
+      "value": 635
+    },
+    {
+      "check": "board_values_labelled",
+      "status": "pass",
+      "detail": "all board demand labelled value_class=spatially_inferred (EnergyPlus energy × inferred allocation); current uses assumed PF/voltage where IFC values are absent (flagged)",
+      "value": null
+    }
+  ],
+  "reconciliation": [
+    {
+      "category": "lights",
+      "zone_allocated_kwh": 1220855.4,
+      "board_allocated_kwh": 1220855.4,
+      "diff_kwh": -0.0,
+      "diff_pct": 0.0,
+      "building_meter_name": "InteriorLights:Electricity",
+      "building_meter_kwh": 1220855.4,
+      "board_vs_meter_pct": 100.0,
+      "note": "board layer redistributes zone energy (no double count)"
+    },
+    {
+      "category": "equipment",
+      "zone_allocated_kwh": 1038181.5,
+      "board_allocated_kwh": 1038181.5,
+      "diff_kwh": -0.0,
+      "diff_pct": 0.0,
+      "building_meter_name": "InteriorEquipment:Electricity",
+      "building_meter_kwh": 1038181.5,
+      "board_vs_meter_pct": 100.0,
+      "note": "board layer redistributes zone energy (no double count)"
+    },
+    {
+      "category": "hvac",
+      "zone_allocated_kwh": 847572.3,
+      "board_allocated_kwh": 847572.3,
+      "diff_kwh": 0.0,
+      "diff_pct": 0.0,
+      "building_meter_name": "Electricity:HVAC",
+      "building_meter_kwh": 847572.3,
+      "board_vs_meter_pct": 100.0,
+      "note": "board layer redistributes zone energy (no double count)"
+    }
+  ]
+}

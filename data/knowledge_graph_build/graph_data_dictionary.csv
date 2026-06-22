@@ -1,0 +1,21 @@
+﻿object,field,description
+node,node_id,stable canonical id
+node,node_type,entity type
+node,name,human-readable name
+node,source_system,originating system
+node,ifc_global_id,IFC GlobalId when applicable
+node,eplus_name,EnergyPlus name when applicable
+node,zone_id/floor_id/room_id,spatial keys
+node,coordinates,"[x,y,z] metres when located"
+node,properties_json,typed properties
+node,value_class,how the entity/value is justified
+node,confidence,mapping confidence
+edge,edge_id,stable id
+edge,source_node_id/target_node_id,endpoints
+edge,relationship_type,edge type
+edge,direction,directed/undirected
+edge,weight,allocation weight (0..1) where applicable
+edge,source,evidence origin
+edge,method,how the edge was derived
+edge,confidence,exact..manual_review
+edge,evidence_json,supporting evidence

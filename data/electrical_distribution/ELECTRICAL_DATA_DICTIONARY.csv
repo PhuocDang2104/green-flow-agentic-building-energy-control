@@ -1,0 +1,163 @@
+﻿file,column,file_description
+electrical_boards.csv,board_id,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,ifc_global_id,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,name,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,device_tag,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,ifc_class,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,predefined_type,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,object_type,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,board_kind,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,floor_id,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,storey,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,x,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,y,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,z,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,voltage_v,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,phase_count,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,rated_current_a,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,fuse_rating_a,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,power_factor,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,short_circuit_icw_ka,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,short_circuit_ipk_ka,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,system_code,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,system_name,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,width_mm,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,height_mm,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,depth_mm,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,manufacturer,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,product_description,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,rating_present,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,source_file,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,source_system,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,value_class,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,extraction_confidence,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,notes,"Distribution boards (IFC-derived assets, never loads)."
+electrical_boards.csv,raw_properties_json,"Distribution boards (IFC-derived assets, never loads)."
+electrical_load_points.csv,load_point_id,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,ifc_global_id,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,name,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,device_tag,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,ifc_class,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,load_kind,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,category,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,floor_id,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,storey,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,x,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,y,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,z,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,voltage_v,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,design_power_w,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,design_power_present,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,design_power_is_zero,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,power_factor,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,phase_count,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,luminous_flux_lm,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,system_code,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,system_name,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,component_main_group,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,component_sub_group,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,manufacturer,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,product_type_name,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,source_file,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,source_system,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,value_class,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,extraction_confidence,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,notes,"Light fixtures, outlets, alarms with design power / system code."
+electrical_load_points.csv,raw_properties_json,"Light fixtures, outlets, alarms with design power / system code."
+electrical_cable_assets.csv,cable_id,Cable-tray segments + fittings.
+electrical_cable_assets.csv,ifc_global_id,Cable-tray segments + fittings.
+electrical_cable_assets.csv,name,Cable-tray segments + fittings.
+electrical_cable_assets.csv,ifc_class,Cable-tray segments + fittings.
+electrical_cable_assets.csv,floor_id,Cable-tray segments + fittings.
+electrical_cable_assets.csv,storey,Cable-tray segments + fittings.
+electrical_cable_assets.csv,x,Cable-tray segments + fittings.
+electrical_cable_assets.csv,y,Cable-tray segments + fittings.
+electrical_cable_assets.csv,z,Cable-tray segments + fittings.
+electrical_cable_assets.csv,size_label,Cable-tray segments + fittings.
+electrical_cable_assets.csv,width_mm,Cable-tray segments + fittings.
+electrical_cable_assets.csv,height_mm,Cable-tray segments + fittings.
+electrical_cable_assets.csv,length_mm,Cable-tray segments + fittings.
+electrical_cable_assets.csv,system_code,Cable-tray segments + fittings.
+electrical_cable_assets.csv,system_name,Cable-tray segments + fittings.
+electrical_cable_assets.csv,source_file,Cable-tray segments + fittings.
+electrical_cable_assets.csv,source_system,Cable-tray segments + fittings.
+electrical_cable_assets.csv,value_class,Cable-tray segments + fittings.
+electrical_cable_assets.csv,extraction_confidence,Cable-tray segments + fittings.
+electrical_cable_assets.csv,notes,Cable-tray segments + fittings.
+electrical_cable_assets.csv,raw_properties_json,Cable-tray segments + fittings.
+electrical_circuits.csv,circuit_id,Circuits (one per board×category; system-grouped or pseudo).
+electrical_circuits.csv,board_id,Circuits (one per board×category; system-grouped or pseudo).
+electrical_circuits.csv,category,Circuits (one per board×category; system-grouped or pseudo).
+electrical_circuits.csv,kind,Circuits (one per board×category; system-grouped or pseudo).
+electrical_circuits.csv,system_codes,Circuits (one per board×category; system-grouped or pseudo).
+electrical_circuits.csv,load_point_count,Circuits (one per board×category; system-grouped or pseudo).
+electrical_circuits.csv,confidence,Circuits (one per board×category; system-grouped or pseudo).
+electrical_circuits.csv,value_class,Circuits (one per board×category; system-grouped or pseudo).
+electrical_circuits.csv,notes,Circuits (one per board×category; system-grouped or pseudo).
+zone_load_to_board_allocation.csv,zone_id,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,eplus_zone_name,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,load_category,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,board_id,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,circuit_id,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,phase,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,weight,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,mapping_method,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,mapping_confidence,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,value_class,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,evidence,"Per (zone,category) board weights (sum to 1)."
+zone_load_to_board_allocation.csv,notes,"Per (zone,category) board weights (sum to 1)."
+board_annual_summary.csv,board_id,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,name,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,device_tag,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,floor_id,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,system_code,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,voltage_v,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,voltage_source,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,phase_count,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,power_factor,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,pf_source,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,rated_current_a,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,lights_kwh,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,equipment_kwh,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,hvac_kwh,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,total_kwh,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,peak_total_kw,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,peak_timestamp,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,estimated_peak_current_a,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,current_method,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,loading_pct,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,overload_status,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,value_class,Per-board estimated energy/peak/current/overload.
+board_annual_summary.csv,notes,Per-board estimated energy/peak/current/overload.
+board_peak_demand_summary.csv,board_id,Per-board peak demand + timestamp.
+board_peak_demand_summary.csv,device_tag,Per-board peak demand + timestamp.
+board_peak_demand_summary.csv,floor_id,Per-board peak demand + timestamp.
+board_peak_demand_summary.csv,peak_total_kw,Per-board peak demand + timestamp.
+board_peak_demand_summary.csv,peak_timestamp,Per-board peak demand + timestamp.
+board_peak_demand_summary.csv,peak_lights_kw,Per-board peak demand + timestamp.
+board_peak_demand_summary.csv,peak_equipment_kw,Per-board peak demand + timestamp.
+board_peak_demand_summary.csv,peak_hvac_kw,Per-board peak demand + timestamp.
+board_peak_demand_summary.csv,overload_status,Per-board peak demand + timestamp.
+board_peak_demand_summary.csv,value_class,Per-board peak demand + timestamp.
+phase_balance_summary.csv,board_id,Phase imbalance (not available — no per-phase allocation).
+phase_balance_summary.csv,phase_count,Phase imbalance (not available — no per-phase allocation).
+phase_balance_summary.csv,phase_imbalance_pct,Phase imbalance (not available — no per-phase allocation).
+phase_balance_summary.csv,status,Phase imbalance (not available — no per-phase allocation).
+phase_balance_summary.csv,reason,Phase imbalance (not available — no per-phase allocation).
+phase_balance_summary.csv,confidence,Phase imbalance (not available — no per-phase allocation).
+energy_reconciliation_by_board_category.csv,category,Zone vs board vs meter energy by category.
+energy_reconciliation_by_board_category.csv,zone_allocated_kwh,Zone vs board vs meter energy by category.
+energy_reconciliation_by_board_category.csv,board_allocated_kwh,Zone vs board vs meter energy by category.
+energy_reconciliation_by_board_category.csv,diff_kwh,Zone vs board vs meter energy by category.
+energy_reconciliation_by_board_category.csv,diff_pct,Zone vs board vs meter energy by category.
+energy_reconciliation_by_board_category.csv,building_meter_name,Zone vs board vs meter energy by category.
+energy_reconciliation_by_board_category.csv,building_meter_kwh,Zone vs board vs meter energy by category.
+energy_reconciliation_by_board_category.csv,board_vs_meter_pct,Zone vs board vs meter energy by category.
+energy_reconciliation_by_board_category.csv,note,Zone vs board vs meter energy by category.
+manual_review_items.csv,item_id,Items needing human confirmation before control use.
+manual_review_items.csv,subject_id,Items needing human confirmation before control use.
+manual_review_items.csv,subject_type,Items needing human confirmation before control use.
+manual_review_items.csv,reason,Items needing human confirmation before control use.
+manual_review_items.csv,recommended_action,Items needing human confirmation before control use.
+manual_review_items.csv,confidence,Items needing human confirmation before control use.
+manual_review_items.csv,fields,Items needing human confirmation before control use.

@@ -1,0 +1,83 @@
+{
+  "building": "Nordic LCA Office",
+  "ifc_files": {
+    "ARCH": {
+      "path": "data\\enriched_IFC\\ARCH_AsBuilt_enriched.ifc",
+      "exists": true,
+      "role": "spatial master (storeys, spaces)"
+    },
+    "ELE": {
+      "path": "data\\enriched_IFC\\ELE_enriched.ifc",
+      "exists": true,
+      "schema": "IFC4",
+      "product_counts": {
+        "IfcBuildingElementProxy": 1,
+        "IfcAlarm": 12,
+        "IfcElectricDistributionBoard": 57,
+        "IfcCableCarrierFitting": 616,
+        "IfcCableCarrierSegment": 1185,
+        "IfcLightFixture": 1419,
+        "IfcOutlet": 188,
+        "IfcBuilding": 1,
+        "IfcBuildingStorey": 7,
+        "IfcSite": 1
+      },
+      "has_boards": true,
+      "has_lights": true,
+      "has_outlets": true,
+      "has_cable_trays": true,
+      "property_language": "Finnish (Granlund/Simplebim FI_* property sets)"
+    },
+    "HVAC": {
+      "path": "data\\enriched_IFC\\HVAC_enriched.ifc",
+      "exists": true,
+      "role": "HVAC device graph / serving relationships"
+    },
+    "STRUCT": {
+      "path": "data\\enriched_IFC\\STRUCTURAL_enriched.ifc",
+      "exists": true,
+      "role": "structural context"
+    }
+  },
+  "idf": {
+    "path": "data\\IDF_FILE.idf",
+    "exists": true,
+    "note": "zone-level EnergyPlus analytical model (kept byte-stable)"
+  },
+  "gold_dataset": {
+    "duckdb": {
+      "path": "greenflow_final_mode_b_plus_openmeteo_2025_30min_patched-001.duckdb",
+      "exists": true
+    },
+    "parquet_grains": [
+      "final_ai_training_timeseries",
+      "final_building_meter_timeseries",
+      "final_device_electricity_timeseries",
+      "final_device_power_timeseries",
+      "final_weather_timeseries",
+      "final_zone_device_power_timeseries"
+    ],
+    "zone_timeseries": "final_zone_device_power_timeseries (best for board allocation)",
+    "zone_count": 308,
+    "scenario_id": "openmeteo_2025_30min_baseline",
+    "timestep_hours": 0.5,
+    "building_meters": [
+      "InteriorEquipment:Electricity",
+      "Heating:EnergyTransfer",
+      "Cooling:EnergyTransfer",
+      "Fans:Electricity",
+      "Cooling:Electricity",
+      "Electricity:Facility",
+      "Electricity:HVAC",
+      "Heating:Electricity",
+      "Electricity:Building",
+      "InteriorLights:Electricity"
+    ],
+    "eplusout_sql_present": false,
+    "data_dictionary": "final_data_dictionary_patched.csv"
+  },
+  "mappings": {
+    "xeokit_object_map_present": true,
+    "graph_erd_exports_present": false
+  }
+}

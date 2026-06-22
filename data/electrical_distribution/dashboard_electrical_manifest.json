@@ -1,0 +1,151 @@
+{
+  "building": "Nordic LCA Office",
+  "version": 1,
+  "layers": [
+    {
+      "id": "boards",
+      "label": "Electrical boards",
+      "entity_type": "ElectricalBoard",
+      "geometry": "point",
+      "default_visible": true
+    },
+    {
+      "id": "load_points",
+      "label": "Lights & outlets",
+      "entity_type": "LoadPoint",
+      "geometry": "point"
+    },
+    {
+      "id": "cable_trays",
+      "label": "Cable trays",
+      "entity_type": "CableTray",
+      "geometry": "line"
+    },
+    {
+      "id": "zones",
+      "label": "Zones (energy)",
+      "entity_type": "ThermalZone",
+      "geometry": "volume"
+    },
+    {
+      "id": "hvac",
+      "label": "HVAC devices",
+      "entity_type": "HVACDevice",
+      "geometry": "point"
+    }
+  ],
+  "metrics": [
+    {
+      "id": "board_peak_kw",
+      "label": "Board peak demand",
+      "unit": "kW",
+      "source": "board_annual_summary"
+    },
+    {
+      "id": "board_total_kwh",
+      "label": "Board annual energy",
+      "unit": "kWh"
+    },
+    {
+      "id": "loading_pct",
+      "label": "Loading",
+      "unit": "%",
+      "requires": "rated_current_a"
+    },
+    {
+      "id": "zone_total_kw",
+      "label": "Zone electricity",
+      "unit": "kW",
+      "source": "gold_zone_timeseries"
+    }
+  ],
+  "color_scales": {
+    "loading_pct": [
+      {
+        "stop": 0,
+        "color": "#2ecc71"
+      },
+      {
+        "stop": 80,
+        "color": "#f1c40f"
+      },
+      {
+        "stop": 100,
+        "color": "#e74c3c"
+      }
+    ],
+    "overload_status": {
+      "normal": "#2ecc71",
+      "warning": "#f1c40f",
+      "overload": "#e74c3c",
+      "rating_missing": "#95a5a6",
+      "unmapped": "#7f8c8d"
+    }
+  },
+  "entity_types": [
+    "Building",
+    "Floor",
+    "ThermalZone",
+    "EnergyPlusZone",
+    "ElectricalBoard",
+    "Circuit",
+    "LightFixture",
+    "Outlet",
+    "Alarm",
+    "CableTray",
+    "HVACDevice",
+    "Meter"
+  ],
+  "click_actions": {
+    "ElectricalBoard": "GET /api/electrical/boards/{id}",
+    "ThermalZone": "GET /api/electrical/zones/{id}/electrical",
+    "Floor": "GET /api/electrical/floors/{id}",
+    "any": "GET /api/graph/entities/{id}/neighbors"
+  },
+  "api_endpoints": [
+    "GET /api/electrical/boards",
+    "GET /api/electrical/boards/{board_id}",
+    "GET /api/electrical/boards/{board_id}/timeseries",
+    "GET /api/electrical/boards/{board_id}/served-zones",
+    "GET /api/electrical/zones/{zone_id}/electrical",
+    "GET /api/electrical/load-points/{load_point_id}",
+    "GET /api/electrical/floors/{floor_id}",
+    "GET /api/electrical/overview",
+    "GET /api/graph/entities/{entity_id}/neighbors",
+    "GET /api/graph/entities/{entity_id}/evidence",
+    "GET /api/graph/rag/answer"
+  ],
+  "badges": {
+    "warning": {
+      "field": "overload_status",
+      "values": [
+        "warning",
+        "overload"
+      ]
+    },
+    "confidence": {
+      "field": "mapping_confidence",
+      "values": [
+        "low",
+        "manual_review"
+      ]
+    },
+    "manual_review": {
+      "source": "manual_review_items.csv"
+    },
+    "rating_missing": {
+      "field": "overload_status",
+      "values": [
+        "rating_missing"
+      ]
+    }
+  },
+  "views": [
+    "building_overview",
+    "floor_electrical_view",
+    "zone_energy_view",
+    "board_view",
+    "circuit_view",
+    "graph_rag_view"
+  ]
+}

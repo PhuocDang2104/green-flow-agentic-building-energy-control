@@ -1,0 +1,11 @@
+﻿floor_id,name,floor_index,elevation_m,source_system,value_class,confidence
+floor_sea_level,Sea Level,0,-0.0,ifc_arch,ifc_derived,exact
+floor_foundation,Foundation,1,51.0,ifc_arch,ifc_derived,exact
+floor_basement,Basement,2,51.7,ifc_arch,ifc_derived,exact
+floor_level_01,Level_01,3,55.5,ifc_arch,ifc_derived,exact
+floor_level_02a_parking,Level_02a_Parking,4,58.9,ifc_arch,ifc_derived,exact
+floor_level_02,Level_02,5,59.7,ifc_arch,ifc_derived,exact
+floor_level_03,Level_03,6,63.65,ifc_arch,ifc_derived,exact
+floor_level_04,Level_04,7,67.6,ifc_arch,ifc_derived,exact
+floor_level_05,Level_05,8,71.92,ifc_arch,ifc_derived,exact
+floor_roof,Roof,9,77.89,ifc_arch,ifc_derived,exact

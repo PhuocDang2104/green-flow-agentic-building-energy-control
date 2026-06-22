@@ -40,6 +40,14 @@ ifc = [
     # Not needed at runtime — generated XKT/JSON are committed.
     "ifcopenshell>=0.8",
 ]
+electrical = [
+    # Electrical-distribution knowledge-graph + board-allocation layer
+    # (scripts/build_electrical_kg.py, backend/greenflow/electrical/*).
+    # duckdb/pyarrow read the patched final zone timeseries; networkx for graph queries.
+    "duckdb>=1.0",
+    "pyarrow>=16",
+    "networkx>=3",
+]
 dev = [
     "pytest>=8.0",
     "pytest-asyncio>=0.24",
