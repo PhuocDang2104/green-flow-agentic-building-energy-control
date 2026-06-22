@@ -6,6 +6,7 @@ import { FileDown, Loader2 } from "lucide-react";
 import PageHeader from "@/components/shell/PageHeader";
 import KpiCard from "@/components/dashboard/KpiCard";
 import BuildingHealthCard from "@/components/dashboard/BuildingHealthCard";
+import EnergyAnalyticsSection from "@/components/dashboard/EnergyAnalyticsSection";
 import EntityInsightPanel from "@/components/dashboard/EntityInsightPanel";
 import ZoneStateTable from "@/components/dashboard/ZoneStateTable";
 import { api, mediaUrl } from "@/lib/api";
@@ -109,6 +110,8 @@ export default function DashboardPage() {
       <div className="mt-4">
         <ZoneStateTable zones={zones} />
       </div>
+
+      <EnergyAnalyticsSection />
     </div>
   );
 }
