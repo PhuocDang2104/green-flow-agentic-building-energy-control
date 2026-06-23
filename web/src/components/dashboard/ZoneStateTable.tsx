@@ -2,6 +2,7 @@
 
 import { fmtKw, fmtTemp, titleCase } from "@/lib/format";
 import StatusPill from "@/components/shared/StatusPill";
+import Skeleton from "@/components/shared/Skeleton";
 import { useAppStore } from "@/stores/appStore";
 import type { Zone } from "@/lib/types";
 
@@ -25,6 +26,13 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
             </tr>
           </thead>
           <tbody>
+            {zones.length === 0 && Array.from({ length: 6 }).map((_, i) => (
+              <tr key={`sk-${i}`} className="border-t border-border/60">
+                {Array.from({ length: 7 }).map((_, j) => (
+                  <td key={j} className="px-5 py-2.5"><Skeleton className="h-4 w-16" /></td>
+                ))}
+              </tr>
+            ))}
             {zones.map((z) => {
               const st = zoneStates[z.entity_key] || z.latest_state;
               const active = selectedEntityKey === z.entity_key;

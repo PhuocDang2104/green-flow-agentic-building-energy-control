@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { Activity } from "lucide-react";
 import { api } from "@/lib/api";
+import Skeleton from "@/components/shared/Skeleton";
 import type { HealthScore } from "@/lib/types";
 
 // theme color hexes (mirror tailwind.config) for SVG/inline styling
@@ -43,7 +44,7 @@ export default function BuildingHealthCard() {
     <div className="card flex flex-col gap-4 px-5 py-4 sm:flex-row sm:items-center">
       {/* radial gauge */}
       <div className="flex items-center gap-4 sm:w-[252px] sm:shrink-0">
-        <div className="relative h-[128px] w-[128px] shrink-0">
+        <div className={`relative h-[128px] w-[128px] shrink-0 ${!h ? "animate-pulse" : ""}`}>
           <svg viewBox="0 0 132 132" className="h-full w-full -rotate-90">
             <circle cx="66" cy="66" r={R} fill="none" stroke="#E2E8F0" strokeWidth="11" />
             <circle
@@ -77,10 +78,20 @@ export default function BuildingHealthCard() {
 
       {/* per-dimension breakdown */}
       <div className="grid flex-1 grid-cols-1 gap-x-7 gap-y-2.5 sm:grid-cols-2">
+        {!h && Array.from({ length: 4 }).map((_, i) => (
+          <div key={i}>
+            <div className="flex items-center justify-between">
+              <Skeleton className="h-3 w-24" />
+              <Skeleton className="h-3 w-6" />
+            </div>
+            <Skeleton className="mt-1.5 h-1.5 w-full" />
+            <Skeleton className="mt-1.5 h-2.5 w-28" />
+          </div>
+        ))}
         {(h?.dimensions ?? []).map((d) => {
           const c = STROKE[bandColor(d.score)];
           return (
-            <div key={d.key}>
+            <div key={d.key} className="animate-fade-in">
               <div className="flex items-baseline justify-between text-[13px]">
                 <span className="font-medium text-text-secondary">{d.label}</span>
                 <span className="font-semibold" style={{ color: c }}>{d.score}</span>
@@ -95,7 +106,6 @@ export default function BuildingHealthCard() {
             </div>
           );
         })}
-        {!h && <p className="text-xs text-text-muted">Loading health breakdown…</p>}
       </div>
     </div>
   );

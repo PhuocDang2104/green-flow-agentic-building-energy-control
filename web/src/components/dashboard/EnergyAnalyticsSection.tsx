@@ -126,14 +126,14 @@ export default function EnergyAnalyticsSection() {
 
       {/* energy KPI tiles */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard title="Energy today" value={ready ? `${kwh.toFixed(0)} kWh` : "–"}
+        <KpiCard title="Energy today" value={`${kwh.toFixed(0)} kWh`} loading={!ready}
                  delta="building total" status="normal" />
-        <KpiCard title="Cost today" value={ready ? costStr : "–"}
+        <KpiCard title="Cost today" value={costStr} loading={!ready}
                  delta="EVN tariff" status="info" />
-        <KpiCard title="Peak demand" value={ready ? `${peakKw.toFixed(1)} kW` : "–"}
+        <KpiCard title="Peak demand" value={`${peakKw.toFixed(1)} kW`} loading={!ready}
                  delta="last 24h" status="warning" />
-        <KpiCard title="Energy intensity" value={ready ? `${euiDaily.toFixed(2)} kWh/m²` : "–"}
-                 delta={ready ? `≈ ${euiAnnual.toFixed(0)} kWh/m²/yr` : undefined}
+        <KpiCard title="Energy intensity" value={`${euiDaily.toFixed(2)} kWh/m²`} loading={!ready}
+                 delta={`≈ ${euiAnnual.toFixed(0)} kWh/m²/yr`}
                  status={score >= 70 ? "success" : score >= 50 ? "warning" : "danger"} />
       </div>
 

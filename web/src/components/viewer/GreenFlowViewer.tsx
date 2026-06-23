@@ -12,6 +12,7 @@
  */
 
 import { useEffect, useRef, useState } from "react";
+import { Loader2 } from "lucide-react";
 import { MANIFEST_URL } from "@/lib/constants";
 import type { ObjectMapEntry, ViewerManifest } from "@/lib/types";
 import { api } from "@/lib/api";
@@ -385,8 +386,14 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     <div className={`relative w-full overflow-hidden rounded-card border border-border bg-gradient-to-b from-slate-50 to-white ${heightClass}`}>
       <canvas ref={canvasRef} className="viewer-canvas" />
       {!ready && !error && (
-        <div className="absolute inset-0 grid place-items-center text-sm text-text-muted">
-          Loading digital twin…
+        <div className="absolute inset-0 grid place-items-center">
+          <div className="flex flex-col items-center gap-3 text-text-muted">
+            <span className="relative flex h-10 w-10 items-center justify-center">
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-teal/20" />
+              <Loader2 className="h-7 w-7 animate-spin text-teal" />
+            </span>
+            <p className="animate-pulse text-sm">Loading digital twin…</p>
+          </div>
         </div>
       )}
       {error && (

@@ -39,9 +39,23 @@ const config: Config = {
             backgroundPosition: "350% 50%, 350% 50%",
           },
         },
+        shimmer: {
+          "100%": { transform: "translateX(100%)" },
+        },
+        "fade-in": {
+          from: { opacity: "0" },
+          to: { opacity: "1" },
+        },
+        "fade-in-up": {
+          from: { opacity: "0", transform: "translateY(6px)" },
+          to: { opacity: "1", transform: "translateY(0)" },
+        },
       },
       animation: {
         aurora: "aurora 60s linear infinite",
+        shimmer: "shimmer 1.6s infinite",
+        "fade-in": "fade-in 0.4s ease-out both",
+        "fade-in-up": "fade-in-up 0.4s ease-out both",
       },
     },
   },
