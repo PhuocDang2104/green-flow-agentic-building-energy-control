@@ -50,3 +50,9 @@ def building_timeseries(hours: int = 24, building_id: str = Query(default=None))
 @router.get("/kpi/current")
 def current_kpis(building_id: str = Query(default=None)):
     return timeseries_tool.get_building_kpis(building_id or default_building_id())
+
+
+@router.get("/kpi/health-score")
+def health_score(building_id: str = Query(default=None)):
+    """Composite building-health score (0-100) + per-dimension breakdown."""
+    return timeseries_tool.get_building_health(building_id or default_building_id())

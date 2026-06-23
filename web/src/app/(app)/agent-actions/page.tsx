@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Loader2, Play, TrendingUp } from "lucide-react";
 import PageHeader from "@/components/shell/PageHeader";
 import AgentRunTimeline from "@/components/agent/AgentRunTimeline";
@@ -14,7 +14,8 @@ import { api } from "@/lib/api";
 import type { ActionItem, Approval } from "@/lib/types";
 
 export default function AgentActionsPage() {
-  const { run, logs, running, start } = useAgentRun();
+  const { run, logs, running, start, loadLatest } = useAgentRun();
+  const hydrated = useRef(false);
   const [actions, setActions] = useState<ActionItem[]>([]);
   const [approvals, setApprovals] = useState<Approval[]>([]);
   const [audit, setAudit] = useState<any[]>([]);
@@ -33,6 +34,14 @@ export default function AgentActionsPage() {
     const t = setInterval(refresh, 15000);
     return () => clearInterval(t);
   }, [refresh]);
+
+  // hydrate the timeline with the most recent run on first visit, so the tab is
+  // never blank (and re-attaches live if that run is still in progress)
+  useEffect(() => {
+    if (hydrated.current) return;
+    hydrated.current = true;
+    loadLatest();
+  }, [loadLatest]);
 
   // refresh queue when a run finishes
   useEffect(() => {

@@ -32,6 +32,7 @@ export const METRICS = [
   { id: "energy", label: "Energy" },
   { id: "comfort", label: "Comfort" },
   { id: "occupancy", label: "Occupancy" },
+  { id: "faults", label: "Faults" },
 ] as const;
 
 export type MetricId = (typeof METRICS)[number]["id"];

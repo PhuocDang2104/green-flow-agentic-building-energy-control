@@ -26,6 +26,14 @@ const LEGENDS: Record<string, { label: string; stops: { color: string; text: str
       { color: "#2563EB", text: "busy" },
     ],
   },
+  faults: {
+    label: "Open faults",
+    stops: [
+      { color: "#DC2626", text: "critical" },
+      { color: "#F59E0B", text: "warning" },
+      { color: "#94A3B8", text: "none" },
+    ],
+  },
 };
 
 export default function MetricLegend() {

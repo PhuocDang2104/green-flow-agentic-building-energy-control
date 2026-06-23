@@ -51,7 +51,37 @@ export function useAgentRun() {
     return run_id;
   }, [watch]);
 
+  /**
+   * Show an existing run's timeline read-only (history). If it's still running,
+   * attach the live poller instead. Unlike `watch`, this does NOT replay the
+   * run's viewer_updates, so loading a past run never recolors the 3D twin.
+   */
+  const load = useCallback(async (id: string) => {
+    try {
+      const r = await api.agentRun(id);
+      if (r.status === "running") { watch(id); return; }
+      const l = await api.agentRunLogs(id);
+      setRunId(id);
+      setActiveAgentRunId(id);
+      setRun(r);
+      setLogs(l);
+      setRunning(false);
+    } catch {
+      /* ignore — leave the empty state */
+    }
+  }, [watch, setActiveAgentRunId]);
+
+  /** Hydrate the timeline with the most recent run so the tab is never blank. */
+  const loadLatest = useCallback(async () => {
+    try {
+      const runs = await api.agentRuns(); // newest first
+      if (runs.length) await load(runs[0].id);
+    } catch {
+      /* ignore */
+    }
+  }, [load]);
+
   useEffect(() => stopPolling, [stopPolling]);
 
-  return { runId, run, logs, running, start, watch };
+  return { runId, run, logs, running, start, watch, load, loadLatest };
 }

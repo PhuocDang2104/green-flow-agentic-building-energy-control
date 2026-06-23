@@ -74,6 +74,23 @@ export interface Kpis {
   pending?: number;
 }
 
+export interface HealthDimension {
+  key: string;
+  label: string;
+  score: number;
+  weight: number;
+  detail: string;
+}
+
+export interface HealthScore {
+  timestamp?: string;
+  score: number;
+  grade: "Excellent" | "Good" | "Fair" | "Poor";
+  color: "success" | "teal" | "warning" | "danger";
+  zones: number;
+  dimensions: HealthDimension[];
+}
+
 export interface AgentLog {
   step: number;
   node: string;
