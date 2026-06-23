@@ -54,11 +54,13 @@ async def replay_ticker() -> None:
 
     while True:
         try:
-            timestamps = _distinct_timestamps(building_id)
+            # psycopg connect/query is blocking; run it off the event loop so a
+            # slow or unreachable Postgres never freezes HTTP request handling.
+            timestamps = await asyncio.to_thread(_distinct_timestamps, building_id)
             if timestamps:
                 ts = timestamps[tick_index % len(timestamps)]
                 tick_index += 1
-                zones = _zone_states_at(building_id, ts)
+                zones = await asyncio.to_thread(_zone_states_at, building_id, ts)
                 total_kw = sum(z.get("total_power_kw") or 0 for z in zones.values())
                 occupancy = sum(z.get("occupancy_count") or 0 for z in zones.values())
                 await manager.broadcast(f"building:{building_id}", {

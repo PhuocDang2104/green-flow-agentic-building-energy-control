@@ -1,0 +1,302 @@
+"use client";
+
+/**
+ * 3D digital-twin of the electrical distribution (IFC metres, three.js y-up) —
+ * LIGHT MODE (white scene).
+ *  - distribution boards: boxes sized by peak demand, coloured by overload/feeder,
+ *  - thermal zones: REAL ARCH bounding boxes (light, semi-transparent),
+ *  - board -> zone supply links terminating exactly at the zone box centre,
+ *  - load points: a faint see-through 3D fixture box + a bright centre dot.
+ *
+ * Filters (floors / zone types / load kinds) come from the page. Clicking a board
+ * isolates that board: only its links, its served zones and its loads are shown.
+ */
+
+import { useLayoutEffect, useMemo, useRef } from "react";
+import { Canvas, ThreeEvent } from "@react-three/fiber";
+import { OrbitControls, Html } from "@react-three/drei";
+import * as THREE from "three";
+
+export type ColorMode = "status" | "feeder" | "load";
+
+const STATUS_COLORS: Record<string, string> = {
+  normal: "#16a34a", warning: "#d97706", overload: "#dc2626",
+  rating_missing: "#64748b", unmapped: "#475569",
+};
+const PALETTE = [
+  "#0d9488", "#2563eb", "#db2777", "#ca8a04", "#7c3aed", "#ea580c",
+  "#059669", "#dc2626", "#0284c7", "#9333ea", "#15803d", "#b45309",
+  "#0891b2", "#c026d3", "#4d7c0f", "#e11d48", "#1d4ed8", "#c2410c",
+];
+const HEAT = ["#1e3a8a", "#0ea5e9", "#22c55e", "#eab308", "#f97316", "#ef4444"];
+// saturated dot colours that read on a white background
+const LOAD_DOT: Record<string, string> = {
+  lighting: "#f59e0b", plug: "#0284c7", alarm: "#e11d48",
+};
+
+const feederColor = (i: number) => (i < 0 ? "#94a3b8" : PALETTE[i % PALETTE.length]);
+function heatColor(t: number) {
+  const x = Math.max(0, Math.min(1, t)) * (HEAT.length - 1);
+  const i = Math.floor(x);
+  const c = new THREE.Color(HEAT[i]);
+  if (i < HEAT.length - 1) c.lerp(new THREE.Color(HEAT[i + 1]), x - i);
+  return c;
+}
+const WHITE = new THREE.Color("#ffffff");
+function zoneColor(z: any, mode: ColorMode) {
+  let c: THREE.Color;
+  if (mode === "load") c = heatColor(z.intensity ?? 0);
+  else if (mode === "feeder") c = new THREE.Color(feederColor(z.color_idx ?? -1));
+  else c = new THREE.Color("#aebfd9");
+  return c.lerp(WHITE, 0.55); // bright & airy on the white scene
+}
+
+/* ---------------- floors ---------------- */
+function Floors({ floors, radius }: { floors: any[]; radius: number }) {
+  return (
+    <group>
+      {floors.map((f: any) => (
+        <group key={f.floor_id} position={[0, f.y, 0]}>
+          <mesh rotation={[-Math.PI / 2, 0, 0]}>
+            <planeGeometry args={[radius * 1.8, radius * 1.8]} />
+            <meshStandardMaterial color="#e8eef6" transparent opacity={0.35}
+              side={THREE.DoubleSide} depthWrite={false} />
+          </mesh>
+          <gridHelper args={[radius * 1.8, 24, "#c3cedd", "#dde5ef"]} />
+        </group>
+      ))}
+    </group>
+  );
+}
+
+/* ---------------- zones (instanced REAL bounding boxes) ---------------- */
+function Zones({ zones, mode, onPick }: { zones: any[]; mode: ColorMode; onPick: (e: any) => void }) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion();
+    const s = new THREE.Vector3(), p = new THREE.Vector3();
+    zones.forEach((z, i) => {
+      const [sx, sy, sz] = z.size ?? [3.5, 3, 3.5];
+      p.set(z.pos[0], z.pos[1], z.pos[2]);
+      s.set(Math.max(sx, 0.6), Math.max(sy, 0.6), Math.max(sz, 0.6));
+      m.compose(p, q, s);
+      mesh.setMatrixAt(i, m);
+      mesh.setColorAt(i, zoneColor(z, mode));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [zones, mode]);
+
+  return (
+    <instancedMesh key={zones.length} ref={ref}
+      args={[undefined as any, undefined as any, Math.max(zones.length, 1)]}
+      onPointerDown={(e: ThreeEvent<PointerEvent>) => {
+        e.stopPropagation();
+        const z = zones[e.instanceId ?? -1];
+        if (z) onPick({ type: "zone", ...z });
+      }}>
+      <boxGeometry args={[1, 1, 1]} />
+      {/* unlit so the boxes stay bright/airy regardless of camera angle */}
+      <meshBasicMaterial vertexColors transparent opacity={mode === "status" ? 0.22 : 0.3}
+        side={THREE.DoubleSide} depthWrite={false} polygonOffset polygonOffsetFactor={1} />
+    </instancedMesh>
+  );
+}
+
+/* ---------------- boards ---------------- */
+function Boards({ boards, mode, onPick, selectedId, dim }: {
+  boards: any[]; mode: ColorMode; onPick: (e: any) => void; selectedId?: string | null; dim?: boolean;
+}) {
+  return (
+    <group>
+      {boards.map((b: any) => {
+        const color = mode === "feeder" ? feederColor(b._idx ?? -1)
+          : STATUS_COLORS[b.overload_status] ?? "#64748b";
+        const h = 0.7 + (b.intensity ?? 0) * 3.4;
+        const sel = selectedId === b.id;
+        const faded = dim && !sel;
+        return (
+          <group key={b.id} position={[b.pos[0], b.pos[1] + h / 2, b.pos[2]]}>
+            <mesh onPointerDown={(e: ThreeEvent<PointerEvent>) => { e.stopPropagation(); onPick({ type: "board", ...b }); }}>
+              <boxGeometry args={[1.1, h, 1.1]} />
+              <meshStandardMaterial color={color} emissive={color}
+                emissiveIntensity={sel ? 0.5 : 0.12} roughness={0.5} metalness={0.25}
+                transparent opacity={faded ? 0.25 : 1} />
+            </mesh>
+            {sel && (
+              <mesh><boxGeometry args={[1.5, h + 0.4, 1.5]} />
+                <meshBasicMaterial color={color} wireframe transparent opacity={0.8} /></mesh>
+            )}
+            {!faded && (
+              <Html center distanceFactor={42} position={[0, h / 2 + 1.2, 0]}>
+                <div className="pointer-events-none select-none whitespace-nowrap rounded bg-slate-800/90 px-1.5 py-0.5 text-[10px] font-semibold text-white shadow">
+                  {b.tag}
+                </div>
+              </Html>
+            )}
+          </group>
+        );
+      })}
+    </group>
+  );
+}
+
+/* ---------------- supply links (board -> zone box centre) ---------------- */
+function SupplyLinks({ links, mode }: { links: any[]; mode: ColorMode }) {
+  const geom = useMemo(() => {
+    const pos = new Float32Array(links.length * 6);
+    const col = new Float32Array(links.length * 6);
+    links.forEach((l, i) => {
+      pos.set([l.from[0], l.from[1], l.from[2], l.to[0], l.to[1], l.to[2]], i * 6);
+      const c = new THREE.Color(mode === "load" ? "#0284c7" : feederColor(l.color_idx ?? -1));
+      col.set([c.r, c.g, c.b, c.r, c.g, c.b], i * 6);
+    });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    return g;
+  }, [links, mode]);
+  return (
+    <lineSegments key={links.length} geometry={geom}>
+      <lineBasicMaterial vertexColors transparent opacity={0.6} />
+    </lineSegments>
+  );
+}
+
+/* ---------------- load points: faint fixture box + bright centre dot ---------------- */
+function LoadPoints({ loads }: { loads: any[] }) {
+  const dots = useMemo(() => {
+    const pos = new Float32Array(loads.length * 3);
+    const col = new Float32Array(loads.length * 3);
+    loads.forEach((l, i) => {
+      pos.set(l.pos, i * 3);
+      const c = new THREE.Color(LOAD_DOT[l.kind] ?? "#475569");
+      col.set([c.r, c.g, c.b], i * 3);
+    });
+    const g = new THREE.BufferGeometry();
+    g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+    g.setAttribute("color", new THREE.BufferAttribute(col, 3));
+    return g;
+  }, [loads]);
+
+  const meshRef = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const mesh = meshRef.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion();
+    const s = new THREE.Vector3(0.5, 0.5, 0.5), p = new THREE.Vector3();
+    loads.forEach((l, i) => {
+      p.set(l.pos[0], l.pos[1], l.pos[2]);
+      m.compose(p, q, s);
+      mesh.setMatrixAt(i, m);
+      mesh.setColorAt(i, new THREE.Color(LOAD_DOT[l.kind] ?? "#94a3b8"));
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+    if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+  }, [loads]);
+
+  return (
+    <group>
+      {/* faint see-through fixture geometry (like the main ELE layer, dimmer) */}
+      <instancedMesh key={"m" + loads.length} ref={meshRef}
+        args={[undefined as any, undefined as any, Math.max(loads.length, 1)]}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshStandardMaterial vertexColors transparent opacity={0.18}
+          roughness={0.5} metalness={0.05} depthWrite={false} side={THREE.DoubleSide} />
+      </instancedMesh>
+      {/* bright centre dot marking each load */}
+      <points key={"p" + loads.length} geometry={dots}>
+        <pointsMaterial size={0.7} sizeAttenuation vertexColors transparent
+          opacity={1} depthWrite={false} />
+      </points>
+    </group>
+  );
+}
+
+export default function ElectricalTwin3D({
+  scene, colorMode = "status", show, floors, zoneTypes, loadKinds,
+  selectedId, onSelect, focusBoard, className,
+}: {
+  scene: any;
+  colorMode?: ColorMode;
+  show?: { boards?: boolean; links?: boolean; floors?: boolean };
+  floors?: Set<string> | null;
+  zoneTypes?: Set<string> | null;
+  loadKinds?: Set<string> | null;
+  selectedId?: string | null;
+  onSelect?: (e: any | null) => void;
+  focusBoard?: string | null;   // when set: isolate this board's links/zones/loads
+  className?: string;
+}) {
+  const vis = { boards: true, links: true, floors: true, ...show };
+
+  const prepped = useMemo(() => {
+    if (!scene) return null;
+    scene.boards.forEach((b: any, i: number) => (b._idx = i));
+    return scene;
+  }, [scene]);
+
+  // null prop = no filter (show all); an (even empty) Set = show only its members,
+  // so ticking "None" genuinely hides everything.
+  const okFloor = useMemo(() =>
+    (fid?: string) => floors == null ? true : floors.has(fid ?? ""), [floors]);
+  const okZoneType = useMemo(() =>
+    (rt?: string) => zoneTypes == null ? true : zoneTypes.has(rt || "unknown"), [zoneTypes]);
+
+  const boardFloor = useMemo(() => {
+    const m: Record<string, string> = {};
+    prepped?.boards.forEach((b: any) => (m[b.id] = b.floor_id));
+    return m;
+  }, [prepped]);
+  const zoneFloor = useMemo(() => {
+    const m: Record<string, string> = {};
+    prepped?.zones.forEach((z: any) => (m[z.id] = z.floor_id));
+    return m;
+  }, [prepped]);
+
+  const vBoards = useMemo(() => prepped ? prepped.boards.filter((b: any) => okFloor(b.floor_id)) : [], [prepped, okFloor]);
+  const vZones = useMemo(() => prepped ? prepped.zones.filter((z: any) =>
+    okFloor(z.floor_id) && okZoneType(z.room_type) && (!focusBoard || z.feeder_board === focusBoard)) : [],
+    [prepped, okFloor, okZoneType, focusBoard]);
+  const vLoads = useMemo(() => {
+    if (!prepped || !loadKinds || loadKinds.size === 0) return [];
+    return prepped.loads.filter((l: any) => loadKinds.has(l.kind) && okFloor(l.floor_id)
+      && (!focusBoard || l.board_id === focusBoard));
+  }, [prepped, loadKinds, okFloor, focusBoard]);
+  const vLinks = useMemo(() => prepped ? prepped.supply_links.filter((l: any) =>
+    okFloor(boardFloor[l.board_id]) && okFloor(zoneFloor[l.zone_id])
+    && (!focusBoard || l.board_id === focusBoard)) : [],
+    [prepped, okFloor, boardFloor, zoneFloor, focusBoard]);
+  const vFloors = useMemo(() => prepped ? prepped.floors.filter((f: any) => okFloor(f.floor_id)) : [], [prepped, okFloor]);
+
+  if (!prepped) return null;
+  const r = prepped.bounds?.radius ?? 40;
+  const cam = r * 1.7;
+
+  return (
+    <div className={className ?? "h-full w-full"}>
+      <Canvas dpr={[1, 2]} gl={{ antialias: true, powerPreference: "high-performance" }}
+        camera={{ position: [cam, cam * 0.8, cam], fov: 40, near: 0.5, far: cam * 12 }}
+        onPointerMissed={() => onSelect?.(null)}>
+        <color attach="background" args={["#ffffff"]} />
+        <fog attach="fog" args={["#ffffff", cam * 2.2, cam * 7]} />
+        <hemisphereLight args={["#ffffff", "#c7d2e0", 1.1]} />
+        <ambientLight intensity={0.5} />
+        <directionalLight position={[cam, cam * 1.5, cam * 0.6]} intensity={1.1} color="#ffffff" />
+
+        {vis.floors && <Floors floors={vFloors} radius={r} />}
+        {vZones.length > 0 && <Zones zones={vZones} mode={colorMode} onPick={(e) => onSelect?.(e)} />}
+        {vis.links && vLinks.length > 0 && <SupplyLinks links={vLinks} mode={colorMode} />}
+        {vLoads.length > 0 && <LoadPoints loads={vLoads} />}
+        {vis.boards && <Boards boards={vBoards} mode={colorMode} selectedId={selectedId}
+          dim={!!focusBoard} onPick={(e) => onSelect?.(e)} />}
+
+        <OrbitControls makeDefault enableDamping dampingFactor={0.08}
+          maxPolarAngle={Math.PI / 2.05} minDistance={r * 0.4} maxDistance={cam * 5}
+          target={[0, prepped.bounds?.height ? prepped.bounds.height / 2 : 8, 0]} />
+      </Canvas>
+    </div>
+  );
+}

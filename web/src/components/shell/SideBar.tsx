@@ -4,12 +4,13 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
   Archive, Bot, Boxes, Building2, FileText, FlaskConical, GitCompareArrows,
-  PanelLeftClose, PanelLeft, Settings, Sparkles,
+  PanelLeftClose, PanelLeft, Settings, Sparkles, Zap,
 } from "lucide-react";
 import { useAppStore } from "@/stores/appStore";
 
 const MAIN = [
   { href: "/dashboard", label: "Dashboard & 3D View", icon: Boxes },
+  { href: "/electrical", label: "Electrical Graph", icon: Zap },
   { href: "/agent-actions", label: "Agents & Actions", icon: Bot },
   { href: "/simulation-baseline", label: "Control & Simulation", icon: FlaskConical },
 ];

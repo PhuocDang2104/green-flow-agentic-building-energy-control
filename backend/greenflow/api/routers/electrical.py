@@ -34,11 +34,33 @@ def overview():
     return dashboard.build_building_overview()
 
 
+@router.get("/electrical/scene")
+def scene(loads: bool = True, max_lights: int = 800):
+    """Full 3D digital-twin payload (boards, zones, supply links, loads, floors)."""
+    _require(cfg.OUT_ELEC / "board_annual_summary.csv")
+    from ...electrical.scene import build_scene
+    return build_scene(include_loads=loads, max_lights=int(max_lights))
+
+
 @router.get("/electrical/boards")
 def list_boards():
     _require(cfg.OUT_ELEC / "board_annual_summary.csv")
     rows = C.read_rows_csv(cfg.OUT_ELEC / "board_annual_summary.csv")
     return {"count": len(rows), "boards": rows}
+
+
+@router.get("/electrical/circuits")
+def circuits():
+    _require(cfg.OUT_ELEC / "electrical_circuits.csv")
+    rows = C.read_rows_csv(cfg.OUT_ELEC / "electrical_circuits.csv")
+    return {"count": len(rows), "circuits": rows}
+
+
+@router.get("/electrical/phase-balance")
+def phase_balance():
+    _require(cfg.OUT_ELEC / "phase_balance_summary.csv")
+    rows = C.read_rows_csv(cfg.OUT_ELEC / "phase_balance_summary.csv")
+    return {"count": len(rows), "phase_balance": rows}
 
 
 @router.get("/electrical/boards/{board_id}")

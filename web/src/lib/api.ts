@@ -94,6 +94,22 @@ export const api = {
   // reports / scenarios
   reports: () => get<Report[]>("/reports"),
   scenarios: () => get<any[]>("/scenarios"),
+
+  // electrical-distribution knowledge graph (file-backed; needs the pipeline run)
+  elecOverview: () => get<any>("/electrical/overview"),
+  elecScene: (loads = true, maxLights = 800) =>
+    get<any>(`/electrical/scene?loads=${loads}&max_lights=${maxLights}`),
+  elecBoards: () => get<{ count: number; boards: any[] }>("/electrical/boards"),
+  elecCircuits: () => get<{ count: number; circuits: any[] }>("/electrical/circuits"),
+  elecPhaseBalance: () => get<{ count: number; phase_balance: any[] }>("/electrical/phase-balance"),
+  elecBoard: (id: string) => get<any>(`/electrical/boards/${id}`),
+  elecBoardTimeseries: (id: string, freq: "daily" | "monthly" = "daily") =>
+    get<{ board_id: string; freq: string; points: any[] }>(
+      `/electrical/boards/${id}/timeseries?freq=${freq}`),
+  elecZone: (zoneId: string) => get<any>(`/electrical/zones/${zoneId}/electrical`),
+  elecFloor: (floorId: string) => get<any>(`/electrical/floors/${floorId}`),
+  elecRagAnswer: (question: string) =>
+    get<any>(`/graph/rag/answer?question=${encodeURIComponent(question)}`),
 };
 
 // Resolve a stored media/report path to an absolute URL against the API origin.

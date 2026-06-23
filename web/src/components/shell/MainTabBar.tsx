@@ -2,10 +2,11 @@
 
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Boxes, Bot, FlaskConical } from "lucide-react";
+import { Boxes, Bot, FlaskConical, Zap } from "lucide-react";
 
 const TABS = [
   { href: "/dashboard", label: "Dashboard & 3D View", icon: Boxes },
+  { href: "/electrical", label: "Electrical Graph", icon: Zap },
   { href: "/agent-actions", label: "Agents & Actions", icon: Bot },
   { href: "/simulation-baseline", label: "Control & Simulation", icon: FlaskConical },
 ];

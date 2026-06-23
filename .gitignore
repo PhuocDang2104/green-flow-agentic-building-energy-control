@@ -65,3 +65,9 @@ data/enriched_IFC/
 *.rvt
 *.pla
 
+# Heavy EnergyPlus 'gold' dataset (multi-GB DuckDB + partitioned Parquet). These
+# exceed GitHub's 100 MB/file limit and are regenerable; the committed electrical
+# CSV/graph outputs capture the results the app actually serves. Kept local only.
+data/final/
+*.duckdb
+
