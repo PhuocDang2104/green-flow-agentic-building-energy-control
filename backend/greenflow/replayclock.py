@@ -17,6 +17,11 @@ from .db import db_conn, fetch_one
 
 TZ = timezone(timedelta(hours=7))
 
+# Streaming mode: when set, "now" advances with wall-clock so dashboards move.
+# Process-global (set via the /api/replay/stream toggle); single-ref read/write
+# is atomic under the GIL, no lock needed. None = static (pinned) behaviour.
+_stream: dict | None = None  # {"started", "speed", "lo", "hi", "base"}
+
 
 def _configured() -> datetime | None:
     s = (get_settings().replay_now or "").strip()
@@ -30,7 +35,16 @@ def _configured() -> datetime | None:
 
 
 def anchor(conn=None, building_id=None) -> datetime:
-    """Mốc 'now'. Ưu tiên replay_now cấu hình; else max(timestamp); else wall-clock."""
+    """Mốc 'now'. Streaming mode (advancing) > replay_now ghim > max(timestamp) > wall-clock."""
+    s = _stream
+    if s is not None:
+        # virtual now = base + elapsed_wall * speed, looped within the data range
+        elapsed = (datetime.now(timezone.utc) - s["started"]).total_seconds() * s["speed"]
+        span = (s["hi"] - s["lo"]).total_seconds()
+        if span <= 0:
+            return s["base"]
+        pos = (s["base"] - s["lo"]).total_seconds() + elapsed
+        return s["lo"] + timedelta(seconds=pos % span)
     cfg = _configured()
     if cfg is not None:
         return cfg
@@ -45,3 +59,35 @@ def anchor(conn=None, building_id=None) -> datetime:
         with db_conn() as c:
             row = fetch_one(c, sql, **params)
     return row["ts"] if row and row.get("ts") else datetime.now(TZ)
+
+
+def start_stream(conn, building_id, speed: float = 360.0) -> dict:
+    """Start advancing the clock: 1 real second -> `speed` virtual seconds,
+    starting from the pinned demo time (or latest) and looping over the recorded
+    range. Default 360x -> a ~30-min data step every ~5 real seconds."""
+    global _stream
+    row = fetch_one(conn, "SELECT min(timestamp) AS lo, max(timestamp) AS hi "
+                    "FROM telemetry_zone_15m WHERE building_id = :b", b=building_id)
+    lo, hi = (row or {}).get("lo"), (row or {}).get("hi")
+    if not lo or not hi:
+        raise ValueError("no telemetry to stream")
+    base = _configured() or hi  # start at the pinned demo time if set, else latest
+    if base < lo or base > hi:
+        base = lo
+    _stream = {"started": datetime.now(timezone.utc), "speed": max(1.0, float(speed)),
+               "lo": lo, "hi": hi, "base": base}
+    return stream_status()
+
+
+def stop_stream() -> dict:
+    global _stream
+    _stream = None
+    return stream_status()
+
+
+def stream_status() -> dict:
+    if _stream is None:
+        return {"streaming": False, "speed": None, "now": anchor().isoformat()}
+    s = _stream
+    return {"streaming": True, "speed": s["speed"], "now": anchor().isoformat(),
+            "window": [s["lo"].isoformat(), s["hi"].isoformat()]}
