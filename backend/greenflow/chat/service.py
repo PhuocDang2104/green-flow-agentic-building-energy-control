@@ -25,7 +25,7 @@ SYSTEM_PROMPT = (
     "building's historical operational data (energy, cost, peak power, comfort, "
     "occupancy, alerts). ALWAYS call the provided tools to get real numbers — never "
     "invent figures. Keep answers concise and factual. If retrieved context is given, "
-    "use it for definitions and policy. Answer in the user's language.\n\n"
+    "use it for definitions and policy. Always answer in English.\n\n"
     "You can also START a real agentic run with trigger_agent_action (run_optimization, "
     "peak_strategy, run_prediction) when the user explicitly asks to run/start/trigger one — "
     "not when they're just asking a question. The run executes in the background and its "
@@ -177,7 +177,10 @@ def _save_message(conn, session_id, role, content, tools_used=None) -> None:
     fetch_one(conn, """
         INSERT INTO chat_messages (session_id, role, content, tool_calls)
         VALUES (:s, :r, :c, cast(:t as jsonb)) RETURNING id""",
-        s=session_id, r=role, c=content, t=json.dumps(tools_used or []))
+        s=session_id, r=role, c=content,
+        # default=str: tool results carry Decimal/datetime from Postgres; without
+        # it the whole chat request 500s when saving the transcript.
+        t=json.dumps(tools_used or [], default=str))
 
 
 def reindex_kb(conn, runtime: "ChatRuntime") -> int:

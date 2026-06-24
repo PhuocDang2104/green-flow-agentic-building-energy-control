@@ -79,6 +79,8 @@ class OpenAICompatibleProvider(LLMProvider):
                 args = json.loads(fn.get("arguments") or "{}")
             except json.JSONDecodeError:
                 args = {}
+            if not isinstance(args, dict):  # some models emit `null`/a scalar for
+                args = {}                    # no-arg tools -> would crash dispatch(**args)
             tcs.append({"id": tc.get("id"), "name": fn.get("name"), "arguments": args})
         return LLMResponse(
             content=msg.get("content"), tool_calls=tcs,
