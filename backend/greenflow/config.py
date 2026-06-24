@@ -22,6 +22,9 @@ class Settings(BaseSettings):
     openai_model: str = "gpt-4.1-mini"
     anthropic_api_key: str = ""
     anthropic_model: str = "claude-sonnet-4-6"
+    # Agent text polishing (action reasons, report prose) via the shared
+    # ModelRouter. OFF by default -> agent runs stay fast + fully deterministic.
+    agent_llm_polish: bool = False
 
     # AI chat: provider mặc định khi DB chưa cấu hình
     groq_api_key: str = ""

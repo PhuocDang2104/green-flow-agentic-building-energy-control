@@ -1,47 +1,34 @@
-"""LLM factory: openai | anthropic | none.
+"""Agent text helper — unified onto the same ModelRouter as the chat brain.
 
-With LLM_PROVIDER=none (default) every call returns the deterministic
-fallback, so the whole agent flow works offline and in tests. The LLM is only
-used to polish natural-language text — intents, plans, policy and actions are
-always rule-based and auditable.
+The agent uses an LLM ONLY to polish natural-language text (action reasons,
+report prose, the chatbot-style answer). Intents, plans, policy and actions stay
+rule-based and auditable. Polishing is OFF by default (AGENT_LLM_POLISH=false) so
+agent runs remain fast and fully deterministic; when enabled, llm_text() routes
+through the SHARED provider pool (failover + circuit-breaker + audit) instead of
+a separate LangChain stack. On no provider / any error it returns the
+deterministic fallback, so callers always get usable text.
+
+Anthropic, like the chat brain, needs an AnthropicProvider adapter in
+llm/provider.py before it can join the pool (the pool is OpenAI-compatible).
 """
 
 from __future__ import annotations
 
-from functools import lru_cache
-
 from ..config import get_settings
 
 
-@lru_cache
-def get_chat_model():
-    """Return a LangChain chat model or None when unavailable."""
-    s = get_settings()
-    try:
-        if s.llm_provider == "openai" and s.openai_api_key:
-            from langchain_openai import ChatOpenAI
-            return ChatOpenAI(model=s.openai_model, api_key=s.openai_api_key,
-                              temperature=0.2, timeout=30)
-        if s.llm_provider == "anthropic" and s.anthropic_api_key:
-            from langchain_anthropic import ChatAnthropic
-            return ChatAnthropic(model=s.anthropic_model, api_key=s.anthropic_api_key,
-                                 temperature=0.2, timeout=30)
-    except ImportError:
-        pass
-    return None
-
-
 def llm_text(prompt: str, fallback: str) -> str:
-    """Ask the LLM for text; return deterministic fallback when no provider."""
-    model = get_chat_model()
-    if model is None:
+    """Polish text via the shared model router; return the deterministic fallback
+    when polishing is disabled, no provider is available, or the call fails."""
+    if not get_settings().agent_llm_polish:
         return fallback
     try:
-        response = model.invoke(prompt)
-        content = response.content
-        if isinstance(content, list):  # anthropic content blocks
-            content = " ".join(c.get("text", "") if isinstance(c, dict) else str(c)
-                               for c in content)
-        return str(content).strip() or fallback
-    except Exception:
+        from ..db import db_conn
+        from ..llm.router import ModelRouter
+        with db_conn() as conn:
+            router = ModelRouter.build(conn, get_settings())
+        resp = router.chat([{"role": "user", "content": prompt}],
+                           tools=None, role="agent_text")
+        return (resp.content or "").strip() or fallback
+    except Exception:  # noqa: BLE001 — DB/provider/parse failure -> stay deterministic
         return fallback
