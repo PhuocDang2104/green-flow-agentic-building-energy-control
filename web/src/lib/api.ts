@@ -3,7 +3,7 @@
 
 import type {
   ActionItem, AgentLog, AgentRun, Alert, Approval, Building, ChatMessageRow,
-  ChatQueryResponse, ChatResponse, ChatSessionSummary, ComparisonKpi, Device,
+  ChatQueryResponse, ChatSessionSummary, ComparisonKpi, Device,
   HealthScore, Kpis, Report, SimulationRun, ValidationResult, Zone,
 } from "./types";
 
@@ -50,8 +50,6 @@ export const api = {
   reportBuildingSemantic: () =>
     post<{ run_id: string }>("/agent/report/building-semantic"),
   reportHvacElec: () => post<{ run_id: string }>("/agent/report/hvac-elec"),
-  chat: (message: string, session_id?: string) =>
-    post<ChatResponse>("/agent/chat", { message, session_id }),
   agentRuns: () => get<AgentRun[]>("/agent/runs"),
   agentRun: (id: string) => get<AgentRun>(`/agent/runs/${id}`),
   agentRunLogs: (id: string) => get<AgentLog[]>(`/agent/runs/${id}/logs`),

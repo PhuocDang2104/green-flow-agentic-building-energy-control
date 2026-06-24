@@ -18,12 +18,6 @@ class RunRequest(BaseModel):
     scenario_config: dict = {}
 
 
-class ChatRequest(BaseModel):
-    building_id: str | None = None
-    message: str
-    session_id: str | None = None
-
-
 def _start_button_run(button_action: str, req: RunRequest,
                       background: BackgroundTasks) -> dict:
     b = req.building_id or default_building_id()
@@ -77,33 +71,6 @@ def scan_anomalies_endpoint(req: RunRequest):
         now = anchor(conn, b)
         n = scan_anomalies(conn, b, now - timedelta(hours=24), now)
     return {"alerts_written": n, "window_end": str(now)}
-
-
-@router.post("/chat", deprecated=True)
-def chat(req: ChatRequest):
-    """Deprecated alias — chat is unified onto ONE brain.
-
-    Both /api/chat and /api/agent/chat now run the same ChatRuntime
-    (short-term memory via chat_sessions/chat_messages + long-term RAG over
-    kb_chunks + function-calling tools, including trigger_agent_action to launch
-    a real workflow run whose live progress streams to the run-log UI). The old
-    memory-less LangGraph "synchronous chatbot" path is gone; the LangGraph graph
-    remains the deterministic workflow engine for buttons and triggered runs.
-
-    Prefer /api/chat. This route stays as a backward-compatible alias.
-    """
-    from ...chat.service import ChatRuntime
-    from ...config import get_settings
-    b = req.building_id or default_building_id()
-    with db_conn() as conn:
-        result = ChatRuntime.build(conn, get_settings()).answer(
-            conn, req.session_id, req.message, b)
-    # ChatRuntime fields (session_id, answer, tools_used, sources) + legacy keys
-    # kept for shape compatibility (now empty: rich cards/viewer updates come
-    # from workflow runs + the dashboard, not from the chat turn).
-    return {**result, "run_id": None, "intent": None, "confidence": None,
-            "related_entities": [], "viewer_updates": [], "suggested_buttons": [],
-            "dashboard_cards": []}
 
 
 @router.get("/runs")
