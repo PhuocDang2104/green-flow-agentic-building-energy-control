@@ -68,10 +68,23 @@ def evaluate_action(action: dict, context: dict) -> dict[str, Any]:
         reasons.append(f"{action_type} is classified as medium-risk: human approval required")
         return _decision("approval_required", risk_level, reasons, [])
 
-    # Auto-run candidates: every guardrail must pass, else escalate to approval
-    if not (auto["enabled"] and settings.enable_auto_actions):
+    # Degraded inputs: prediction/simulation fell back to a low-confidence
+    # estimate -> never auto-run on estimated data (slide: "mark confidence thấp
+    # -> recommend only"). The action stays valid, just needs a human.
+    if context.get("degraded"):
         return _decision("approval_required", risk_level,
-                         ["Auto-actions are disabled by configuration"], ["auto_disabled"])
+                         ["Prediction/simulation ran in degraded fallback mode "
+                          "(estimate, low confidence)"], ["degraded_result"])
+
+    # Auto-run candidates: every guardrail must pass, else escalate to approval.
+    # allow_auto_action is the per-run UI switch ("Allow auto-actions"); when the
+    # operator unticks it, nothing auto-runs even if every guardrail passes
+    # (QC-02 + Human-in-the-Loop guardrail).
+    allow_auto = context.get("allow_auto_action", True)
+    if not (auto["enabled"] and settings.enable_auto_actions and allow_auto):
+        reason = ("Auto-actions disabled for this run by operator" if not allow_auto
+                  else "Auto-actions are disabled by configuration")
+        return _decision("approval_required", risk_level, [reason], ["auto_disabled"])
 
     if action_type not in auto["allowed_actions"]:
         reasons.append(f"{action_type} not in auto-allowed list")

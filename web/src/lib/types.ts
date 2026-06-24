@@ -210,15 +210,6 @@ export interface ValidationResult {
            error_pct: number | null }[];
 }
 
-export interface ChatResponse {
-  run_id: string;
-  answer: string;
-  intent?: string;
-  related_entities?: { entity_key: string; entity_type: string; label: string }[];
-  viewer_updates?: ViewerUpdate[];
-  suggested_buttons?: string[];
-}
-
 export interface ChatQueryResponse {
   session_id: string;
   answer: string;

@@ -72,6 +72,8 @@ def _finish_run(run_id: str, status: str, final: dict) -> None:
         "related_entities": final.get("related_entities", []),
         "suggested_buttons": final.get("suggested_buttons", []),
         "errors": final.get("errors", []),
+        "stop_reason": final.get("stop_reason"),
+        "degraded_nodes": final.get("degraded_nodes", []),
     }
     with db_conn() as conn:
         conn.execute(text("""

@@ -10,6 +10,7 @@ nghĩa/Q&A cũ đi qua VECTOR (ngữ nghĩa). LLM chỉ điều phối + diễn 
 from __future__ import annotations
 
 import json
+import time
 from dataclasses import dataclass
 
 from greenflow.chat.data_tools import TOOL_SPECS, dispatch
@@ -25,7 +26,7 @@ SYSTEM_PROMPT = (
     "building's historical operational data (energy, cost, peak power, comfort, "
     "occupancy, alerts). ALWAYS call the provided tools to get real numbers — never "
     "invent figures. Keep answers concise and factual. If retrieved context is given, "
-    "use it for definitions and policy. Answer in the user's language.\n\n"
+    "use it for definitions and policy. Always answer in English.\n\n"
     "You can also START a real agentic run with trigger_agent_action (run_optimization, "
     "peak_strategy, run_prediction) when the user explicitly asks to run/start/trigger one — "
     "not when they're just asking a question. The run executes in the background and its "
@@ -33,6 +34,7 @@ SYSTEM_PROMPT = (
     "it (e.g. which one and why); do not describe step-by-step results you don't have yet."
 )
 MAX_TOOL_ROUNDS = 4
+PROVIDER_RETRIES = 2  # retries on provider error before degrading gracefully
 
 
 @dataclass
@@ -97,6 +99,25 @@ class ChatRuntime:
         return [{"id": i, "title": rows[i]["title"], "content": rows[i]["content"]}
                 for i in fused if i in rows]
 
+    # ---- resilient provider call ----
+    def _chat_resilient(self, messages, tools):
+        """Call the provider with a small retry, then a tools-free fallback.
+
+        Mitigates the case where the model emits malformed tool-call syntax
+        (Groq returns HTTP 400 tool_use_failed) or a transient rate-limit/5xx:
+        instead of letting that 500 the whole chat request, retry (the model is
+        stochastic) and finally re-ask WITHOUT tools so it answers in prose.
+        Returns None only if every attempt fails."""
+        for attempt in range(PROVIDER_RETRIES):
+            try:
+                return self.provider.chat(messages, tools=tools)
+            except Exception:  # noqa: BLE001 — provider HTTP error / timeout
+                time.sleep(0.5 * (attempt + 1))
+        try:  # last resort: no tools -> the model cannot malform a tool call
+            return self.provider.chat(messages, tools=None)
+        except Exception:  # noqa: BLE001
+            return None
+
     # ---- main ----
     def answer(self, conn, session_id: str | None, message: str, building_id: str) -> dict:
         session_id = _ensure_session(conn, session_id, building_id)
@@ -112,7 +133,11 @@ class ChatRuntime:
 
         tools_used, answer_text, resp = [], "", None
         for _ in range(MAX_TOOL_ROUNDS):
-            resp = self.provider.chat(messages, tools=TOOL_SPECS)
+            resp = self._chat_resilient(messages, TOOL_SPECS)
+            if resp is None:  # provider kept failing -> degrade, never 500
+                answer_text = ("I couldn't reach the language model just now. "
+                               "Please try again in a moment.")
+                break
             if not resp.tool_calls:
                 answer_text = resp.content or ""
                 break
@@ -177,7 +202,10 @@ def _save_message(conn, session_id, role, content, tools_used=None) -> None:
     fetch_one(conn, """
         INSERT INTO chat_messages (session_id, role, content, tool_calls)
         VALUES (:s, :r, :c, cast(:t as jsonb)) RETURNING id""",
-        s=session_id, r=role, c=content, t=json.dumps(tools_used or []))
+        s=session_id, r=role, c=content,
+        # default=str: tool results carry Decimal/datetime from Postgres; without
+        # it the whole chat request 500s when saving the transcript.
+        t=json.dumps(tools_used or [], default=str))
 
 
 def reindex_kb(conn, runtime: "ChatRuntime") -> int:

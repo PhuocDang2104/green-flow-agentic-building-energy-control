@@ -15,7 +15,7 @@ router = APIRouter()
 
 @router.get("/actions")
 def list_actions(building_id: str = Query(default=None),
-                 status: str | None = None, limit: int = 50):
+                 status: str | None = None, limit: int = 200):
     with db_conn() as conn:
         sql = """
             SELECT a.*,

@@ -23,6 +23,7 @@ class GreenFlowState(TypedDict, total=False):
     selected_zone_ids: list[str]
     selected_device_ids: list[str]
     scenario_config: dict
+    allow_auto_action: bool  # per-run UI switch ("Allow auto-actions"); gates policy
 
     # Intent and plan
     intent: Optional[str]
@@ -90,6 +91,14 @@ class GreenFlowState(TypedDict, total=False):
     agent_logs: list[dict]
     errors: list[dict]
 
+    # Controlled-loop budgets + recovery (slide §Orchestration: max step /
+    # timeout / retry & fallback). stop_reason records WHY the executor stopped;
+    # degraded_nodes lists nodes that ran in a fallback (low-confidence) mode.
+    max_steps: int
+    timeout_ms: int
+    stop_reason: Optional[str]
+    degraded_nodes: list[dict]
+
 
 def new_state(**kwargs: Any) -> GreenFlowState:
     state: GreenFlowState = {
@@ -113,8 +122,22 @@ def new_state(**kwargs: Any) -> GreenFlowState:
         "suggested_buttons": [],
         "agent_logs": [],
         "errors": [],
+        "degraded_nodes": [],
+        "max_steps": 12,
+        "timeout_ms": 120000,
+        "stop_reason": None,
         "forecast_horizon_minutes": 60,
         "final_answer": "",
     }
     state.update(kwargs)  # type: ignore[typeddict-item]
+    # Map UI scenario_config -> first-class state fields so the agent actually
+    # honours what the operator picked (QC-02): the forecast horizon and the
+    # per-run auto-action switch were previously dropped on the floor.
+    sc = state.get("scenario_config") or {}
+    if sc.get("horizon_minutes"):
+        try:
+            state["forecast_horizon_minutes"] = int(sc["horizon_minutes"])
+        except (TypeError, ValueError):
+            pass
+    state["allow_auto_action"] = bool(sc.get("allow_auto_action", True))
     return state
