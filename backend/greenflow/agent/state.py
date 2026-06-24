@@ -23,6 +23,7 @@ class GreenFlowState(TypedDict, total=False):
     selected_zone_ids: list[str]
     selected_device_ids: list[str]
     scenario_config: dict
+    allow_auto_action: bool  # per-run UI switch ("Allow auto-actions"); gates policy
 
     # Intent and plan
     intent: Optional[str]
@@ -117,4 +118,14 @@ def new_state(**kwargs: Any) -> GreenFlowState:
         "final_answer": "",
     }
     state.update(kwargs)  # type: ignore[typeddict-item]
+    # Map UI scenario_config -> first-class state fields so the agent actually
+    # honours what the operator picked (QC-02): the forecast horizon and the
+    # per-run auto-action switch were previously dropped on the floor.
+    sc = state.get("scenario_config") or {}
+    if sc.get("horizon_minutes"):
+        try:
+            state["forecast_horizon_minutes"] = int(sc["horizon_minutes"])
+        except (TypeError, ValueError):
+            pass
+    state["allow_auto_action"] = bool(sc.get("allow_auto_action", True))
     return state

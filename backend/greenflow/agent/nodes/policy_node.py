@@ -37,6 +37,7 @@ def run(state: GreenFlowState) -> dict:
             "zones_affected": len(action.get("target_zone_keys", []))
                               or len(state.get("zones", [])),
             "kpi": kpi,  # regrettable-substitution check (agent/regret.py)
+            "allow_auto_action": state.get("allow_auto_action", True),
         }
         decision = evaluate_action(action, context)
         decisions.append({"action": action, **decision})

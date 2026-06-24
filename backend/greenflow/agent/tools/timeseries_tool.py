@@ -20,6 +20,22 @@ def get_zone_history(building_id: str, zone_id: str, hours: int = 24) -> list[di
         """, b=building_id, z=zone_id, anchor=anchor(conn, building_id))]
 
 
+def get_today_energy(conn, building_id: str, ts) -> dict:
+    """Calendar-day-to-date energy + cost at the replay anchor.
+
+    Single source of truth for "today" energy, shared by the dashboard KPI card
+    (get_building_kpis) and the Copilot get_building_kpi tool so both always
+    report the same number. QC-01 was caused by two definitions of "today":
+    rolling-24h (Copilot, 480 kWh) vs calendar-day (dashboard, 787 kWh).
+    """
+    row = fetch_one(conn, """
+        SELECT coalesce(sum(energy_kwh), 0) AS kwh, coalesce(sum(cost_vnd), 0) AS cost
+        FROM telemetry_zone_15m
+        WHERE building_id = :b AND timestamp::date = (:ts)::date
+    """, b=building_id, ts=ts) or {}
+    return {"kwh": float(row.get("kwh") or 0), "cost": float(row.get("cost") or 0)}
+
+
 def get_building_kpis(building_id: str) -> dict:
     """Current KPI card values: total load, occupancy, comfort, actions."""
     with db_conn() as conn:
@@ -36,19 +52,19 @@ def get_building_kpis(building_id: str) -> dict:
                    count(*) FILTER (WHERE anomaly_label IS NOT NULL) AS anomalies
             FROM telemetry_zone_15m WHERE building_id = :b AND timestamp = :ts
         """, b=building_id, ts=ts) or {}
-        day_energy = fetch_one(conn, """
-            SELECT coalesce(sum(energy_kwh), 0) AS kwh, coalesce(sum(cost_vnd), 0) AS cost
-            FROM telemetry_zone_15m
-            WHERE building_id = :b AND timestamp::date = (:ts)::date
-        """, b=building_id, ts=ts) or {}
+        day_energy = get_today_energy(conn, building_id, ts)
+        # Count over ALL open actions (no 24h window) so this KPI matches the
+        # Action Queue exactly. QC-03: dashboard showed 21 pending vs queue 38
+        # because of a stray `requested_at > now() - interval '24 hours'` here.
         actions = fetch_one(conn, """
             SELECT count(*) FILTER (WHERE status = 'executed') AS executed,
                    count(*) FILTER (WHERE status = 'pending_approval') AS pending
             FROM actions WHERE building_id = :b
-              AND requested_at > now() - interval '24 hours'
         """, b=building_id) or {}
         return {"timestamp": ts.isoformat() if ts else None,
-                **_clean(agg), **_clean(day_energy), **_clean(actions)}
+                **_clean(agg),
+                "kwh": day_energy["kwh"], "cost": day_energy["cost"],
+                **_clean(actions)}
 
 
 def get_building_health(building_id: str) -> dict:

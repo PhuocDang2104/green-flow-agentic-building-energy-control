@@ -30,22 +30,38 @@ def _now(conn, building_id):
 
 
 def get_building_kpi(conn, building_id, window: str = "day") -> dict:
-    iv = WINDOW_INTERVAL.get(window, "1 day")
+    """KPI for a window. "day" = calendar-day-to-date ("today"), the SAME source
+    the dashboard uses, so Copilot and the dashboard never disagree (QC-01).
+    "week"/"month" are rolling look-backs, labelled as such to avoid confusion."""
+    from greenflow.agent.tools.timeseries_tool import get_today_energy
     now = _now(conn, building_id)
     if now is None:
         return {"error": "no data"}
+
+    if window == "day":
+        period, window_sql = "today", "timestamp::date = (:now)::date"
+    else:
+        iv = WINDOW_INTERVAL.get(window, "7 days")
+        period = {"week": "last 7 days", "month": "last 30 days"}.get(window, window)
+        window_sql = "timestamp > :now - interval '" + iv + "' AND timestamp <= :now"
+
     row = fetch_one(conn, f"""
         WITH w AS (SELECT * FROM telemetry_zone_15m
-                   WHERE building_id = :b AND timestamp > :now - interval '{iv}'
-                     AND timestamp <= :now),
+                   WHERE building_id = :b AND {window_sql}),
              peak AS (SELECT timestamp, sum(total_power_kw) kw FROM w GROUP BY 1)
         SELECT round(sum(energy_kwh)::numeric,1) energy_kwh,
                round(sum(cost_vnd)::numeric,0) cost_vnd,
                (SELECT round(max(kw)::numeric,1) FROM peak) peak_kw,
                count(*) FILTER (WHERE comfort_risk = 'high') high_comfort_rows
-        FROM w""", b=building_id, now=now)
-    return {"window": window, "as_of": str(now), **{k: float(v) if v is not None else None
-            for k, v in row.items()}}
+        FROM w""", b=building_id, now=now) or {}
+    out = {"window": window, "period": period, "as_of": str(now),
+           **{k: float(v) if v is not None else None for k, v in row.items()}}
+    if window == "day":
+        # energy/cost from the shared source of truth -> identical to dashboard
+        e = get_today_energy(conn, building_id, now)
+        out["energy_kwh"] = round(e["kwh"], 1)
+        out["cost_vnd"] = round(e["cost"], 0)
+    return out
 
 
 def get_zone_timeseries(conn, building_id, zone_key: str, metric: str = "total_power_kw",
