@@ -11,15 +11,17 @@ def test_streaming_anchor_advances_and_stays_in_range():
     try:
         rc._stream = {
             "started": datetime.now(timezone.utc),
-            "speed": 3600.0,
+            "speed": 1e6,  # high enough that 0.05s crosses the 30-min grid step
             "lo": datetime(2025, 1, 1, tzinfo=timezone.utc),
             "hi": datetime(2026, 1, 1, tzinfo=timezone.utc),
             "base": base,
+            "step": 1800,
         }
         a1 = rc.anchor()
         time.sleep(0.05)
         a2 = rc.anchor()
         assert a2 > a1                                  # clock advances
+        assert (a1 - rc._stream["lo"]).total_seconds() % 1800 == 0  # snapped to grid
         assert rc._stream["lo"] <= a1 <= rc._stream["hi"]  # stays within data range
         assert a1 >= base                               # starts at/after the demo time
     finally:

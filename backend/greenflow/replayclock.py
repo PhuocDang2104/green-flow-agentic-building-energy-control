@@ -44,7 +44,10 @@ def anchor(conn=None, building_id=None) -> datetime:
         if span <= 0:
             return s["base"]
         pos = (s["base"] - s["lo"]).total_seconds() + elapsed
-        return s["lo"] + timedelta(seconds=pos % span)
+        off = pos % span
+        step = s.get("step", 1800)
+        off = (int(off) // step) * step  # snap down to the telemetry grid
+        return s["lo"] + timedelta(seconds=off)
     cfg = _configured()
     if cfg is not None:
         return cfg
@@ -74,8 +77,14 @@ def start_stream(conn, building_id, speed: float = 360.0) -> dict:
     base = _configured() or hi  # start at the pinned demo time if set, else latest
     if base < lo or base > hi:
         base = lo
+    # telemetry grid step (gap between the first two distinct ticks) — the virtual
+    # clock snaps to this so exact-match snapshot queries land on a real row.
+    gap = fetch_one(conn, "SELECT EXTRACT(EPOCH FROM (max(ts)-min(ts)))::int AS step "
+                    "FROM (SELECT DISTINCT timestamp AS ts FROM telemetry_zone_15m "
+                    "WHERE building_id = :b ORDER BY timestamp LIMIT 2) q", b=building_id)
+    step = int((gap or {}).get("step") or 1800) or 1800
     _stream = {"started": datetime.now(timezone.utc), "speed": max(1.0, float(speed)),
-               "lo": lo, "hi": hi, "base": base}
+               "lo": lo, "hi": hi, "base": base, "step": step}
     return stream_status()
 
 
