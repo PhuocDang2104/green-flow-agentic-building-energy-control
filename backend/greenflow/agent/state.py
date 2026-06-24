@@ -91,6 +91,14 @@ class GreenFlowState(TypedDict, total=False):
     agent_logs: list[dict]
     errors: list[dict]
 
+    # Controlled-loop budgets + recovery (slide §Orchestration: max step /
+    # timeout / retry & fallback). stop_reason records WHY the executor stopped;
+    # degraded_nodes lists nodes that ran in a fallback (low-confidence) mode.
+    max_steps: int
+    timeout_ms: int
+    stop_reason: Optional[str]
+    degraded_nodes: list[dict]
+
 
 def new_state(**kwargs: Any) -> GreenFlowState:
     state: GreenFlowState = {
@@ -114,6 +122,10 @@ def new_state(**kwargs: Any) -> GreenFlowState:
         "suggested_buttons": [],
         "agent_logs": [],
         "errors": [],
+        "degraded_nodes": [],
+        "max_steps": 12,
+        "timeout_ms": 120000,
+        "stop_reason": None,
         "forecast_horizon_minutes": 60,
         "final_answer": "",
     }

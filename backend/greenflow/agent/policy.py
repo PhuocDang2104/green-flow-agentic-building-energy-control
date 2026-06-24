@@ -68,6 +68,14 @@ def evaluate_action(action: dict, context: dict) -> dict[str, Any]:
         reasons.append(f"{action_type} is classified as medium-risk: human approval required")
         return _decision("approval_required", risk_level, reasons, [])
 
+    # Degraded inputs: prediction/simulation fell back to a low-confidence
+    # estimate -> never auto-run on estimated data (slide: "mark confidence thấp
+    # -> recommend only"). The action stays valid, just needs a human.
+    if context.get("degraded"):
+        return _decision("approval_required", risk_level,
+                         ["Prediction/simulation ran in degraded fallback mode "
+                          "(estimate, low confidence)"], ["degraded_result"])
+
     # Auto-run candidates: every guardrail must pass, else escalate to approval.
     # allow_auto_action is the per-run UI switch ("Allow auto-actions"); when the
     # operator unticks it, nothing auto-runs even if every guardrail passes

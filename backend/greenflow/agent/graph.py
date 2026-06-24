@@ -18,6 +18,7 @@ from sqlalchemy import text
 from ..db import db_conn
 from .nodes import (building_semantic, composer, control, execution, intent,
                     planner, policy_node, prediction, report, simulation)
+from .recovery import CRITICAL_NODES, DEFAULT_RETRIES, FALLBACKS, NODE_RETRIES
 from .state import GreenFlowState
 from .tools import simulation_tool
 
@@ -160,36 +161,96 @@ def orchestration_planner(state: GreenFlowState) -> dict:
 
 
 def plan_executor(state: GreenFlowState) -> dict:
+    """Controlled agent loop: walk the plan with per-node retry, deterministic
+    fallback and run-level budgets (max_steps / timeout), recording stop_reason.
+    """
     merged: dict = {}
     working = dict(state)
     logs = list(state.get("agent_logs", []))
     errors = list(state.get("errors", []))
+    degraded = list(state.get("degraded_nodes", []))
+    working["degraded_nodes"] = degraded  # same list: later nodes (policy) see fallbacks live
     base_step = 3
+    max_steps = state.get("max_steps", 12)
+    deadline = time.time() + state.get("timeout_ms", 120000) / 1000.0
+    stop_reason = "completed"
+    executed = 0
 
     for i, plan_item in enumerate(state.get("orchestration_plan", [])):
         node_name = plan_item["node"]
         fn = PLAN_NODES.get(node_name)
         if fn is None:
             continue
+        label = NODE_LABELS.get(node_name, node_name)
+
+        # ---- run-level budgets (slide §Orchestration: max step / timeout) ----
+        if executed >= max_steps:
+            stop_reason = "max_steps"
+            logs.append(_log_step(working, base_step + i, node_name, "skipped",
+                                  f"Step budget reached ({max_steps}); stopping before {label}.", 0))
+            break
+        if time.time() > deadline:
+            stop_reason = "timeout"
+            logs.append(_log_step(working, base_step + i, node_name, "skipped",
+                                  f"Time budget reached; stopping before {label}.", 0))
+            break
+
+        # ---- retry (read-only nodes only; side-effecting nodes get 1) ----
+        attempts = NODE_RETRIES.get(node_name, DEFAULT_RETRIES)
         t0 = time.time()
-        try:
-            update = fn(working)  # type: ignore[arg-type]
+        update: dict | None = None
+        status = "failed"
+        last_exc: Exception | None = None
+        for attempt in range(attempts):
+            try:
+                update = fn(working)  # type: ignore[arg-type]
+                status = "completed"
+                break
+            except Exception as exc:  # noqa: BLE001
+                last_exc = exc
+                if attempt + 1 < attempts:
+                    logs.append(_log_step(working, base_step + i, node_name, "warning",
+                                          f"{label} attempt {attempt + 1}/{attempts} failed: "
+                                          f"{exc}; retrying.", int((time.time() - t0) * 1000)))
+
+        if status == "completed":
             message, summary = _summarize(node_name, update)
-            status = "completed"
-        except Exception as exc:  # keep the run alive; report the failure
-            update = {}
-            message, summary = f"{NODE_LABELS.get(node_name, node_name)} failed: {exc}", {}
-            status = "failed"
-            errors.append({"node": node_name, "error": str(exc)})
+        else:
+            # ---- fallback / self-recovery ----
+            fb = FALLBACKS.get(node_name)
+            if fb is not None:
+                update = fb(working, last_exc)  # type: ignore[arg-type]
+                status = "degraded"
+                message, summary = _summarize(node_name, update)
+                message = f"[degraded] {message}"
+                mode = (update.get("simulation_result", {}).get("engine")
+                        or update.get("prediction_explanation", {}).get("model") or "fallback")
+                degraded.append({"node": node_name, "mode": mode, "reason": str(last_exc)})
+                errors.append({"node": node_name, "error": str(last_exc), "recovered": True})
+            elif node_name in CRITICAL_NODES:
+                stop_reason = "insufficient_data"
+                errors.append({"node": node_name, "error": str(last_exc), "recovered": False})
+                logs.append(_log_step(working, base_step + i, node_name, "failed",
+                                      f"{label} failed with no fallback ({last_exc}); "
+                                      "stopping run as insufficient_data.",
+                                      int((time.time() - t0) * 1000)))
+                break
+            else:
+                update = {}
+                message, summary = f"{label} failed: {last_exc}", {}
+                errors.append({"node": node_name, "error": str(last_exc), "recovered": False})
+
         duration = int((time.time() - t0) * 1000)
-        logs.append(_log_step(working, base_step + i, node_name, status,
-                              message, duration, summary))
-        working.update(update)
-        merged.update(update)
+        logs.append(_log_step(working, base_step + i, node_name, status, message, duration, summary))
+        working.update(update or {})
+        merged.update(update or {})
+        executed += 1
 
     merged["agent_logs"] = logs
     merged["errors"] = errors
-    merged["current_plan_step"] = len(state.get("orchestration_plan", []))
+    merged["degraded_nodes"] = degraded
+    merged["stop_reason"] = stop_reason
+    merged["current_plan_step"] = executed
     return merged
 
 

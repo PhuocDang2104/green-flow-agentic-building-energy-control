@@ -14,6 +14,7 @@ phải qua simulation + policy gate như mọi nơi khác, chat không bypass au
 """
 from __future__ import annotations
 
+import difflib
 import threading
 
 from greenflow.agent import service as agent_service
@@ -22,6 +23,23 @@ from greenflow.db import fetch_all, fetch_one
 WINDOW_INTERVAL = {"day": "1 day", "week": "7 days", "month": "30 days"}
 ZONE_METRICS = {"total_power_kw", "hvac_power_kw", "lighting_power_kw",
                 "temperature_c", "co2_ppm", "occupancy_count", "cost_vnd"}
+
+
+def _not_found(kind: str, value: str, options: list[str]) -> dict:
+    """Self-describing tool error (slide §Tools: a good error helps the agent
+    recover). Tells the LLM exactly what was wrong, a likely correction, and the
+    valid options — so the next tool call can fix itself instead of looping."""
+    out: dict = {"error": f"{kind} '{value}' not found", "available": options[:30]}
+    close = difflib.get_close_matches(str(value), [str(o) for o in options], n=1)
+    if close:
+        out["hint"] = f"did you mean '{close[0]}'?"
+    return out
+
+
+def _zone_keys(conn, building_id) -> list[str]:
+    return [r["entity_key"] for r in fetch_all(
+        conn, "SELECT entity_key FROM zones WHERE building_id = :b ORDER BY entity_key",
+        b=building_id)]
 
 
 def _now(conn, building_id):
@@ -34,6 +52,8 @@ def get_building_kpi(conn, building_id, window: str = "day") -> dict:
     the dashboard uses, so Copilot and the dashboard never disagree (QC-01).
     "week"/"month" are rolling look-backs, labelled as such to avoid confusion."""
     from greenflow.agent.tools.timeseries_tool import get_today_energy
+    if window not in WINDOW_INTERVAL:
+        return _not_found("window", window, list(WINDOW_INTERVAL))
     now = _now(conn, building_id)
     if now is None:
         return {"error": "no data"}
@@ -67,7 +87,10 @@ def get_building_kpi(conn, building_id, window: str = "day") -> dict:
 def get_zone_timeseries(conn, building_id, zone_key: str, metric: str = "total_power_kw",
                         hours: int = 6) -> dict:
     if metric not in ZONE_METRICS:
-        return {"error": f"metric must be one of {sorted(ZONE_METRICS)}"}
+        return _not_found("metric", metric, sorted(ZONE_METRICS))
+    keys = _zone_keys(conn, building_id)
+    if zone_key not in keys:
+        return _not_found("zone", zone_key, keys)
     now = _now(conn, building_id)
     rows = fetch_all(conn, f"""
         SELECT timestamp AS ts, {metric} AS value FROM telemetry_zone_15m
@@ -79,6 +102,8 @@ def get_zone_timeseries(conn, building_id, zone_key: str, metric: str = "total_p
 
 
 def get_top_consumers(conn, building_id, window: str = "day", limit: int = 5) -> dict:
+    if window not in WINDOW_INTERVAL:
+        return _not_found("window", window, list(WINDOW_INTERVAL))
     iv = WINDOW_INTERVAL.get(window, "1 day")
     now = _now(conn, building_id)
     rows = fetch_all(conn, f"""
@@ -93,6 +118,8 @@ def get_top_consumers(conn, building_id, window: str = "day", limit: int = 5) ->
 
 
 def get_alerts(conn, building_id, status: str = "open") -> dict:
+    if status not in ("open", "resolved"):
+        return _not_found("status", status, ["open", "resolved"])
     cond = "resolved_at IS NULL" if status == "open" else "resolved_at IS NOT NULL"
     rows = fetch_all(conn, f"""
         SELECT a.alert_type, a.severity, a.message, a.created_at, z.name zone

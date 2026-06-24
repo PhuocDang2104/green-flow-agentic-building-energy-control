@@ -38,6 +38,9 @@ def run(state: GreenFlowState) -> dict:
                               or len(state.get("zones", [])),
             "kpi": kpi,  # regrettable-substitution check (agent/regret.py)
             "allow_auto_action": state.get("allow_auto_action", True),
+            # prediction/simulation ran in a degraded fallback -> never auto-run
+            "degraded": any(d.get("node") in ("prediction", "simulation")
+                            for d in state.get("degraded_nodes", [])),
         }
         decision = evaluate_action(action, context)
         decisions.append({"action": action, **decision})
