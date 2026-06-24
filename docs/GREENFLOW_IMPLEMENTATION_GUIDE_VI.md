@@ -313,10 +313,13 @@ PDF/report moi duoc serve qua:
 
 ### 4.7. Chat/RAG/provider
 
-Co hai he chat:
+Chat da HOP NHAT ve MOT bo nao duy nhat (ChatRuntime):
 
-1. `/api/agent/chat`: chay LangGraph orchestration.
-2. `/api/chat`: AI chat/RAG/function-calling rieng cho truy van historical data.
+1. `/api/chat`: bo nao chat chinh — short-term memory (chat_sessions/messages)
+   + long-term RAG (kb_chunks) + function-calling tools (gom trigger_agent_action
+   de khoi chay workflow run, tien do stream ra run-log UI).
+2. `/api/agent/chat`: alias DEPRECATED, delegate sang dung ChatRuntime o tren.
+   LangGraph graph chi con la workflow engine cho button + triggered run.
 
 Bang lien quan `/api/chat`:
 
@@ -390,7 +393,7 @@ Co 3 entrypoint trong state:
 | Entrypoint | Den tu dau | Cach chay |
 |---|---|---|
 | `button` | `/api/agent/run-optimization`, `/predict`, `/peak-strategy`, report buttons | Async background task, UI poll logs |
-| `chatbot` | `/api/agent/chat` | Sync, tra answer ngay |
+| `chatbot` | noi bo (khong con expose qua HTTP — chat di qua ChatRuntime `/api/chat`) | Graph van ho tro entrypoint nay |
 | `approval_resume` | Da khai bao trong state/intent | Hien tai approval resolve truc tiep qua service, chua resume graph thuc su |
 
 ### 5.4. Planner hien tai
@@ -609,7 +612,7 @@ Router prefix: `/api/agent`.
 | POST | `/api/agent/report/building-semantic` | Async | Generate building semantic report |
 | POST | `/api/agent/report/hvac-elec` | Async | Generate HVAC/electrical report |
 | POST | `/api/agent/scan-anomalies` | Sync | Batch scan anomalies over last 24h replay |
-| POST | `/api/agent/chat` | Sync | Chat through LangGraph |
+| POST | `/api/agent/chat` | Sync | DEPRECATED alias -> ChatRuntime (dung `/api/chat`) |
 | GET | `/api/agent/runs?building_id=&limit=20` | Read | List agent runs |
 | GET | `/api/agent/runs/{run_id}` | Read | Run detail |
 | GET | `/api/agent/runs/{run_id}/logs` | Read | Timeline logs |
@@ -704,7 +707,7 @@ Neu thieu optional ML dependencies/model, API tra 503 thay vi doan bua.
 
 ### 7.12. AI chat/RAG/provider APIs
 
-Day la chat stack rieng voi `/api/agent/chat`.
+Day la bo nao chat DUY NHAT; `/api/agent/chat` la alias deprecated tro ve day.
 
 | Method | Path | Vai tro |
 |---|---|---|
@@ -804,7 +807,8 @@ Checklist:
 
 ## 10. Nhung diem de nham
 
-1. `/api/agent/chat` va `/api/chat` la hai he khac nhau.
+1. Chat da HOP NHAT: `/api/chat` la bo nao duy nhat (memory + RAG + tools);
+   `/api/agent/chat` chi con la alias deprecated delegate sang ChatRuntime.
 2. `docs/spine/openapi.yaml` la contract spine cu, khong khop hoan toan API code hien tai.
 3. `simulation_results` la legacy EAV, duong record hien tai la `sim_zone_15m`.
 4. `telemetry_zone_15m` co the chua 30-min data, dung timestamp thuc.
