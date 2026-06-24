@@ -4,7 +4,7 @@
 import type {
   ActionItem, AgentLog, AgentRun, Alert, Approval, Building, ChatMessageRow,
   ChatQueryResponse, ChatSessionSummary, ComparisonKpi, Device,
-  HealthScore, Kpis, Report, SimulationRun, ValidationResult, Zone,
+  HealthScore, Kpis, ReplayStatus, Report, SimulationRun, ValidationResult, Zone,
 } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
@@ -60,6 +60,11 @@ export const api = {
   chatSessions: () => get<ChatSessionSummary[]>("/chat/sessions"),
   chatSessionMessages: (sessionId: string) =>
     get<ChatMessageRow[]>(`/chat/sessions/${sessionId}/messages`),
+
+  // replay streaming (live demo mode)
+  replayStream: (on: boolean, speed = 900) =>
+    post<ReplayStatus>("/replay/stream", { on, speed }),
+  replayStatus: () => get<ReplayStatus>("/replay/status"),
 
   // actions / approvals
   actions: (status?: string) =>

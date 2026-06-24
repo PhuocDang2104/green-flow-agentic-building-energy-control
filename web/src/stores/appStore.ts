@@ -8,6 +8,7 @@ interface AppState {
   buildingId: string;
   replayTimestamp: string | null;
   wsConnected: boolean;
+  streaming: boolean;
   zoneStates: Record<string, ZoneState>;
   buildingLive: { total_power_kw?: number; occupancy?: number };
 
@@ -22,6 +23,7 @@ interface AppState {
   setReplay: (ts: string, zones: Record<string, ZoneState>,
               building: { total_power_kw?: number; occupancy?: number }) => void;
   setWsConnected: (v: boolean) => void;
+  setStreaming: (v: boolean) => void;
   selectEntity: (key: string | null) => void;
   setMetric: (m: MetricId) => void;
   setLayer: (layer: string, visible: boolean) => void;
@@ -37,6 +39,7 @@ export const useAppStore = create<AppState>((set) => ({
   buildingId: "b0000000-0000-0000-0000-000000000001",
   replayTimestamp: null,
   wsConnected: false,
+  streaming: false,
   zoneStates: {},
   buildingLive: {},
 
@@ -52,6 +55,7 @@ export const useAppStore = create<AppState>((set) => ({
   setReplay: (ts, zones, building) =>
     set({ replayTimestamp: ts, zoneStates: zones, buildingLive: building }),
   setWsConnected: (v) => set({ wsConnected: v }),
+  setStreaming: (v) => set({ streaming: v }),
   selectEntity: (key) => set({ selectedEntityKey: key }),
   setMetric: (m) => set({ activeMetric: m }),
   setLayer: (layer, visible) =>

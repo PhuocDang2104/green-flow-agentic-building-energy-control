@@ -13,6 +13,7 @@ import ZoneStateTable from "@/components/dashboard/ZoneStateTable";
 import { api, mediaUrl } from "@/lib/api";
 import { fmtKw, fmtPct } from "@/lib/format";
 import { useAppStore } from "@/stores/appStore";
+import { usePollMs } from "@/hooks/usePollMs";
 import type { Kpis, Zone } from "@/lib/types";
 
 const GreenFlowViewer = dynamic(
@@ -32,11 +33,12 @@ export default function DashboardPage() {
     api.zones().then(setZones).catch(() => null);
   }, []);
 
+  const pollMs = usePollMs(30000);
   useEffect(() => {
     load();
-    const t = setInterval(load, 30000);
+    const t = setInterval(load, pollMs);
     return () => clearInterval(t);
-  }, [load]);
+  }, [load, pollMs]);
 
   const downloadReport = async () => {
     setReportBusy(true);

@@ -210,6 +210,13 @@ export interface ValidationResult {
            error_pct: number | null }[];
 }
 
+export interface ReplayStatus {
+  streaming: boolean;
+  speed: number | null;
+  now: string;
+  window?: [string, string];
+}
+
 export interface ChatQueryResponse {
   session_id: string;
   answer: string;
