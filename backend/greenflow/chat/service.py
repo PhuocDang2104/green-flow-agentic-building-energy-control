@@ -15,8 +15,7 @@ from dataclasses import dataclass
 
 from greenflow.chat.data_tools import TOOL_SPECS, dispatch
 from greenflow.db import fetch_all, fetch_one
-from greenflow.llm.keystore import decrypt_key
-from greenflow.llm.provider import LLMProvider, make_provider
+from greenflow.llm.router import ModelRouter
 from greenflow.vector.embedder import Embedder, get_embedder
 from greenflow.vector.reranker import rerank
 from greenflow.vector.store import VectorStore
@@ -39,7 +38,7 @@ PROVIDER_RETRIES = 2  # retries on provider error before degrading gracefully
 
 @dataclass
 class ChatRuntime:
-    provider: LLMProvider
+    router: ModelRouter
     embedder: Embedder
     store: VectorStore
     reranker_model: str = ""
@@ -47,17 +46,12 @@ class ChatRuntime:
 
     @classmethod
     def build(cls, conn, settings) -> "ChatRuntime":
-        # provider: lấy config active (key đã mã hoá) trong DB, else fallback env
-        cfg = fetch_one(conn, "SELECT provider, model, base_url, api_key_enc "
-                        "FROM provider_configs WHERE is_active ORDER BY created_at DESC LIMIT 1")
-        if cfg and cfg["api_key_enc"]:
-            key = decrypt_key(cfg["api_key_enc"], settings.llm_keystore_secret)
-            provider = make_provider(cfg["provider"], key, cfg["model"], cfg["base_url"])
-        else:
-            provider = make_provider("groq", settings.groq_api_key, settings.groq_model)
+        # one brain, many providers: failover/rotation pool (active first) +
+        # circuit-breaker. Memory stays external; the embedder stays pinned.
+        router = ModelRouter.build(conn, settings)
         embedder = get_embedder(settings.llm_embedder)
         store = VectorStore(dim=embedder.dim, path=settings.vector_index_path)
-        return cls(provider, embedder, store,
+        return cls(router, embedder, store,
                    settings.llm_reranker, settings.rag_candidates)
 
     # ---- retrieval (hybrid: dense + lexical -> RRF -> cross-encoder rerank) ----
@@ -110,11 +104,11 @@ class ChatRuntime:
         Returns None only if every attempt fails."""
         for attempt in range(PROVIDER_RETRIES):
             try:
-                return self.provider.chat(messages, tools=tools)
-            except Exception:  # noqa: BLE001 — provider HTTP error / timeout
+                return self.router.chat(messages, tools=tools, role="chat")
+            except Exception:  # noqa: BLE001 — every provider in the pool failed
                 time.sleep(0.5 * (attempt + 1))
         try:  # last resort: no tools -> the model cannot malform a tool call
-            return self.provider.chat(messages, tools=None)
+            return self.router.chat(messages, tools=None, role="chat")
         except Exception:  # noqa: BLE001
             return None
 
@@ -159,10 +153,12 @@ class ChatRuntime:
         else:
             answer_text = (resp.content if resp else "") or "Sorry, I couldn't complete that."
 
+        model_used = resp.raw.get("_router") if resp and resp.raw else None
         _save_message(conn, session_id, "user", message)
         _save_message(conn, session_id, "assistant", answer_text, tools_used)
         return {"session_id": session_id, "answer": answer_text,
-                "tools_used": tools_used, "sources": [s["title"] for s in snippets]}
+                "tools_used": tools_used, "sources": [s["title"] for s in snippets],
+                "model_used": model_used}
 
 
 # ------------------------------------------------------------------- retrieval
