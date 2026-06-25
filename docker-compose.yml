@@ -94,6 +94,34 @@ services:
       - web
       - api
 
+  # MLflow tracking server + UI: experiment tracking + model registry for the
+  # surrogate forecast models. Backend store = Postgres (own `mlflow` DB),
+  # artifacts proxied to MinIO. UI on :5000. Greenflow-only; does not touch the
+  # shared VM's other stacks.
+  mlflow:
+    image: python:3.11-slim
+    container_name: greenflow-mlflow
+    command:
+      - sh
+      - -c
+      - >
+        pip install --no-cache-dir 'mlflow==2.17.2' psycopg2-binary boto3 &&
+        mlflow server --host 0.0.0.0 --port 5000
+        --backend-store-uri postgresql+psycopg2://greenflow:${POSTGRES_PASSWORD:-greenflow}@db:5432/mlflow
+        --serve-artifacts --artifacts-destination s3://${S3_BUCKET:-greenflow}/mlflow
+    environment:
+      MLFLOW_S3_ENDPOINT_URL: http://minio:9000
+      AWS_ACCESS_KEY_ID: ${S3_ACCESS_KEY:-greenflow}
+      AWS_SECRET_ACCESS_KEY: ${S3_SECRET_KEY:-greenflow-minio-dev}
+    ports:
+      - "${MLFLOW_PORT:-5000}:5000"
+    depends_on:
+      db:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    restart: unless-stopped
+
 volumes:
   pgdata:
   caddy_data:
