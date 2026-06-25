@@ -21,6 +21,13 @@ const BASELINE: Scenario = {
 };
 
 const CLIMATE_MAP_IMAGE = "/assets/landing/hanoi_climate_map_google_3d.png";
+const WIND_POINTS = [
+  { left: 18, top: 28 },
+  { left: 76, top: 30 },
+  { left: 25, top: 76 },
+  { left: 72, top: 72 },
+  { left: 50, top: 82 },
+];
 const DIRS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 const dirLabel = (deg: number) => DIRS[Math.round(((deg % 360) / 45)) % 8];
 
@@ -123,6 +130,9 @@ export default function ClimateScenarioSection() {
   const humTone = s.humidity_pct >= 80 ? "danger" : s.humidity_pct >= 65 ? "warn" : "normal";
   const solarTone = s.solar_multiplier >= 1.2 ? "danger" : s.solar_multiplier >= 1.05 ? "hot" : "normal";
   const heatOpacity = Math.min(0.42, 0.12 + Math.max(0, hi - 30) / 36);
+  const windRad = ((s.wind_direction_deg + 180) % 360) * Math.PI / 180;
+  const arrowLen = 14 + Math.min(40, s.wind_speed_ms * 12);
+  const windArrowDeg = Math.atan2(Math.sin(windRad), Math.cos(windRad)) * 180 / Math.PI;
 
   const payload = {
     scenario_id: "el_nino_heat_stress",
@@ -169,8 +179,7 @@ export default function ClimateScenarioSection() {
     <section className="mt-4">
       <div className="mb-3 flex items-center gap-2">
         <CloudSun size={16} className="text-teal" />
-        <h2 className="text-sm font-semibold">Climate Scenario &amp; Building Response</h2>
-        <span className="text-xs text-text-muted">El Nino heat-stress simulation - Hanoi weather-to-building response</span>
+        <h2 className="text-sm font-semibold">Building Climate Monitor</h2>
       </div>
 
       <div className="grid gap-4 lg:grid-cols-2">
@@ -261,12 +270,23 @@ export default function ClimateScenarioSection() {
                   `radial-gradient(circle at 55% 48%, ${b.fill} 0 12%, transparent 42%), radial-gradient(circle at 36% 66%, ${b.fill} 0 9%, transparent 33%)`,
               }}
             />
+            {WIND_POINTS.map((point, index) => (
+              <div
+                key={`wind-${index}`}
+                className="pointer-events-none absolute z-10 h-0.5 origin-center rounded-full bg-white/80 shadow-[0_0_10px_rgba(255,255,255,0.72)]"
+                style={{
+                  left: `${point.left}%`,
+                  top: `${point.top}%`,
+                  width: `${arrowLen}px`,
+                  opacity: 0.58 + Math.min(0.38, s.wind_speed_ms / 16),
+                  transform: `rotate(${windArrowDeg}deg)`,
+                }}
+              >
+                <span className="absolute -right-0.5 -top-[3px] h-0 w-0 border-y-[4px] border-l-[7px] border-y-transparent border-l-white/90" />
+              </div>
+            ))}
             <div className="absolute left-[49%] top-[47%] h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_8px_rgba(255,255,255,0.2),0_0_28px_rgba(255,255,255,0.5)]"
               style={{ background: b.color }} />
-            <div className="pointer-events-none absolute left-[51%] top-[41%] -translate-x-1/2 rounded-xl bg-slate-950/70 px-3 py-2 text-white shadow-floating backdrop-blur">
-              <div className="text-[13px] font-semibold leading-tight">Hanoi / VinUniversity Area</div>
-              <div className="text-[10px] text-white/70">Satellite 3D climate overlay</div>
-            </div>
 
             <div className="pointer-events-none absolute left-3 top-3 grid w-[150px] gap-1.5">
               <Badge label="Outdoor Temp" value={`${s.outdoor_temp_c.toFixed(1)} C`} tone={tempTone === "danger" ? "danger" : tempTone === "hot" ? "hot" : "neutral"} />
@@ -287,10 +307,6 @@ export default function ClimateScenarioSection() {
             </div>
           </div>
 
-          <p className="px-4 py-2 text-[11px] text-text-muted">
-            Live preview reacts to the controls; <b>Run IDF Simulation</b> sends the scenario to the backend
-            (copy baseline IDF -&gt; apply overrides -&gt; EnergyPlus) and updates with the simulated response.
-          </p>
         </div>
       </div>
     </section>

@@ -97,9 +97,10 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
           antialias: true,
         });
         viewer.scene.gammaOutput = true;
-        // framed precisely by cameraFlight once the first model loads
-        viewer.camera.eye = [60, 45, 60];
-        viewer.camera.look = [0, 0, 0];
+        // Default view matches the product screenshot: low isometric, close,
+        // architecture-forward rather than a top-down technical fit.
+        viewer.camera.eye = [72, 34, 86];
+        viewer.camera.look = [0, 8, 0];
         viewer.camera.up = [0, 1, 0];
         viewer.cameraControl.followPointer = true;
         viewerRef.current = viewer;
@@ -130,10 +131,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
               styleDefaults(viewer);
               if (!firstLoaded) {
                 firstLoaded = true;
-                viewer.cameraFlight.flyTo({
-                  aabb: viewer.scene.getAABB(viewer.scene.visibleObjectIds),
-                  duration: 0.8,
-                });
+                flyToDefaultBuildingView(viewer, 0.8);
               }
             });
             model.on("error", (e: any) =>
@@ -478,7 +476,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
 
   const resetCamera = () => {
     const viewer = viewerRef.current;
-    if (viewer) viewer.cameraFlight.flyTo({ aabb: viewer.scene.getAABB(viewer.scene.visibleObjectIds), duration: 0.6 });
+    if (viewer) flyToDefaultBuildingView(viewer, 0.6);
   };
 
   // Capture the wheel inside the 3D card: zoom the scene, never scroll the page.
@@ -523,6 +521,28 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       )}
     </div>
   );
+}
+
+function flyToDefaultBuildingView(viewer: any, duration = 0.8) {
+  const ids = viewer.scene.visibleObjectIds;
+  const aabb = viewer.scene.getAABB(ids);
+  if (!aabb || aabb.some((v: number) => !Number.isFinite(v))) return;
+
+  const [xmin, ymin, zmin, xmax, ymax, zmax] = aabb;
+  const dx = Math.max(1, xmax - xmin);
+  const dy = Math.max(1, ymax - ymin);
+  const dz = Math.max(1, zmax - zmin);
+  const cx = (xmin + xmax) / 2;
+  const cy = (ymin + ymax) / 2;
+  const cz = (zmin + zmax) / 2;
+  const diag = Math.hypot(dx, dy, dz);
+
+  viewer.cameraFlight.flyTo({
+    eye: [cx + diag * 0.48, cy + dy * 0.62, cz + diag * 0.72],
+    look: [cx, cy + dy * 0.08, cz],
+    up: [0, 1, 0],
+    duration,
+  });
 }
 
 function applyMetricColor(entity: any, st: any, metric: string): boolean {
