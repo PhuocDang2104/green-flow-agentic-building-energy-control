@@ -16,10 +16,25 @@ from .routers import (actions, agent, alerts, buildings, chat, climate, electric
 from .ws import manager, monitor_ticker, replay_ticker
 
 
+def _warm_rag() -> None:
+    """Preload the bge-m3 embedder AND the cross-encoder reranker so the first
+    chat isn't ~16s of cold model load (both are heavy CPU models)."""
+    try:
+        from ..vector.embedder import get_embedder
+        from ..vector.reranker import rerank
+        s = get_settings()
+        get_embedder(s.llm_embedder).embed(["warm"], kind="query")
+        rerank("warm", [{"id": 0, "title": "", "content": "warm"}], top_k=1,
+               model_name=s.llm_reranker)
+    except Exception:
+        pass
+
+
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ticker = asyncio.create_task(replay_ticker())
     monitor = asyncio.create_task(monitor_ticker())
+    asyncio.create_task(asyncio.to_thread(_warm_rag))  # warm RAG embedder off the event loop
     yield
     ticker.cancel()
     monitor.cancel()

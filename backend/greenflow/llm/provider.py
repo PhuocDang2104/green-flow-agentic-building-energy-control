@@ -63,6 +63,12 @@ class OpenAICompatibleProvider(LLMProvider):
             "model": self.model, "messages": messages,
             "temperature": temperature, "max_tokens": max_tokens,
         }
+        # gpt-oss is a reasoning model; without this it defaults to high effort and
+        # spends seconds "thinking". low effort is plenty for factual building Q&A
+        # and keeps Cerebras sub-second. Gated on the model so other providers
+        # (groq/openrouter llama) never receive an unknown param.
+        if "gpt-oss" in self.model:
+            payload["reasoning_effort"] = "low"
         if tools:
             payload["tools"] = tools
             payload["tool_choice"] = "auto"

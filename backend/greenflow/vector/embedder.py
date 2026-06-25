@@ -19,6 +19,7 @@ phải reindex lại (xoá index cũ) vì dim đổi.
 from __future__ import annotations
 
 import hashlib
+from functools import lru_cache
 
 import numpy as np
 
@@ -84,8 +85,12 @@ class HashingEmbedder(Embedder):
         return out
 
 
+@lru_cache(maxsize=2)
 def get_embedder(name: str = "bge-m3") -> Embedder:
     """Factory: 'bge-m3'|'e5-base'|'bge-base'|... (production) | 'hashing' (dev).
+
+    Cached: the chat endpoint builds a runtime per request, and loading bge-m3
+    (~11s) every time dominated chat latency. lru_cache keeps the model warm.
 
     Fallback HashingEmbedder dùng ĐÚNG dim của preset đang chọn để không lệch dim
     với turbovec index (nếu thiếu torch/model thì retrieval kém nhưng không vỡ)."""
