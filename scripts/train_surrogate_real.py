@@ -113,8 +113,50 @@ def main() -> None:
                               "test_metrics": m, "top_features": imp}
     print(f"[zone] test R²={m['r2']} MAE={m['mae_kw']}kW MAPE={m['mape_pct']}%")
 
+    # NB: a standalone HVAC-electricity surrogate was evaluated and NOT shipped:
+    # target_hvac_electricity_kw is zero-inflated and the held-out split is the
+    # cool months (Nov/Dec/Jan, HVAC ~86% off), giving a negative held-out R²
+    # (R²≈0.52 only on HVAC-active rows). hvac_power_kw is instead DERIVED from
+    # the validated total-power forecast × HVAC share (~28%) at serving time.
+
     (OUT / "surrogate_real_meta.json").write_text(json.dumps(meta, indent=2))
     print(f"saved -> {OUT}")
+    _log_mlflow(meta, OUT)
+
+
+# Best-effort MLflow logging: only runs if MLFLOW_TRACKING_URI is set AND reachable
+# (e.g. on the VM / via proxy). A local train without a server just skips this and
+# still writes the .txt models; scripts/log_models_to_mlflow.py backfills later.
+def _log_mlflow(meta: dict, out: Path) -> None:
+    uri = os.environ.get("MLFLOW_TRACKING_URI")
+    if not uri:
+        print("MLFLOW_TRACKING_URI unset -> skip MLflow logging (models saved to disk)")
+        return
+    try:
+        import mlflow
+        files = {"building": "surrogate_real_building.txt", "zone": "surrogate_real_zone.txt"}
+        mlflow.set_tracking_uri(uri)
+        mlflow.set_experiment("greenflow-surrogate")
+        for name, info in meta["models"].items():
+            mp = out / files.get(name, "")
+            if not mp.exists():
+                continue
+            with mlflow.start_run(run_name=f"surrogate_{name}"):
+                mlflow.set_tags({"source": meta["source"], "model": name, "engine": "lightgbm",
+                                 "stage": "production"})
+                mlflow.log_param("target", info["target"])
+                mlflow.log_param("n_features", len(info["features"]))
+                if info.get("best_iter") is not None:
+                    mlflow.log_param("best_iter", info["best_iter"])
+                for k, v in (info.get("test_metrics") or {}).items():
+                    if isinstance(v, (int, float)):
+                        mlflow.log_metric(f"test_{k}", float(v))
+                import lightgbm as _lgb
+                mlflow.lightgbm.log_model(_lgb.Booster(model_file=str(mp)), artifact_path="model",
+                                          registered_model_name=f"greenflow_surrogate_{name}")
+            print("mlflow logged + registered:", name)
+    except Exception as e:  # noqa: BLE001 — logging must never fail the training
+        print("mlflow logging skipped:", repr(e)[:160])
 
 
 if __name__ == "__main__":
