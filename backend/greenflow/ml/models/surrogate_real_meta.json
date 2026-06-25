@@ -106,6 +106,61 @@
           "gain": 24282269
         }
       ]
+    },
+    "hvac": {
+      "target": "hvac_power_kw",
+      "features": [
+        "outdoor_temp_c",
+        "outdoor_rh_pct",
+        "global_horizontal_radiation_wh_m2",
+        "wind_speed_m_s",
+        "cloud_cover_pct",
+        "hour_sin",
+        "hour_cos",
+        "dayofweek_sin",
+        "dayofweek_cos",
+        "month_sin",
+        "month_cos",
+        "office_hours_flag",
+        "cooling_setpoint_c",
+        "area_m2",
+        "volume_m3",
+        "ceiling_height_m"
+      ],
+      "best_iter": 698,
+      "split": "day-grouped (all-season)",
+      "test_metrics": {
+        "r2": 0.9793,
+        "mae_kw": 0.0345,
+        "mape_pct": 5.5,
+        "n": 1054080
+      },
+      "top_features": [
+        {
+          "f": "cooling_setpoint_c",
+          "gain": 35499556
+        },
+        {
+          "f": "volume_m3",
+          "gain": 24748365
+        },
+        {
+          "f": "outdoor_temp_c",
+          "gain": 20848435
+        },
+        {
+          "f": "area_m2",
+          "gain": 12588336
+        },
+        {
+          "f": "month_cos",
+          "gain": 7755243
+        },
+        {
+          "f": "month_sin",
+          "gain": 5364155
+        }
+      ]
     }
   }
 }

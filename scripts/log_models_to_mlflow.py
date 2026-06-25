@@ -14,6 +14,7 @@ from __future__ import annotations
 
 import json
 import os
+import sys
 from pathlib import Path
 
 import lightgbm as lgb
@@ -24,6 +25,7 @@ MODELS = Path(__file__).resolve().parents[1] / "backend" / "greenflow" / "ml" / 
 FILES = {
     "building": MODELS / "surrogate_real_building.txt",
     "zone": MODELS / "surrogate_real_zone.txt",
+    "hvac": MODELS / "surrogate_real_hvac.txt",
 }
 
 
@@ -31,8 +33,11 @@ def main() -> None:
     mlflow.set_tracking_uri(TRACKING)
     mlflow.set_experiment("greenflow-surrogate")
     meta = json.loads((MODELS / "surrogate_real_meta.json").read_text())
+    only = set(sys.argv[1:])  # optional: register only these model names
 
     for name, info in meta["models"].items():
+        if only and name not in only:
+            continue
         f = FILES.get(name)
         if not f or not f.exists():
             print("skip", name, "(no model file)")

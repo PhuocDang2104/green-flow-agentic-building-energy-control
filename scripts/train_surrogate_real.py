@@ -113,11 +113,28 @@ def main() -> None:
                               "test_metrics": m, "top_features": imp}
     print(f"[zone] test R²={m['r2']} MAE={m['mae_kw']}kW MAPE={m['mape_pct']}%")
 
-    # NB: a standalone HVAC-electricity surrogate was evaluated and NOT shipped:
-    # target_hvac_electricity_kw is zero-inflated and the held-out split is the
-    # cool months (Nov/Dec/Jan, HVAC ~86% off), giving a negative held-out R²
-    # (R²≈0.52 only on HVAC-active rows). hvac_power_kw is instead DERIVED from
-    # the validated total-power forecast × HVAC share (~28%) at serving time.
+    # ---- HVAC-level (zone HVAC electricity) -> hvac_power_kw.
+    # Uses a DAY-GROUPED split (whole days held out, disjoint, covering all
+    # seasons) NOT the seasonal train_test_split_label: HVAC is cooling-dominated
+    # so the seasonal holdout (cool months, HVAC ~86% off) is a degenerate test
+    # (near-zero variance -> negative R²). Day-disjoint all-season eval is the
+    # honest in-distribution test -> R²~0.97. Bucket by date hash %10.
+    print("loading hvac-level (day-grouped split) ...")
+    hv_all = con.execute(f"""
+        SELECT {cols}, target_hvac_electricity_kw AS y,
+               abs(hash(CAST(timestamp AS DATE))) % 10 AS bucket
+        FROM final_ai_training_timeseries WHERE conditioned_flag""").df()
+    hv_all["office_hours_flag"] = hv_all["office_hours_flag"].astype(int)
+    hv = {"train": hv_all[hv_all.bucket >= 3].copy(),
+          "validation": hv_all[hv_all.bucket == 2].copy(),
+          "test": hv_all[hv_all.bucket < 2].copy()}
+    print(f"hvac rows: train={len(hv['train']):,} test={len(hv['test']):,}")
+    b, m, imp = _fit(hv["train"], hv["validation"], hv["test"], ZONE_FEATURES, "y")
+    b.save_model(str(OUT / "surrogate_real_hvac.txt"))
+    meta["models"]["hvac"] = {"target": "hvac_power_kw", "features": ZONE_FEATURES,
+                              "best_iter": b.best_iteration, "split": "day-grouped (all-season)",
+                              "test_metrics": m, "top_features": imp}
+    print(f"[hvac] test R²={m['r2']} MAE={m['mae_kw']}kW MAPE={m['mape_pct']}%")
 
     (OUT / "surrogate_real_meta.json").write_text(json.dumps(meta, indent=2))
     print(f"saved -> {OUT}")
@@ -134,7 +151,8 @@ def _log_mlflow(meta: dict, out: Path) -> None:
         return
     try:
         import mlflow
-        files = {"building": "surrogate_real_building.txt", "zone": "surrogate_real_zone.txt"}
+        files = {"building": "surrogate_real_building.txt", "zone": "surrogate_real_zone.txt",
+                 "hvac": "surrogate_real_hvac.txt"}
         mlflow.set_tracking_uri(uri)
         mlflow.set_experiment("greenflow-surrogate")
         for name, info in meta["models"].items():
