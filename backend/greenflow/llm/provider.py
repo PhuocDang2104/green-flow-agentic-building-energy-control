@@ -21,6 +21,7 @@ OPENAI_COMPATIBLE: dict[str, dict] = {
     "openai":     {"base_url": "https://api.openai.com/v1",      "default_model": "gpt-4.1-mini"},
     "openrouter": {"base_url": "https://openrouter.ai/api/v1",   "default_model": "meta-llama/llama-3.3-70b-instruct"},
     "together":   {"base_url": "https://api.together.xyz/v1",    "default_model": "meta-llama/Llama-3.3-70B-Instruct-Turbo"},
+    "zenmux":     {"base_url": "https://zenmux.ai/api/v1",       "default_model": "z-ai/glm-5.2"},
     "ollama":     {"base_url": "http://localhost:11434/v1",      "default_model": "llama3.1"},
 }
 
