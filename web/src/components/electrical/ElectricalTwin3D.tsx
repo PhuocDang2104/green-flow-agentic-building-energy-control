@@ -43,12 +43,12 @@ function heatColor(t: number) {
   return c;
 }
 const WHITE = new THREE.Color("#ffffff");
-const ZONE_GRAY = new THREE.Color("#d6dde7");   // light grey shell
-const ZONE_EDGE = "#22c55e";                    // green bounding box (like the dashboard)
+const ZONE_SHELL = new THREE.Color("#ffffff");   // translucent white shell (was grey — too dark)
+const ZONE_EDGE = "#22c55e";                     // green bounding box (like the dashboard)
 function zoneFillColor(z: any, mode: ColorMode) {
-  // grey shell in status/feeder; tinted by load heat (lightened) in load mode
-  if (mode === "load") return heatColor(z.intensity ?? 0).lerp(WHITE, 0.25);
-  return ZONE_GRAY;
+  // frosted-white shell in status/feeder; tinted by load heat (lightened) in load mode
+  if (mode === "load") return heatColor(z.intensity ?? 0).lerp(WHITE, 0.35);
+  return ZONE_SHELL;
 }
 
 /** 12 edges of every zone box merged into one green LineSegments geometry. */
@@ -125,7 +125,7 @@ function Zones({ zones, mode, onPick }: { zones: any[]; mode: ColorMode; onPick:
           if (z) onPick({ type: "zone", ...z });
         }}>
         <boxGeometry args={[1, 1, 1]} />
-        <meshBasicMaterial vertexColors transparent opacity={mode === "load" ? 0.28 : 0.12}
+        <meshBasicMaterial vertexColors transparent opacity={mode === "load" ? 0.32 : 0.2}
           side={THREE.DoubleSide} depthWrite={false} polygonOffset polygonOffsetFactor={1} />
       </instancedMesh>
       {/* green bounding-box edges (like the dashboard digital twin) */}

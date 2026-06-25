@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { fmtKwh, titleCase } from "@/lib/format";
 import StatusPill from "@/components/shared/StatusPill";
 import EmptyState from "@/components/shared/EmptyState";
@@ -12,6 +12,7 @@ const TABS = [
   { id: "blocked", label: "Blocked" },
   { id: "proposed", label: "Recommended" },
 ] as const;
+const PAGE_SIZE = 8;
 
 export default function ActionQueue({
   actions, approvals, onApprove, onReject, busyId,
@@ -23,6 +24,7 @@ export default function ActionQueue({
   busyId: string | null;
 }) {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("pending");
+  const [visible, setVisible] = useState(PAGE_SIZE);
 
   const filtered = actions.filter((a) =>
     tab === "pending" ? a.status === "pending_approval"
@@ -32,11 +34,20 @@ export default function ActionQueue({
 
   const approvalByAction = Object.fromEntries(
     approvals.map((ap) => [ap.action_id, ap]));
+  const visibleActions = filtered.slice(0, visible);
+  const shownCount = Math.min(visible, filtered.length);
+
+  useEffect(() => {
+    setVisible(PAGE_SIZE);
+  }, [tab]);
 
   return (
     <div className="card flex h-full flex-col">
       <div className="border-b border-border px-5 py-3">
-        <h3 className="text-sm font-semibold">Action queue</h3>
+        <div className="flex items-center justify-between gap-2">
+          <h3 className="text-sm font-semibold">Action queue</h3>
+          <span className="text-xs text-text-muted">{filtered.length} {tab}</span>
+        </div>
         <div className="mt-2 flex gap-1">
           {TABS.map((t) => (
             <button
@@ -50,11 +61,11 @@ export default function ActionQueue({
           ))}
         </div>
       </div>
-      <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4">
+      <div className="flex-1 space-y-3 overflow-y-auto px-5 py-4 max-h-[640px]">
         {filtered.length === 0 && (
           <EmptyState title={`No ${tab.replaceAll("_", " ")} actions`} />
         )}
-        {filtered.map((a) => {
+        {visibleActions.map((a) => {
           const approval = approvalByAction[a.id];
           return (
             <div key={a.id} className="rounded-2xl border border-border/80 p-4">
@@ -100,6 +111,19 @@ export default function ActionQueue({
             </div>
           );
         })}
+        {filtered.length > 0 && (
+          <div className="flex items-center justify-between gap-3 pt-1 text-xs text-text-muted">
+            <span>Showing {shownCount} of {filtered.length}</span>
+            {visible < filtered.length && (
+              <button
+                onClick={() => setVisible((v) => v + PAGE_SIZE)}
+                className="rounded-full border border-border px-3 py-1 font-medium text-text-secondary transition hover:border-teal hover:text-teal"
+              >
+                Show more
+              </button>
+            )}
+          </div>
+        )}
       </div>
     </div>
   );

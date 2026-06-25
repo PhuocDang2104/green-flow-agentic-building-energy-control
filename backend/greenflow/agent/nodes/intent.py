@@ -8,7 +8,7 @@ from __future__ import annotations
 
 import re
 
-from ..llm import get_chat_model
+from ..llm import llm_text
 from ..state import GreenFlowState
 from ..tools import db_tool
 
@@ -65,17 +65,14 @@ def run(state: GreenFlowState) -> dict:
 
     query = (state.get("user_query") or "").lower()
     intent = _classify_keywords(query)
-    model = get_chat_model()
-    if model is not None:
-        try:
-            resp = model.invoke(
-                "Classify this building-operations question into exactly one intent "
-                f"from {INTENTS}. Reply with the intent only.\nQuestion: {query}")
-            candidate = str(resp.content).strip().strip('"').lower()
-            if candidate in INTENTS:
-                intent = candidate
-        except Exception:
-            pass
+    # Optional LLM refinement via the shared router (only when AGENT_LLM_POLISH is
+    # on); llm_text returns the keyword intent unchanged otherwise -> no-op default.
+    candidate = llm_text(
+        "Classify this building-operations question into exactly one intent "
+        f"from {INTENTS}. Reply with the intent only.\nQuestion: {query}",
+        fallback=intent).strip().strip('"').lower()
+    if candidate in INTENTS:
+        intent = candidate
 
     return {"intent": intent, **_resolve_entities(state, query)}
 

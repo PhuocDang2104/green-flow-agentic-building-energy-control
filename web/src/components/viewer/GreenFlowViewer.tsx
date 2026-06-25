@@ -18,6 +18,7 @@ import type { ObjectMapEntry, ViewerManifest } from "@/lib/types";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/stores/appStore";
 import LayerPanel from "./LayerPanel";
+import AnalysisBar from "./AnalysisBar";
 import ViewModeToolbar from "./ViewModeToolbar";
 import MetricLegend from "./MetricLegend";
 import EntityTooltip from "./EntityTooltip";
@@ -222,15 +223,22 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     for (const [layer, model] of Object.entries(modelsRef.current)) {
       if (model) model.visible = layers[layer] !== false;
     }
-    // X-ray architecture when a discipline (MEP/structural) or a zone heatmap
-    // is active, so what's inside reads clearly (3D doc §7.1).
-    const discipline = layers.hvac || layers.electrical || layers.structural;
-    const archModel = modelsRef.current["architecture"];
-    if (archModel) {
-      archModel.xrayed = !!discipline || activeMetric !== "none";
+    // Electrical & HVAC must always read FULLY even when stacked under other
+    // layers: when either MEP layer (or a zone heatmap) is on, x-ray the opaque
+    // shell (architecture / structural / windows) so the MEP shows through; the
+    // MEP layers themselves stay fully opaque (never x-rayed).
+    const mep = !!(layers.hvac || layers.electrical);
+    const xrayShell = mep || activeMetric !== "none";
+    for (const shell of ["architecture", "structural", "fenestration"]) {
+      const m = modelsRef.current[shell];
+      if (m) m.xrayed = xrayShell;
     }
-    viewer.scene.xrayMaterial.fillAlpha = 0.06;
-    viewer.scene.xrayMaterial.edgeAlpha = 0.22;
+    for (const mepLayer of ["electrical", "hvac"]) {
+      const m = modelsRef.current[mepLayer];
+      if (m) m.xrayed = false;
+    }
+    viewer.scene.xrayMaterial.fillAlpha = 0.05;
+    viewer.scene.xrayMaterial.edgeAlpha = 0.2;
   }, [layers, ready, activeMetric]);
 
   // --- heatmap overlay from live zone state --------------------------------
@@ -442,6 +450,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
         </div>
       )}
       <LayerPanel />
+      <AnalysisBar />
       <ViewModeToolbar onResetCamera={resetCamera} />
       <MetricLegend />
       {hover && (

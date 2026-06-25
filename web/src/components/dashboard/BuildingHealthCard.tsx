@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { Activity } from "lucide-react";
 import { api } from "@/lib/api";
 import Skeleton from "@/components/shared/Skeleton";
+import { usePollMs } from "@/hooks/usePollMs";
 import type { HealthScore } from "@/lib/types";
 
 // theme color hexes (mirror tailwind.config) for SVG/inline styling
@@ -27,12 +28,13 @@ function bandColor(score: number): string {
 export default function BuildingHealthCard() {
   const [h, setH] = useState<HealthScore | null>(null);
 
+  const pollMs = usePollMs(30000);
   useEffect(() => {
     const load = () => api.healthScore().then(setH).catch(() => null);
     load();
-    const t = setInterval(load, 30000);
+    const t = setInterval(load, pollMs);
     return () => clearInterval(t);
-  }, []);
+  }, [pollMs]);
 
   const R = 54;
   const C = 2 * Math.PI * R;

@@ -13,6 +13,7 @@ import ZoneStateTable from "@/components/dashboard/ZoneStateTable";
 import { api, mediaUrl } from "@/lib/api";
 import { fmtKw, fmtPct } from "@/lib/format";
 import { useAppStore } from "@/stores/appStore";
+import { usePollMs } from "@/hooks/usePollMs";
 import type { Kpis, Zone } from "@/lib/types";
 
 const GreenFlowViewer = dynamic(
@@ -32,11 +33,12 @@ export default function DashboardPage() {
     api.zones().then(setZones).catch(() => null);
   }, []);
 
+  const pollMs = usePollMs(30000);
   useEffect(() => {
     load();
-    const t = setInterval(load, 30000);
+    const t = setInterval(load, pollMs);
     return () => clearInterval(t);
-  }, [load]);
+  }, [load, pollMs]);
 
   const downloadReport = async () => {
     setReportBusy(true);
@@ -92,10 +94,10 @@ export default function DashboardPage() {
         <KpiCard title="Peak Risk" value={kpis?.peak_high ? "High" : "Normal"} loading={!kpis}
                  delta={`${kpis?.peak_high ?? 0} zones in peak watch`}
                  status={kpis?.peak_high ? "warning" : "success"} />
-        <KpiCard title="Comfort" value={`${(kpis?.comfort_watch ?? 0) + (kpis?.comfort_high ?? 0)} watch`}
+        <KpiCard title="Comfort" value={`${kpis?.comfort_high ?? 0} high risk`}
                  loading={!kpis}
-                 delta={`${kpis?.comfort_high ?? 0} high risk`}
-                 status={kpis?.comfort_high ? "danger" : "success"} />
+                 delta={`${kpis?.comfort_watch ?? 0} watch`}
+                 status={kpis?.comfort_high ? "danger" : (kpis?.comfort_watch ? "warning" : "success")} />
         <KpiCard title="Occupancy" value={`${occupancy ?? "–"} people`} loading={!kpis}
                  delta={kpis?.occ_conf != null ? `${fmtPct(kpis.occ_conf)} confidence` : undefined}
                  status="info" />

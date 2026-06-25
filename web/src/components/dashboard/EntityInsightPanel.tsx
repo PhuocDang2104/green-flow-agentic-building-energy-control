@@ -70,7 +70,7 @@ export default function EntityInsightPanel() {
           {entity.entity_type === "ThermalZone" && (
             <div className="grid grid-cols-2 gap-2">
               <Metric label="Temperature" value={fmtTemp(st?.temperature_c)} />
-              <Metric label="Setpoint" value={fmtTemp(st?.setpoint_c)} />
+              <Metric label="Setpoint" value={st?.setpoint_c && st.setpoint_c > 0 ? fmtTemp(st.setpoint_c) : "N/A"} />
               <Metric label="Occupancy" value={`${st?.occupancy_count ?? "–"} ppl`} />
               <Metric label="Total load" value={fmtKw(st?.total_power_kw)} />
               <Metric label="HVAC" value={fmtKw(st?.hvac_power_kw)} />

@@ -9,6 +9,7 @@ import {
 import { api } from "@/lib/api";
 import KpiCard from "./KpiCard";
 import Skeleton from "@/components/shared/Skeleton";
+import { usePollMs } from "@/hooks/usePollMs";
 import type { Zone } from "@/lib/types";
 
 // load-category palette, reused across donut + stacked area
@@ -65,6 +66,7 @@ export default function EnergyAnalyticsSection() {
   const [zones, setZones] = useState<Zone[]>([]);
   const [kpi, setKpi] = useState<any | null>(null);
 
+  const pollMs = usePollMs(30000);
   useEffect(() => {
     const load = () => {
       api.buildingTimeseries(24).then(setSeries).catch(() => null);
@@ -72,9 +74,9 @@ export default function EnergyAnalyticsSection() {
       api.kpis().then(setKpi).catch(() => null);
     };
     load();
-    const t = setInterval(load, 30000);
+    const t = setInterval(load, pollMs);
     return () => clearInterval(t);
-  }, []);
+  }, [pollMs]);
 
   const ready = !!series && !!kpi && zones.length > 0;
 
