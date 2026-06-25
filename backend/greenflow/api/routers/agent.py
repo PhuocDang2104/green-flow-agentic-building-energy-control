@@ -16,16 +16,19 @@ router = APIRouter(prefix="/agent")
 class RunRequest(BaseModel):
     building_id: str | None = None
     scenario_config: dict = {}
+    session_id: str | None = None  # chat session to post the run report into
 
 
 def _start_button_run(button_action: str, req: RunRequest,
                       background: BackgroundTasks) -> dict:
     b = req.building_id or default_building_id()
     run_id = service.start_run(b, "button", button_action=button_action,
-                               scenario_config=req.scenario_config)
+                               scenario_config=req.scenario_config,
+                               session_id=req.session_id)
     background.add_task(service.execute_run, run_id, b, "button",
                         button_action=button_action,
-                        scenario_config=req.scenario_config)
+                        scenario_config=req.scenario_config,
+                        session_id=req.session_id)
     return {"run_id": run_id, "status": "running", "button_action": button_action}
 
 

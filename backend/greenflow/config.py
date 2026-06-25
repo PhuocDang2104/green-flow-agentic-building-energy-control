@@ -53,6 +53,9 @@ class Settings(BaseSettings):
     enable_auto_actions: bool = True
     max_setpoint_delta_c: float = 1.5
     min_occupancy_confidence: float = 0.8
+    # A pending action auto-expires if not approved within this many real minutes —
+    # a stale control action executed late is meaningless.
+    action_approval_ttl_minutes: int = 5
 
     default_building_id: str = "b0000000-0000-0000-0000-000000000001"
     replay_speed_seconds: int = 10

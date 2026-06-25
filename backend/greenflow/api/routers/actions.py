@@ -4,19 +4,40 @@ from __future__ import annotations
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
+from sqlalchemy import text
 
 from ...agent import service
 from ...agent.tools.db_tool import _clean
+from ...config import get_settings
 from ...db import db_conn, fetch_all, fetch_one
 from ..deps import default_building_id
 
 router = APIRouter()
 
 
+def _expire_stale_approvals(conn) -> None:
+    """A pending action not approved within the TTL is meaningless later, so we
+    auto-expire it (and its approval request). Lazy sweep on read — no cron."""
+    ttl = get_settings().action_approval_ttl_minutes
+    conn.execute(text("""
+        WITH stale AS (
+            UPDATE approval_requests SET status = 'expired', decided_at = now(),
+                   decided_by = 'auto', decision_note = 'auto-expired: not approved in time'
+            WHERE status = 'pending'
+              AND requested_at < now() - make_interval(mins => :ttl)
+            RETURNING action_id
+        )
+        UPDATE actions SET status = 'expired'
+        WHERE id IN (SELECT action_id FROM stale)
+          AND status IN ('proposed', 'pending_approval')
+    """), {"ttl": ttl})
+
+
 @router.get("/actions")
 def list_actions(building_id: str = Query(default=None),
                  status: str | None = None, limit: int = 200):
     with db_conn() as conn:
+        _expire_stale_approvals(conn)
         sql = """
             SELECT a.*,
                    coalesce(json_agg(json_build_object(
@@ -48,6 +69,7 @@ def get_action(action_id: str):
 def list_approvals(building_id: str = Query(default=None),
                    status: str = "pending"):
     with db_conn() as conn:
+        _expire_stale_approvals(conn)
         return [_clean(r) for r in fetch_all(conn, """
             SELECT ar.id AS approval_id, ar.status, ar.requested_at, ar.decided_at,
                    ar.decided_by, ar.payload_json,

@@ -9,6 +9,8 @@ import PredictionPanel from "@/components/agent/PredictionPanel";
 import PolicySummaryCard from "@/components/agent/PolicySummaryCard";
 import AuditTable from "@/components/agent/AuditTable";
 import FaultsPanel from "@/components/agent/FaultsPanel";
+import BuildingHealthCard from "@/components/dashboard/BuildingHealthCard";
+import EnergyAnalyticsSection from "@/components/dashboard/EnergyAnalyticsSection";
 import ChatThread from "@/components/chatbot/ChatThread";
 import { usePollMs } from "@/hooks/usePollMs";
 import { useAgentRun } from "@/hooks/useAgentRun";
@@ -22,10 +24,10 @@ export default function AgentActionsPage() {
   const [approvals, setApprovals] = useState<Approval[]>([]);
   const [audit, setAudit] = useState<any[]>([]);
   const [busyApproval, setBusyApproval] = useState<string | null>(null);
-  const [horizon, setHorizon] = useState(60);
-  const [autoAction, setAutoAction] = useState(true);
+  const [horizon] = useState(60);
+  const [autoAction] = useState(true);
 
-  // chat sessions (left rail) — Claude-style thread list
+  // chat sessions (left rail) — IDE-style explorer
   const [sessions, setSessions] = useState<ChatSessionSummary[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
   const loadSessions = useCallback(() => {
@@ -42,22 +44,20 @@ export default function AgentActionsPage() {
   useEffect(() => {
     refresh();
     loadSessions();
-    const t = setInterval(refresh, pollMs);
+    const t = setInterval(() => { refresh(); loadSessions(); }, pollMs);
     return () => clearInterval(t);
   }, [refresh, loadSessions, pollMs]);
 
-  // hydrate the timeline with the most recent run on first visit, so the run
-  // detail below is never blank (and re-attaches live if that run is running)
   useEffect(() => {
     if (hydrated.current) return;
     hydrated.current = true;
     loadLatest();
   }, [loadLatest]);
 
-  // refresh queue when a run finishes
+  // when a run finishes it posts a report into the active session → refresh both
   useEffect(() => {
-    if (!running && run) refresh();
-  }, [running, run, refresh]);
+    if (!running && run) { refresh(); loadSessions(); }
+  }, [running, run, refresh, loadSessions]);
 
   const scenario = { horizon_minutes: horizon, allow_auto_action: autoAction };
 
@@ -72,7 +72,6 @@ export default function AgentActionsPage() {
     }
   };
 
-  // a fresh chat creates a session → select it and pull it into the list
   const onSessionId = (id: string) => {
     setSessionId(id);
     loadSessions();
@@ -84,15 +83,15 @@ export default function AgentActionsPage() {
     <div className="pb-4">
       <PageHeader
         title="Agents & Actions"
-        subtitle="Chat with the building agent across sessions — watch it act, review faults, approve actions."
+        subtitle="An IDE for the building agent — sessions, live building state, chat & action queue."
         actions={
           <>
             <button className="btn-secondary" disabled={running}
-                    onClick={() => start(() => api.runPrediction(scenario))}>
+                    onClick={() => start(() => api.runPrediction(scenario, sessionId))}>
               <TrendingUp size={15} /> Run Prediction
             </button>
             <button className="btn-primary" disabled={running}
-                    onClick={() => start(() => api.runOptimization(scenario))}>
+                    onClick={() => start(() => api.runOptimization(scenario, sessionId))}>
               {running ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />}
               Run Optimization
             </button>
@@ -100,10 +99,10 @@ export default function AgentActionsPage() {
         }
       />
 
-      {/* 3-pane: sessions · chat · building context ---------------------------- */}
-      <div className="grid gap-4 lg:grid-cols-[230px_1fr_380px]">
-        {/* left: session list */}
-        <aside className="card flex h-[620px] flex-col p-0">
+      {/* IDE 3-pane: sessions · building state · copilot (chat + actions) ------- */}
+      <div className="grid gap-3 lg:grid-cols-[220px_1fr_400px]">
+        {/* left: session explorer */}
+        <aside className="card flex h-[720px] flex-col p-0">
           <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
             <span className="text-[13px] font-semibold">Sessions</span>
             <button
@@ -117,7 +116,7 @@ export default function AgentActionsPage() {
           <div className="flex-1 space-y-0.5 overflow-y-auto px-2 py-2">
             {sessions.length === 0 && (
               <p className="px-2 py-3 text-[12px] text-text-muted">
-                No conversations yet. Start one in the chat →
+                No conversations yet. Ask the copilot →
               </p>
             )}
             {sessions.map((s) => (
@@ -138,62 +137,52 @@ export default function AgentActionsPage() {
           </div>
         </aside>
 
-        {/* center: session info + chatbot */}
-        <section className="card flex h-[620px] flex-col p-0">
-          <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
-            <span className="grid h-7 w-7 place-items-center rounded-full bg-teal text-white">
-              <MessageSquare size={13} />
-            </span>
-            <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold">
-                {activeSession?.first_message || "New conversation"}
-              </p>
-              <p className="text-[11px] text-text-muted">
-                {activeSession
-                  ? `${activeSession.n_messages} messages · ${fmtDate(activeSession.created_at)}`
-                  : "Ask the agent to analyse, forecast or optimise the building"}
-              </p>
-            </div>
+        {/* middle: live building state / metrics */}
+        <section className="h-[720px] overflow-y-auto pr-0.5">
+          <div className="space-y-3">
+            <BuildingHealthCard />
+            <EnergyAnalyticsSection />
+            <FaultsPanel />
           </div>
-          <ChatThread sessionId={sessionId} onSessionId={onSessionId} />
         </section>
 
-        {/* right: building-wide context (faults + actions the agent is acting on) */}
-        <aside className="flex h-[620px] flex-col gap-4 overflow-y-auto pr-0.5">
-          <div className="card flex flex-wrap items-center gap-x-4 gap-y-2 px-4 py-3 text-[12.5px]">
-            <span className="text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-              Building context
-            </span>
-            <label className="flex items-center gap-1.5">
-              <span className="text-text-secondary">Horizon</span>
-              <select value={horizon} onChange={(e) => setHorizon(Number(e.target.value))}
-                      className="rounded-lg border border-border px-1.5 py-0.5">
-                {[15, 30, 60].map((h) => <option key={h} value={h}>{h}m</option>)}
-              </select>
-            </label>
-            <label className="flex cursor-pointer items-center gap-1.5">
-              <input type="checkbox" checked={autoAction}
-                     onChange={(e) => setAutoAction(e.target.checked)}
-                     className="h-3.5 w-3.5 accent-teal" />
-              <span className="text-text-secondary">Auto-actions</span>
-            </label>
+        {/* right: copilot — chat (with per-session agent reports) + action queue */}
+        <aside className="flex h-[720px] flex-col gap-3">
+          <section className="card flex min-h-0 flex-[3] flex-col p-0">
+            <div className="flex items-center gap-2 border-b border-border px-4 py-2.5">
+              <span className="grid h-7 w-7 place-items-center rounded-full bg-teal text-white">
+                <MessageSquare size={13} />
+              </span>
+              <div className="min-w-0">
+                <p className="truncate text-[13px] font-semibold">
+                  {activeSession?.first_message || "Copilot"}
+                </p>
+                <p className="text-[11px] text-text-muted">
+                  {activeSession
+                    ? `${activeSession.n_messages} messages · ${fmtDate(activeSession.created_at)}`
+                    : "Agent reports notable events here after each run"}
+                </p>
+              </div>
+            </div>
+            <ChatThread sessionId={sessionId} onSessionId={onSessionId} />
+          </section>
+          <div className="flex min-h-0 flex-[2] flex-col">
+            <ActionQueue
+              actions={actions}
+              approvals={approvals}
+              onApprove={(id) => decide(id, true)}
+              onReject={(id) => decide(id, false)}
+              busyId={busyApproval}
+            />
           </div>
-          <ActionQueue
-            actions={actions}
-            approvals={approvals}
-            onApprove={(id) => decide(id, true)}
-            onReject={(id) => decide(id, false)}
-            busyId={busyApproval}
-          />
-          <FaultsPanel />
         </aside>
       </div>
 
-      {/* run detail (full width) — timeline + prediction + policy + audit ------ */}
-      <div className="mt-4">
+      {/* bottom panel: agent run output (timeline + prediction + policy + audit) */}
+      <div className="mt-3">
         <AgentRunTimeline run={run} logs={logs} running={running} />
       </div>
-      <div className="mt-4 grid gap-4 lg:grid-cols-3">
+      <div className="mt-3 grid gap-3 lg:grid-cols-3">
         <PredictionPanel run={run} />
         <PolicySummaryCard />
         <AuditTable rows={audit.slice(0, 30)} />

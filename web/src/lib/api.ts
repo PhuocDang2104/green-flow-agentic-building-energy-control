@@ -40,10 +40,10 @@ export const api = {
   latestState: () => get<any>("/state/latest"),
 
   // agent
-  runOptimization: (scenario_config = {}) =>
-    post<{ run_id: string }>("/agent/run-optimization", { scenario_config }),
-  runPrediction: (scenario_config = {}) =>
-    post<{ run_id: string }>("/agent/predict", { scenario_config }),
+  runOptimization: (scenario_config = {}, session_id?: string | null) =>
+    post<{ run_id: string }>("/agent/run-optimization", { scenario_config, session_id }),
+  runPrediction: (scenario_config = {}, session_id?: string | null) =>
+    post<{ run_id: string }>("/agent/predict", { scenario_config, session_id }),
   peakStrategy: (scenario_config = {}) =>
     post<{ run_id: string }>("/agent/peak-strategy", { scenario_config }),
   compareBaseline: () => post<{ run_id: string }>("/agent/compare-baseline-optimized"),

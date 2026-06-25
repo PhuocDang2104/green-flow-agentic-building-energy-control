@@ -13,6 +13,26 @@ const TABS = [
   { id: "proposed", label: "Recommended" },
 ] as const;
 const PAGE_SIZE = 8;
+// mirrors backend action_approval_ttl_minutes — a pending action auto-expires
+const APPROVAL_TTL_MS = 5 * 60 * 1000;
+
+/** "expires in m:ss" countdown until a pending approval auto-cancels. */
+function ExpiryCountdown({ requestedAt }: { requestedAt: string }) {
+  const [, force] = useState(0);
+  useEffect(() => {
+    const t = setInterval(() => force((n) => n + 1), 1000);
+    return () => clearInterval(t);
+  }, []);
+  const left = Math.max(0, new Date(requestedAt).getTime() + APPROVAL_TTL_MS - Date.now());
+  const m = Math.floor(left / 60000);
+  const s = Math.floor((left % 60000) / 1000);
+  const urgent = left < 60000;
+  return (
+    <span className={`text-[11px] font-medium ${urgent ? "text-danger" : "text-text-muted"}`}>
+      {left === 0 ? "expiring…" : `auto-cancels in ${m}:${s.toString().padStart(2, "0")}`}
+    </span>
+  );
+}
 
 export default function ActionQueue({
   actions, approvals, onApprove, onReject, busyId,
@@ -91,7 +111,7 @@ export default function ActionQueue({
                 </p>
               )}
               {a.status === "pending_approval" && approval && (
-                <div className="mt-3 flex gap-2">
+                <div className="mt-3 flex items-center gap-2">
                   <button
                     className="btn-primary !px-3 !py-1.5 text-xs"
                     disabled={busyId === approval.approval_id}
@@ -106,6 +126,9 @@ export default function ActionQueue({
                   >
                     Reject
                   </button>
+                  <span className="ml-auto">
+                    <ExpiryCountdown requestedAt={approval.requested_at} />
+                  </span>
                 </div>
               )}
             </div>

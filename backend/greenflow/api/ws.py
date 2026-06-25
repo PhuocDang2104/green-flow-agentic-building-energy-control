@@ -82,6 +82,32 @@ async def replay_ticker() -> None:
         await asyncio.sleep(interval)
 
 
+async def monitor_ticker() -> None:
+    """Periodic agent monitor: once per virtual hour (throttled to ≥45s real, and
+    only while streaming so the twin clock is moving), scan for faults and post a
+    digest into the '🛰 Agent monitor' chat session."""
+    import time
+    from ..replayclock import anchor, stream_status
+    from ..agent.reporting import run_monitor_cycle
+    building_id = get_settings().default_building_id
+    last_hour = None
+    last_post = 0.0
+    while True:
+        try:
+            st = await asyncio.to_thread(stream_status)
+            if st.get("streaming"):
+                now = await asyncio.to_thread(anchor, None, building_id)
+                hour = now.replace(minute=0, second=0, microsecond=0)
+                if hour != last_hour and (time.monotonic() - last_post) > 45:
+                    last_hour = hour
+                    posted = await asyncio.to_thread(run_monitor_cycle, building_id)
+                    if posted:
+                        last_post = time.monotonic()
+        except Exception:
+            pass  # the monitor must survive DB hiccups
+        await asyncio.sleep(5)
+
+
 async def broadcast_agent_event(building_id: str, event: dict) -> None:
     await manager.broadcast(f"building:{building_id}",
                             {"type": "agent_event", **event})

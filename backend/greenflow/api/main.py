@@ -13,14 +13,16 @@ from ..config import get_settings
 from .routers import (actions, agent, alerts, buildings, chat, climate, electrical,
                       entities, forecast, media, replay, reports, simulations, states,
                       viewer)
-from .ws import manager, replay_ticker
+from .ws import manager, monitor_ticker, replay_ticker
 
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
     ticker = asyncio.create_task(replay_ticker())
+    monitor = asyncio.create_task(monitor_ticker())
     yield
     ticker.cancel()
+    monitor.cancel()
 
 
 settings = get_settings()

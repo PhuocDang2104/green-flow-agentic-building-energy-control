@@ -46,6 +46,9 @@ def execute_run(run_id: str, building_id: str, entrypoint: str, *,
         final = get_graph().invoke(state)
         status = "awaiting_approval" if final.get("approval_required") else "completed"
         _finish_run(run_id, status, final)
+        if session_id:  # real chat session → narrate the run there
+            from .reporting import post_run_report
+            post_run_report(building_id, session_id, final)
         return final
     except Exception as exc:
         _finish_run(run_id, "failed", {"final_answer": f"Run failed: {exc}"})
