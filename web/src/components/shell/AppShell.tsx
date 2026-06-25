@@ -16,7 +16,7 @@ export default function AppShell({ children }: { children: ReactNode }) {
       <SideBar />
 
       {/* content column */}
-      <div className="flex min-w-0 flex-1 flex-col">
+      <div className="flex min-w-0 flex-1 flex-col lg:pl-[248px]">
         <TopBar />
         <main className="mx-auto w-full max-w-[1400px] flex-1 px-5 pb-24 lg:pb-8">
           {children}

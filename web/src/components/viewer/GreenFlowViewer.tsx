@@ -36,6 +36,15 @@ const ALERT_COLOR: Record<AlertSeverity, [number, number, number]> = {
 };
 const ALERT_RANK: Record<AlertSeverity, number> = { info: 0, warning: 1, critical: 2 };
 
+const LAYER_RENDER_ORDER: Record<string, number> = {
+  architecture: 0,
+  structural: 8,
+  fenestration: 12,
+  spaces: 18,
+  electrical: 90,
+  hvac: 100,
+};
+
 export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightClass?: string }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -106,8 +115,10 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
               metaModelSrc: asset.metadata_src,
               saoEnabled: false,
               edges: true,
+              renderOrder: LAYER_RENDER_ORDER[asset.layer] ?? 0,
             } as any);
             (model as any).visible = asset.default_visible;
+            (model as any).renderOrder = LAYER_RENDER_ORDER[asset.layer] ?? 0;
             // Only spaces are pickable so clicks fall through the shell to the
             // zone behind; other layers are visual context.
             (model as any).pickable = asset.pickable === true;
@@ -221,24 +232,41 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     const viewer = viewerRef.current;
     if (!viewer || !ready) return;
     for (const [layer, model] of Object.entries(modelsRef.current)) {
-      if (model) model.visible = layers[layer] !== false;
+      if (model) {
+        model.visible = layers[layer] !== false;
+        model.renderOrder = LAYER_RENDER_ORDER[layer] ?? 0;
+      }
     }
     // Electrical & HVAC must always read FULLY even when stacked under other
-    // layers: when either MEP layer (or a zone heatmap) is on, x-ray the opaque
-    // shell (architecture / structural / windows) so the MEP shows through; the
-    // MEP layers themselves stay fully opaque (never x-rayed).
+    // layers: when either MEP layer is on, x-ray the opaque shell and spaces so
+    // MEP stays visually above architecture / zones. MEP itself is never x-rayed.
     const mep = !!(layers.hvac || layers.electrical);
     const xrayShell = mep || activeMetric !== "none";
     for (const shell of ["architecture", "structural", "fenestration"]) {
       const m = modelsRef.current[shell];
       if (m) m.xrayed = xrayShell;
     }
+    const spaces = modelsRef.current.spaces;
+    if (spaces) spaces.xrayed = mep;
     for (const mepLayer of ["electrical", "hvac"]) {
       const m = modelsRef.current[mepLayer];
-      if (m) m.xrayed = false;
+      if (m) {
+        m.xrayed = false;
+        m.opacity = 1;
+        m.renderOrder = LAYER_RENDER_ORDER[mepLayer];
+      }
     }
-    viewer.scene.xrayMaterial.fillAlpha = 0.05;
-    viewer.scene.xrayMaterial.edgeAlpha = 0.2;
+    viewer.scene.xrayMaterial.fillAlpha = mep ? 0.035 : 0.05;
+    viewer.scene.xrayMaterial.edgeAlpha = mep ? 0.08 : 0.2;
+
+    for (const [id, entry] of Object.entries(objectMapRef.current)) {
+      if (entry.layer !== "electrical" && entry.layer !== "hvac") continue;
+      const entity = viewer.scene.objects[id];
+      if (!entity) continue;
+      entity.visible = layers[entry.layer] !== false;
+      entity.xrayed = false;
+      entity.opacity = 1;
+    }
   }, [layers, ready, activeMetric]);
 
   // --- heatmap overlay from live zone state --------------------------------

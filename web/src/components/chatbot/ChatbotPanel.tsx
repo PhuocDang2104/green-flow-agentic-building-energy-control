@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, History, Loader2, MessageCircle, Plus, Send, Sparkles, X } from "lucide-react";
+import { BookOpen, History, Loader2, Plus, Send, Sparkles, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { SUGGESTED_PROMPTS } from "@/lib/constants";
 import { useAppStore } from "@/stores/appStore";
@@ -11,6 +11,20 @@ import Markdown from "./Markdown";
 import ThinkingIndicator from "./ThinkingIndicator";
 
 const SESSION_STORAGE_KEY = "greenflow_chat_session_id";
+const BOT_STATES = [
+  {
+    src: "/assets/landing/chatbot/bot_building.png",
+    speech: "Can xem toa nha nao?",
+  },
+  {
+    src: "/assets/landing/chatbot/bot_hi.png",
+    speech: "Hi, minh la GreenFlow!",
+  },
+  {
+    src: "/assets/landing/chatbot/bot_love.png",
+    speech: "Toi uu nang luong nao!",
+  },
+];
 
 interface Message {
   role: "user" | "assistant";
@@ -39,11 +53,21 @@ export default function ChatbotPanel() {
   const [sessionId, setSessionId] = useState<string | null>(null);
   const [showHistory, setShowHistory] = useState(false);
   const [sessions, setSessions] = useState<ChatSessionSummary[]>([]);
+  const [botIndex, setBotIndex] = useState(0);
+  const [botHover, setBotHover] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, busy]);
+
+  useEffect(() => {
+    if (open) return;
+    const timer = window.setInterval(() => {
+      setBotIndex((value) => (value + 1) % BOT_STATES.length);
+    }, 3200);
+    return () => window.clearInterval(timer);
+  }, [open]);
 
   // On first open, resume the last conversation from localStorage so a page
   // reload / revisit doesn't lose history.
@@ -118,12 +142,27 @@ export default function ChatbotPanel() {
   };
 
   if (!open) {
+    const bot = BOT_STATES[botIndex];
     return (
       <button
         onClick={() => setOpen(true)}
-        className="fixed bottom-5 right-5 z-50 flex items-center gap-2 rounded-full bg-teal px-4 py-3 text-sm font-medium text-white shadow-floating transition hover:bg-teal/90"
+        onMouseEnter={() => setBotHover(true)}
+        onMouseLeave={() => setBotHover(false)}
+        className="fixed bottom-4 right-4 z-50 h-24 w-24 bg-transparent p-0 transition hover:-translate-y-1 focus:outline-none"
+        aria-label="Open GreenFlow chat"
       >
-        <MessageCircle size={17} /> Ask GreenFlow
+        {botHover && (
+          <span className="absolute bottom-[76px] right-16 w-max max-w-[190px] rounded-2xl bg-white px-3 py-2 text-xs font-medium text-text-primary shadow-floating">
+            {bot.speech}
+            <span className="absolute -bottom-1 right-4 h-3 w-3 rotate-45 bg-white" />
+          </span>
+        )}
+        <img
+          src={bot.src}
+          alt=""
+          className="h-full w-full object-contain drop-shadow-[0_18px_30px_rgba(15,23,42,0.22)]"
+          draggable={false}
+        />
       </button>
     );
   }
