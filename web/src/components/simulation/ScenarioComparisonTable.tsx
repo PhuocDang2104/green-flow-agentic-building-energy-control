@@ -7,7 +7,7 @@ import type { SimulationRun } from "@/lib/types";
 
 export default function ScenarioComparisonTable({ runs }: { runs: SimulationRun[] }) {
   return (
-    <div className="card overflow-hidden">
+    <div className="card-elevated overflow-hidden">
       <div className="border-b border-border px-5 py-3">
         <h3 className="text-sm font-semibold">Simulation runs</h3>
       </div>

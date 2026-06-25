@@ -7,7 +7,7 @@ import StatusPill from "@/components/shared/StatusPill";
 
 export default function ActionTraceTimeline({ actions }: { actions: any[] }) {
   return (
-    <div className="card px-5 py-4">
+    <div className="card-elevated px-5 py-4">
       <h3 className="text-sm font-semibold">Action trace (optimized run)</h3>
       {actions.length === 0 ? (
         <EmptyState title="No actions in the latest optimized run" />

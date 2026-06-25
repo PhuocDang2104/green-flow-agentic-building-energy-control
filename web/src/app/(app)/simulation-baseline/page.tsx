@@ -1,9 +1,9 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
-import { FlaskConical, GitCompareArrows, Loader2 } from "lucide-react";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { ChevronRight, FlaskConical, GitCompareArrows, Loader2 } from "lucide-react";
+import { animate, motion, useReducedMotion } from "motion/react";
 import PageHeader from "@/components/shell/PageHeader";
-import KpiCard from "@/components/dashboard/KpiCard";
 import BaselineOptimizedChart from "@/components/simulation/BaselineOptimizedChart";
 import ScenarioComparisonTable from "@/components/simulation/ScenarioComparisonTable";
 import ActionTraceTimeline from "@/components/simulation/ActionTraceTimeline";
@@ -12,6 +12,66 @@ import { useAgentRun } from "@/hooks/useAgentRun";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
 import type { ComparisonKpi, SimulationRun } from "@/lib/types";
+
+const TONE: Record<string, string> = {
+  success: "#16A34A", teal: "#0F766E", info: "#2563EB", warning: "#F59E0B",
+};
+
+/** Animate a number from its previous value to the target (premium count-up). */
+function useCountUp(target: number, reduce: boolean): number {
+  const [d, setD] = useState(target);
+  const prev = useRef(0);
+  useEffect(() => {
+    if (reduce) { setD(target); prev.current = target; return; }
+    const controls = animate(prev.current, target, {
+      duration: 0.9, ease: [0.16, 1, 0.3, 1], onUpdate: (v) => setD(v),
+    });
+    prev.current = target;
+    return () => controls.stop();
+  }, [target, reduce]);
+  return d;
+}
+
+/** One elevated savings tile with a count-up headline number. */
+function SavingsStat({ label, value, format, delta, tone = "teal", index }: {
+  label: string; value: number | null | undefined;
+  format: (v: number) => string; delta?: string;
+  tone?: keyof typeof TONE; index: number;
+}) {
+  const reduce = useReducedMotion();
+  const display = useCountUp(value ?? 0, !!reduce);
+  return (
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 14 }}
+      animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 260, damping: 26, delay: index * 0.06 }}
+      className="card-elevated flex flex-col gap-1 px-5 py-4"
+    >
+      <span className="text-[12.5px] font-medium text-text-secondary">{label}</span>
+      <span className="text-[27px] font-semibold leading-tight tracking-tight tabular-nums"
+            style={{ color: value == null ? undefined : TONE[tone] }}>
+        {value == null ? "·" : format(display)}
+      </span>
+      {delta && <span className="text-[11.5px] text-text-muted">{delta}</span>}
+    </motion.div>
+  );
+}
+
+/** Heavy fade-up as a section enters the viewport. */
+function Reveal({ children, className }: { children: React.ReactNode; className?: string }) {
+  const reduce = useReducedMotion();
+  return (
+    <motion.div
+      initial={reduce ? false : { opacity: 0, y: 18 }}
+      whileInView={{ opacity: 1, y: 0 }}
+      viewport={{ once: true, amount: 0.15 }}
+      transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+      className={className}
+    >
+      {children}
+    </motion.div>
+  );
+}
 
 export default function SimulationBaselinePage() {
   const { run, running, start } = useAgentRun();
@@ -47,45 +107,43 @@ export default function SimulationBaselinePage() {
     <div className="pb-4">
       <PageHeader
         title="Control & Simulation"
-        subtitle="Counterfactual proof: same weather and occupancy, only agent actions differ."
+        subtitle="Counterfactual proof: same weather and occupancy, only the agent's actions differ."
         actions={
           <>
-            <button className="btn-secondary" disabled={running}
-                    onClick={() => start(() => api.compareBaseline())}>
-              <GitCompareArrows size={15} /> Compare Baseline
-            </button>
-            <button className="btn-primary" disabled={running}
-                    onClick={() => start(() => api.simulateRecommended())}>
+            <motion.button whileTap={{ scale: 0.96 }} className="btn-secondary" disabled={running}
+                           onClick={() => start(() => api.compareBaseline())}>
+              <GitCompareArrows size={15} /> Compare baseline
+            </motion.button>
+            <motion.button whileTap={{ scale: 0.96 }} className="btn-primary" disabled={running}
+                           onClick={() => start(() => api.simulateRecommended())}>
               {running ? <Loader2 size={15} className="animate-spin" /> : <FlaskConical size={15} />}
-              Simulate Peak-Hour Strategy
-            </button>
+              Simulate peak-hour strategy
+            </motion.button>
           </>
         }
       />
 
+      {/* savings headline: elevated tiles with count-up numbers */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
-        <KpiCard title="Energy Saved"
-                 value={kpi ? `${kpi.saving_kwh} kWh` : "–"}
-                 delta={kpi ? `-${kpi.saving_percent}% vs baseline` : undefined}
-                 status="success" />
-        <KpiCard title="Cost Saved" value={kpi ? fmtVnd(kpi.cost_saving_vnd) : "–"}
-                 delta="per simulated day" status="success" />
-        <KpiCard title="Peak Reduction"
-                 value={kpi ? `${kpi.peak_reduction_kw} kW` : "–"}
-                 delta="13:00–16:00 window" status="success" />
-        <KpiCard title="Comfort Impact"
-                 value={kpi ? `${kpi.comfort_violation_delta_min >= 0 ? "+" : ""}${kpi.comfort_violation_delta_min} min` : "–"}
-                 delta="violation delta"
-                 status={kpi && kpi.comfort_violation_delta_min > 0 ? "warning" : "success"} />
-        <KpiCard title="CO₂ Avoided"
-                 value={kpi ? `${kpi.co2_avoided_kg} kg` : "–"}
-                 delta="grid factor 0.6766 kg/kWh" status="info" />
+        <SavingsStat index={0} label="Energy saved" value={kpi?.saving_kwh}
+                     format={(v) => `${Math.round(v)} kWh`}
+                     delta={kpi ? `-${kpi.saving_percent}% vs baseline` : undefined} tone="success" />
+        <SavingsStat index={1} label="Cost saved" value={kpi?.cost_saving_vnd}
+                     format={(v) => fmtVnd(Math.round(v))} delta="per simulated day" tone="success" />
+        <SavingsStat index={2} label="Peak reduction" value={kpi?.peak_reduction_kw}
+                     format={(v) => `${v.toFixed(1)} kW`} delta="13:00-16:00 window" tone="teal" />
+        <SavingsStat index={3} label="Comfort impact" value={kpi?.comfort_violation_delta_min}
+                     format={(v) => `${v >= 0 ? "+" : ""}${Math.round(v)} min`} delta="violation delta"
+                     tone={kpi && kpi.comfort_violation_delta_min > 0 ? "warning" : "success"} />
+        <SavingsStat index={4} label="CO₂ avoided" value={kpi?.co2_avoided_kg}
+                     format={(v) => `${Math.round(v)} kg`} delta="grid factor 0.6766 kg/kWh" tone="info" />
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_380px]">
+      {/* proof: 24h profile + how it's simulated */}
+      <Reveal className="mt-4 grid gap-4 xl:grid-cols-[1fr_380px]">
         <BaselineOptimizedChart refreshKey={refreshKey} />
-        <div className="card px-5 py-4">
-          <h3 className="text-sm font-semibold">Simulation summary</h3>
+        <div className="card-elevated px-5 py-4">
+          <h3 className="text-sm font-semibold tracking-tight">How this is simulated</h3>
           <ul className="mt-3 space-y-2 text-[13px] text-text-secondary">
             <li>Engine: <b className="text-text-primary">
               {runs[0]?.engine === "energyplus" ? "EnergyPlus batch" : "Synthetic schedule engine"}</b>
@@ -95,23 +153,30 @@ export default function SimulationBaselinePage() {
             <li>Weather: Hanoi design-day diurnal profile</li>
             <li>Schedules: parsed from greenflow_archetype.idf</li>
             <li>Baseline: fixed schedules, no AI action</li>
-            <li>Optimized: identical inputs + agent action schedule overrides</li>
+            <li>Optimized: identical inputs plus the agent's action overrides</li>
           </ul>
-          <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs text-amber-700">
-            This is a what-if counterfactual simulation, not direct real-time
-            control of the building.
+          <p className="mt-4 rounded-xl bg-amber-50 px-3 py-2 text-xs leading-relaxed text-amber-700">
+            A what-if counterfactual simulation, not direct real-time control of the building.
           </p>
         </div>
-      </div>
+      </Reveal>
 
-      <div className="mt-4 grid gap-4 lg:grid-cols-[1fr_420px]">
+      {/* scenarios + the action trace that produced them */}
+      <Reveal className="mt-4 grid gap-4 lg:grid-cols-[1fr_420px]">
         <ScenarioComparisonTable runs={runs} />
         <ActionTraceTimeline actions={actions} />
-      </div>
+      </Reveal>
 
-      <div className="mt-4">
-        <ValidationPanel />
-      </div>
+      {/* validation tucked away so the proof stays the focus */}
+      <details className="group mt-4">
+        <summary className="flex w-fit cursor-pointer list-none items-center gap-2 rounded-lg px-3 py-2 text-[13px] font-medium text-text-secondary transition hover:bg-surface-muted">
+          <ChevronRight size={14} className="text-text-muted transition group-open:rotate-90" />
+          Validation &amp; methodology
+        </summary>
+        <div className="mt-3">
+          <ValidationPanel />
+        </div>
+      </details>
     </div>
   );
 }

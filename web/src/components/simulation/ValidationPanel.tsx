@@ -35,7 +35,7 @@ export default function ValidationPanel() {
   const status = data ? VERDICT_STATUS[data.verdict] ?? "info" : "info";
 
   return (
-    <div className="card px-5 py-4">
+    <div className="card-elevated px-5 py-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <div>
           <h3 className="text-sm font-semibold">Model validation</h3>

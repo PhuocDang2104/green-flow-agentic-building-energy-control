@@ -37,7 +37,7 @@ export default function BaselineOptimizedChart({ refreshKey }: { refreshKey?: nu
   }, [metric, refreshKey]);
 
   return (
-    <div className="card px-5 py-4">
+    <div className="card-elevated px-5 py-4">
       <div className="flex flex-wrap items-center justify-between gap-2">
         <h3 className="text-sm font-semibold">Baseline vs optimized</h3>
         <div className="flex gap-1">
