@@ -64,10 +64,10 @@ export default function ActionQueue({
   }, [tab]);
 
   return (
-    <div className="card flex h-full flex-col">
+    <div className="card-elevated flex h-full flex-col">
       <div className="border-b border-border px-5 py-3">
         <div className="flex items-center justify-between gap-2">
-          <h3 className="text-sm font-semibold">Action queue</h3>
+          <h3 className="text-sm font-semibold tracking-tight">Action queue</h3>
           <span className="text-xs text-text-muted">{filtered.length} {tab}</span>
         </div>
         <div className="mt-2 flex gap-1">
@@ -98,7 +98,7 @@ export default function ActionQueue({
               animate={{ opacity: 1, y: 0, scale: 1 }}
               exit={reduce ? { opacity: 0 } : { opacity: 0, x: 16, scale: 0.96 }}
               transition={{ type: "spring", stiffness: 320, damping: 28 }}
-              className="rounded-2xl border border-border/80 p-4"
+              className="rounded-2xl border border-border/55 bg-surface p-4 transition-shadow duration-300 hover:shadow-[0_10px_28px_-18px_rgba(15,23,42,0.28)]"
             >
               <div className="flex items-start justify-between gap-2">
                 <p className="text-[14px] font-semibold">{titleCase(a.action_type)}</p>

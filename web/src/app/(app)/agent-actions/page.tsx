@@ -133,18 +133,18 @@ export default function AgentActionsPage() {
       />
 
       {/* glance status: plain inline, grouped by space (no cards, no dot spam) */}
-      <div className="mb-3 flex flex-wrap items-center gap-x-7 gap-y-1.5 text-[12.5px]">
+      <div className="mb-4 flex flex-wrap items-center gap-x-8 gap-y-1.5 text-[12.5px]">
         <Stat icon={Bot} label="Agent" value={running ? "running" : "idle"} alert={running} live={running} />
         <Stat icon={ClipboardCheck} label="Awaiting approval" value={pending} alert={pending > 0} />
         <Stat icon={AlertTriangle} label="Open faults" value={faults} alert={faults > 0} />
       </div>
 
       {/* three purposeful zones: sessions, conversation, actions */}
-      <div className="grid gap-3 lg:grid-cols-[208px_1fr_384px]">
+      <div className="grid gap-4 lg:grid-cols-[208px_1fr_384px]">
         {/* sessions */}
-        <aside className="card flex h-[200px] flex-col p-0 lg:h-[640px]">
-          <div className="flex items-center justify-between border-b border-border px-3 py-2.5">
-            <span className="text-[13px] font-semibold">Sessions</span>
+        <aside className="card-elevated flex h-[200px] flex-col p-0 lg:h-[640px]">
+          <div className="flex items-center justify-between border-b border-border/70 px-3.5 py-3">
+            <span className="text-[13px] font-semibold tracking-tight">Sessions</span>
             <button onClick={() => setSessionId(null)} title="New session"
                     className="flex items-center gap-1 rounded-lg px-2 py-1 text-[12px] font-medium text-teal hover:bg-teal-soft">
               <Plus size={14} /> New
@@ -176,13 +176,13 @@ export default function AgentActionsPage() {
         </aside>
 
         {/* conversation (hero) */}
-        <section className="card flex h-[560px] flex-col p-0 lg:h-[640px]">
-          <div className="flex items-center gap-2.5 border-b border-border px-4 py-3">
-            <span className="grid h-8 w-8 place-items-center rounded-full bg-teal text-white">
+        <section className="card-elevated flex h-[560px] flex-col p-0 lg:h-[640px]">
+          <div className="flex items-center gap-2.5 border-b border-border/70 px-4 py-3.5">
+            <span className="grid h-8 w-8 place-items-center rounded-full bg-teal text-white shadow-[0_4px_12px_-4px_rgba(13,148,136,0.5)]">
               <Bot size={16} />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-[13.5px] font-semibold">
+              <p className="truncate text-[13.5px] font-semibold tracking-tight">
                 {activeSession?.first_message || "Building agent"}
               </p>
               <p className="text-[11px] text-text-muted">
