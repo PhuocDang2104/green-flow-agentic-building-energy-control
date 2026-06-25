@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import {
   AlertTriangle, Bot, ClipboardCheck, Loader2, Play, Plus, Trash2, TrendingUp,
 } from "lucide-react";
+import { motion, useReducedMotion } from "motion/react";
 import PageHeader from "@/components/shell/PageHeader";
 import AgentRunTimeline from "@/components/agent/AgentRunTimeline";
 import ActionQueue from "@/components/agent/ActionQueue";
@@ -16,15 +17,33 @@ import { useAgentRun } from "@/hooks/useAgentRun";
 import { api } from "@/lib/api";
 import type { ActionItem, Approval, ChatSessionSummary } from "@/lib/types";
 
-/** One glanceable stat for the status line (plain inline, no card). */
-function Stat({ icon: Icon, label, value, alert }: {
-  icon: typeof Bot; label: string; value: string | number; alert?: boolean;
+/** One glanceable stat for the status line (plain inline, no card). The value
+ *  springs in when it changes; `live` adds a pulsing dot for real running state. */
+function Stat({ icon: Icon, label, value, alert, live }: {
+  icon: typeof Bot; label: string; value: string | number; alert?: boolean; live?: boolean;
 }) {
+  const reduce = useReducedMotion();
   return (
     <span className="flex items-center gap-1.5">
       <Icon size={14} className={alert ? "text-warning" : "text-text-muted"} />
       <span className="text-text-muted">{label}</span>
-      <span className={`font-semibold ${alert ? "text-warning" : "text-text-primary"}`}>{value}</span>
+      <motion.span
+        key={String(value)}
+        initial={reduce ? false : { y: -5, opacity: 0 }}
+        animate={{ y: 0, opacity: 1 }}
+        transition={{ type: "spring", stiffness: 500, damping: 30 }}
+        className={`font-semibold tabular-nums ${alert ? "text-warning" : "text-text-primary"}`}
+      >
+        {value}
+      </motion.span>
+      {live && !reduce && (
+        <motion.span
+          aria-hidden
+          className="h-1.5 w-1.5 rounded-full bg-teal"
+          animate={{ opacity: [1, 0.3, 1], scale: [1, 0.8, 1] }}
+          transition={{ duration: 1.4, repeat: Infinity, ease: "easeInOut" }}
+        />
+      )}
     </span>
   );
 }
@@ -115,7 +134,7 @@ export default function AgentActionsPage() {
 
       {/* glance status: plain inline, grouped by space (no cards, no dot spam) */}
       <div className="mb-3 flex flex-wrap items-center gap-x-7 gap-y-1.5 text-[12.5px]">
-        <Stat icon={Bot} label="Agent" value={running ? "running" : "idle"} alert={running} />
+        <Stat icon={Bot} label="Agent" value={running ? "running" : "idle"} alert={running} live={running} />
         <Stat icon={ClipboardCheck} label="Awaiting approval" value={pending} alert={pending > 0} />
         <Stat icon={AlertTriangle} label="Open faults" value={faults} alert={faults > 0} />
       </div>

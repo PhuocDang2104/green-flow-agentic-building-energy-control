@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
+import { AnimatePresence, motion, useReducedMotion } from "motion/react";
 import { fmtKwh, titleCase } from "@/lib/format";
 import StatusPill from "@/components/shared/StatusPill";
 import EmptyState from "@/components/shared/EmptyState";
@@ -45,6 +46,7 @@ export default function ActionQueue({
 }) {
   const [tab, setTab] = useState<(typeof TABS)[number]["id"]>("pending");
   const [visible, setVisible] = useState(PAGE_SIZE);
+  const reduce = useReducedMotion();
 
   const filtered = actions.filter((a) =>
     tab === "pending" ? a.status === "pending_approval"
@@ -85,10 +87,19 @@ export default function ActionQueue({
         {filtered.length === 0 && (
           <EmptyState title={`No ${tab.replaceAll("_", " ")} actions`} />
         )}
+        <AnimatePresence initial={false} mode="popLayout">
         {visibleActions.map((a) => {
           const approval = approvalByAction[a.id];
           return (
-            <div key={a.id} className="rounded-2xl border border-border/80 p-4">
+            <motion.div
+              key={a.id}
+              layout={!reduce}
+              initial={reduce ? false : { opacity: 0, y: 10, scale: 0.98 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              exit={reduce ? { opacity: 0 } : { opacity: 0, x: 16, scale: 0.96 }}
+              transition={{ type: "spring", stiffness: 320, damping: 28 }}
+              className="rounded-2xl border border-border/80 p-4"
+            >
               <div className="flex items-start justify-between gap-2">
                 <p className="text-[14px] font-semibold">{titleCase(a.action_type)}</p>
                 <StatusPill status={a.policy_decision || a.status} />
@@ -112,28 +123,31 @@ export default function ActionQueue({
               )}
               {a.status === "pending_approval" && approval && (
                 <div className="mt-3 flex items-center gap-2">
-                  <button
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     className="btn-primary !px-3 !py-1.5 text-xs"
                     disabled={busyId === approval.approval_id}
                     onClick={() => onApprove(approval.approval_id)}
                   >
                     Approve
-                  </button>
-                  <button
+                  </motion.button>
+                  <motion.button
+                    whileTap={{ scale: 0.95 }}
                     className="btn-danger !px-3 !py-1.5 text-xs"
                     disabled={busyId === approval.approval_id}
                     onClick={() => onReject(approval.approval_id)}
                   >
                     Reject
-                  </button>
+                  </motion.button>
                   <span className="ml-auto">
                     <ExpiryCountdown requestedAt={approval.requested_at} />
                   </span>
                 </div>
               )}
-            </div>
+            </motion.div>
           );
         })}
+        </AnimatePresence>
         {filtered.length > 0 && (
           <div className="flex items-center justify-between gap-3 pt-1 text-xs text-text-muted">
             <span>Showing {shownCount} of {filtered.length}</span>

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { motion, useReducedMotion } from "motion/react";
 import { BookOpen, Loader2, Mic, Send, Square, Volume2, VolumeX } from "lucide-react";
 import { api } from "@/lib/api";
 import { SUGGESTED_PROMPTS } from "@/lib/constants";
@@ -52,6 +53,7 @@ export default function ChatThread({
   const [speakOn, setSpeakOn] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const loadedRef = useRef<string | null>(null);
+  const reduce = useReducedMotion();
   const recRef = useRef<MediaRecorder | null>(null);
   const chunksRef = useRef<Blob[]>([]);
   const speakOnRef = useRef(false);
@@ -181,7 +183,13 @@ export default function ChatThread({
           </div>
         )}
         {messages.map((m, i) => (
-          <div key={i} className={m.role === "user" ? "flex justify-end" : "flex justify-start"}>
+          <motion.div
+            key={i}
+            initial={reduce ? false : { opacity: 0, y: 8, scale: 0.99 }}
+            animate={{ opacity: 1, y: 0, scale: 1 }}
+            transition={{ type: "spring", stiffness: 360, damping: 28 }}
+            className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
+          >
             <div
               className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed
               ${m.role === "user" ? "bg-teal text-white" : "bg-surface-muted text-text-primary"}`}
@@ -225,7 +233,7 @@ export default function ChatThread({
                 </div>
               )}
             </div>
-          </div>
+          </motion.div>
         ))}
         {busy && (
           <div className="flex justify-start">
