@@ -1,0 +1,11 @@
+{
+  "scenario_id": "el_nino_heat_stress",
+  "location": "Hanoi",
+  "outdoor_temp_delta_c": 3.0,
+  "relative_humidity_delta_pct": 8.0,
+  "solar_multiplier": 1.15,
+  "wind_speed_ms": 1.8,
+  "wind_direction_deg": 135.0,
+  "cooling_stress_factor": 1.18,
+  "comfort_drift_c": 2.8
+}

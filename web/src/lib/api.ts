@@ -94,6 +94,10 @@ export const api = {
   reports: () => get<Report[]>("/reports"),
   scenarios: () => get<any[]>("/scenarios"),
 
+  // climate scenario (El Niño heat-stress what-if)
+  saveScenario: (payload: any) => post<any>("/scenarios/save", payload),
+  runIdfSimulation: (payload: any) => post<any>("/simulations/run-idf", payload),
+
   // electrical-distribution knowledge graph (file-backed; needs the pipeline run)
   elecOverview: () => get<any>("/electrical/overview"),
   elecScene: (loads = true, maxLights = 800) =>

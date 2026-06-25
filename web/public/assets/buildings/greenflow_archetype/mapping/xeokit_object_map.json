@@ -22,17 +22,6 @@
     "room_type": null
   },
   {
-    "xeokit_object_id": "architecture_level_03",
-    "entity_key": "architecture_level_03",
-    "entity_type": "Surface",
-    "zone_key": null,
-    "floor_key": "level_03",
-    "layer": "architecture",
-    "name": "Architecture \u00b7 Level_03",
-    "live": false,
-    "room_type": null
-  },
-  {
     "xeokit_object_id": "architecture_level_02",
     "entity_key": "architecture_level_02",
     "entity_type": "Surface",
@@ -40,6 +29,17 @@
     "floor_key": "level_02",
     "layer": "architecture",
     "name": "Architecture \u00b7 Level_02",
+    "live": false,
+    "room_type": null
+  },
+  {
+    "xeokit_object_id": "architecture_level_03",
+    "entity_key": "architecture_level_03",
+    "entity_type": "Surface",
+    "zone_key": null,
+    "floor_key": "level_03",
+    "layer": "architecture",
+    "name": "Architecture \u00b7 Level_03",
     "live": false,
     "room_type": null
   },
@@ -110,6 +110,17 @@
     "room_type": "hallway"
   },
   {
+    "xeokit_object_id": "zone_2jhaHNpo55guKudM9wZa7X",
+    "entity_key": "zone_2jhaHNpo55guKudM9wZa7X",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2jhaHNpo55guKudM9wZa7X",
+    "floor_key": "basement",
+    "layer": "spaces",
+    "name": "Break Room",
+    "live": false,
+    "room_type": "amenity"
+  },
+  {
     "xeokit_object_id": "zone_1VG1As2i9CNAES2YSNmuPp",
     "entity_key": "zone_1VG1As2i9CNAES2YSNmuPp",
     "entity_type": "ThermalZone",
@@ -132,28 +143,6 @@
     "room_type": "circulation"
   },
   {
-    "xeokit_object_id": "zone_2jhaHNpo55guKudM9wZa7X",
-    "entity_key": "zone_2jhaHNpo55guKudM9wZa7X",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2jhaHNpo55guKudM9wZa7X",
-    "floor_key": "basement",
-    "layer": "spaces",
-    "name": "Break Room",
-    "live": false,
-    "room_type": "amenity"
-  },
-  {
-    "xeokit_object_id": "zone_2Xe6rbtYzAqhfyXbKpPSqj",
-    "entity_key": "zone_2Xe6rbtYzAqhfyXbKpPSqj",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2Xe6rbtYzAqhfyXbKpPSqj",
-    "floor_key": "basement",
-    "layer": "spaces",
-    "name": "Staircase",
-    "live": false,
-    "room_type": "circulation"
-  },
-  {
     "xeokit_object_id": "zone_3jzuKaCoj7duM8YUpx6KXa",
     "entity_key": "zone_3jzuKaCoj7duM8YUpx6KXa",
     "entity_type": "ThermalZone",
@@ -165,11 +154,11 @@
     "room_type": "circulation"
   },
   {
-    "xeokit_object_id": "zone_1CEwDhGXz6rf1qZbuMomS3",
-    "entity_key": "zone_1CEwDhGXz6rf1qZbuMomS3",
+    "xeokit_object_id": "zone_2Xe6rbtYzAqhfyXbKpPSqj",
+    "entity_key": "zone_2Xe6rbtYzAqhfyXbKpPSqj",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1CEwDhGXz6rf1qZbuMomS3",
-    "floor_key": "level_01",
+    "zone_key": "zone_2Xe6rbtYzAqhfyXbKpPSqj",
+    "floor_key": "basement",
     "layer": "spaces",
     "name": "Staircase",
     "live": false,
@@ -187,6 +176,17 @@
     "room_type": "hallway"
   },
   {
+    "xeokit_object_id": "zone_1CEwDhGXz6rf1qZbuMomS3",
+    "entity_key": "zone_1CEwDhGXz6rf1qZbuMomS3",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1CEwDhGXz6rf1qZbuMomS3",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Staircase",
+    "live": false,
+    "room_type": "circulation"
+  },
+  {
     "xeokit_object_id": "zone_3eHc4RiQ5C9u5ExHSqeXsn",
     "entity_key": "zone_3eHc4RiQ5C9u5ExHSqeXsn",
     "entity_type": "ThermalZone",
@@ -196,6 +196,17 @@
     "name": "Staircase",
     "live": false,
     "room_type": "circulation"
+  },
+  {
+    "xeokit_object_id": "zone_1mvwF0Vfb88Ad0u_CxGh8v",
+    "entity_key": "zone_1mvwF0Vfb88Ad0u_CxGh8v",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1mvwF0Vfb88Ad0u_CxGh8v",
+    "floor_key": "basement",
+    "layer": "spaces",
+    "name": "Washing Room",
+    "live": false,
+    "room_type": "utility"
   },
   {
     "xeokit_object_id": "zone_2T7gRjEFvBgRaNLZHAfExM",
@@ -209,17 +220,6 @@
     "room_type": "circulation"
   },
   {
-    "xeokit_object_id": "zone_1mvwF0Vfb88Ad0u_CxGhB1",
-    "entity_key": "zone_1mvwF0Vfb88Ad0u_CxGhB1",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1mvwF0Vfb88Ad0u_CxGhB1",
-    "floor_key": "basement",
-    "layer": "spaces",
-    "name": "Washing Room",
-    "live": false,
-    "room_type": "utility"
-  },
-  {
     "xeokit_object_id": "zone_1mvwF0Vfb88Ad0u_CxGgL_",
     "entity_key": "zone_1mvwF0Vfb88Ad0u_CxGgL_",
     "entity_type": "ThermalZone",
@@ -231,10 +231,10 @@
     "room_type": "utility"
   },
   {
-    "xeokit_object_id": "zone_1mvwF0Vfb88Ad0u_CxGgLz",
-    "entity_key": "zone_1mvwF0Vfb88Ad0u_CxGgLz",
+    "xeokit_object_id": "zone_1mvwF0Vfb88Ad0u_CxGhB1",
+    "entity_key": "zone_1mvwF0Vfb88Ad0u_CxGhB1",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1mvwF0Vfb88Ad0u_CxGgLz",
+    "zone_key": "zone_1mvwF0Vfb88Ad0u_CxGhB1",
     "floor_key": "basement",
     "layer": "spaces",
     "name": "Washing Room",
@@ -253,15 +253,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_0qZtwNut1C6QT5uDplIc_N",
-    "entity_key": "zone_0qZtwNut1C6QT5uDplIc_N",
+    "xeokit_object_id": "zone_1mvwF0Vfb88Ad0u_CxGgLz",
+    "entity_key": "zone_1mvwF0Vfb88Ad0u_CxGgLz",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_0qZtwNut1C6QT5uDplIc_N",
+    "zone_key": "zone_1mvwF0Vfb88Ad0u_CxGgLz",
     "floor_key": "basement",
     "layer": "spaces",
-    "name": "Locker Room",
+    "name": "Washing Room",
     "live": false,
-    "room_type": "amenity"
+    "room_type": "utility"
   },
   {
     "xeokit_object_id": "zone_0qZtwNut1C6QT5uDplIctO",
@@ -271,17 +271,6 @@
     "floor_key": "basement",
     "layer": "spaces",
     "name": "Toilet",
-    "live": false,
-    "room_type": "utility"
-  },
-  {
-    "xeokit_object_id": "zone_1mvwF0Vfb88Ad0u_CxGh8v",
-    "entity_key": "zone_1mvwF0Vfb88Ad0u_CxGh8v",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1mvwF0Vfb88Ad0u_CxGh8v",
-    "floor_key": "basement",
-    "layer": "spaces",
-    "name": "Washing Room",
     "live": false,
     "room_type": "utility"
   },
@@ -308,15 +297,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
-    "entity_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+    "xeokit_object_id": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+    "entity_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+    "zone_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
     "floor_key": "level_01",
     "layer": "spaces",
-    "name": "Auditorium",
+    "name": "Kitchen",
     "live": true,
-    "room_type": "office"
+    "room_type": "amenity"
   },
   {
     "xeokit_object_id": "zone_3jCS7E4Nb3qBkgP0MIoqGs",
@@ -341,15 +330,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1d5Bmt5s12axuaGQA2o2sr",
-    "entity_key": "zone_1d5Bmt5s12axuaGQA2o2sr",
+    "xeokit_object_id": "zone_0qZtwNut1C6QT5uDplIc_N",
+    "entity_key": "zone_0qZtwNut1C6QT5uDplIc_N",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1d5Bmt5s12axuaGQA2o2sr",
+    "zone_key": "zone_0qZtwNut1C6QT5uDplIc_N",
     "floor_key": "basement",
     "layer": "spaces",
-    "name": "Corridor",
+    "name": "Locker Room",
     "live": false,
-    "room_type": "hallway"
+    "room_type": "amenity"
   },
   {
     "xeokit_object_id": "zone_3b3bVmE5P4tBwtV6k__eqi",
@@ -385,15 +374,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_2W9Cn8Smn0xwjpo8lUzELc",
-    "entity_key": "zone_2W9Cn8Smn0xwjpo8lUzELc",
+    "xeokit_object_id": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+    "entity_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_2W9Cn8Smn0xwjpo8lUzELc",
-    "floor_key": "basement",
+    "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lzg",
+    "floor_key": "level_01",
     "layer": "spaces",
-    "name": "Gym",
-    "live": false,
-    "room_type": "amenity"
+    "name": "Auditorium",
+    "live": true,
+    "room_type": "office"
   },
   {
     "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB4Ic",
@@ -407,26 +396,15 @@
     "room_type": "hallway"
   },
   {
-    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB8zE",
-    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+    "xeokit_object_id": "zone_1d5Bmt5s12axuaGQA2o2sr",
+    "entity_key": "zone_1d5Bmt5s12axuaGQA2o2sr",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
-    "floor_key": "level_01",
+    "zone_key": "zone_1d5Bmt5s12axuaGQA2o2sr",
+    "floor_key": "basement",
     "layer": "spaces",
-    "name": "Lobby",
-    "live": true,
-    "room_type": "lobby"
-  },
-  {
-    "xeokit_object_id": "zone_2EmhthfYTF_hx0gAAa2KtI",
-    "entity_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Business Space",
-    "live": true,
-    "room_type": "office"
+    "name": "Corridor",
+    "live": false,
+    "room_type": "hallway"
   },
   {
     "xeokit_object_id": "zone_3H2AkZFqzChQTN2UOTW_62",
@@ -440,17 +418,6 @@
     "room_type": "circulation"
   },
   {
-    "xeokit_object_id": "zone_2jhaHNpo55guKudM9wZa8A",
-    "entity_key": "zone_2jhaHNpo55guKudM9wZa8A",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2jhaHNpo55guKudM9wZa8A",
-    "floor_key": "basement",
-    "layer": "spaces",
-    "name": "Washing Room",
-    "live": false,
-    "room_type": "utility"
-  },
-  {
     "xeokit_object_id": "zone_3H2AkZFqzChQTN2UOTW_7V",
     "entity_key": "zone_3H2AkZFqzChQTN2UOTW_7V",
     "entity_type": "ThermalZone",
@@ -462,15 +429,26 @@
     "room_type": "circulation"
   },
   {
-    "xeokit_object_id": "zone_2jhaHNpo55guKudM9wZa8E",
-    "entity_key": "zone_2jhaHNpo55guKudM9wZa8E",
+    "xeokit_object_id": "zone_2EmhthfYTF_hx0gAAa2KtI",
+    "entity_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_2jhaHNpo55guKudM9wZa8E",
+    "zone_key": "zone_2EmhthfYTF_hx0gAAa2KtI",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Business Space",
+    "live": true,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_2jhaHNpo55guKudM9wZa8A",
+    "entity_key": "zone_2jhaHNpo55guKudM9wZa8A",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2jhaHNpo55guKudM9wZa8A",
     "floor_key": "basement",
     "layer": "spaces",
-    "name": "Bathroom / Accessible",
+    "name": "Washing Room",
     "live": false,
-    "room_type": "office"
+    "room_type": "utility"
   },
   {
     "xeokit_object_id": "zone_2jhaHNpo55guKudM9wZa88",
@@ -484,15 +462,26 @@
     "room_type": "utility"
   },
   {
-    "xeokit_object_id": "zone_2jhaHNpo55guKudM9wZa9q",
-    "entity_key": "zone_2jhaHNpo55guKudM9wZa9q",
+    "xeokit_object_id": "zone_2jhaHNpo55guKudM9wZa8E",
+    "entity_key": "zone_2jhaHNpo55guKudM9wZa8E",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_2jhaHNpo55guKudM9wZa9q",
+    "zone_key": "zone_2jhaHNpo55guKudM9wZa8E",
     "floor_key": "basement",
     "layer": "spaces",
-    "name": "Toilet",
+    "name": "Bathroom / Accessible",
     "live": false,
-    "room_type": "utility"
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_2W9Cn8Smn0xwjpo8lUzELc",
+    "entity_key": "zone_2W9Cn8Smn0xwjpo8lUzELc",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2W9Cn8Smn0xwjpo8lUzELc",
+    "floor_key": "basement",
+    "layer": "spaces",
+    "name": "Gym",
+    "live": false,
+    "room_type": "amenity"
   },
   {
     "xeokit_object_id": "zone_2T7gRjEFvBgRaNLZHAfEyt",
@@ -517,43 +506,43 @@
     "room_type": "amenity"
   },
   {
-    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB1VR",
-    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
+    "xeokit_object_id": "zone_2jhaHNpo55guKudM9wZa9q",
+    "entity_key": "zone_2jhaHNpo55guKudM9wZa9q",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
-    "floor_key": "level_02",
+    "zone_key": "zone_2jhaHNpo55guKudM9wZa9q",
+    "floor_key": "basement",
     "layer": "spaces",
-    "name": "Open Office",
-    "live": true,
-    "room_type": "open_office"
+    "name": "Toilet",
+    "live": false,
+    "room_type": "utility"
   },
   {
-    "xeokit_object_id": "zone_3jzuKaCoj7duM8YUpx6IdZ",
-    "entity_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB8zE",
+    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3jzuKaCoj7duM8YUpx6IdZ",
+    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB8zE",
     "floor_key": "level_01",
     "layer": "spaces",
-    "name": "Kitchen",
+    "name": "Lobby",
     "live": true,
-    "room_type": "amenity"
+    "room_type": "lobby"
+  },
+  {
+    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnUB3",
+    "entity_key": "zone_1xBFBS5N18MfdblikYnUB3",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1xBFBS5N18MfdblikYnUB3",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Staircase",
+    "live": false,
+    "room_type": "circulation"
   },
   {
     "xeokit_object_id": "zone_0SCHpckP52uejwTkqQpmjR",
     "entity_key": "zone_0SCHpckP52uejwTkqQpmjR",
     "entity_type": "ThermalZone",
     "zone_key": "zone_0SCHpckP52uejwTkqQpmjR",
-    "floor_key": "basement",
-    "layer": "spaces",
-    "name": "Elect",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_2T7gRjEFvBgRaNLZHAfEyu",
-    "entity_key": "zone_2T7gRjEFvBgRaNLZHAfEyu",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2T7gRjEFvBgRaNLZHAfEyu",
     "floor_key": "basement",
     "layer": "spaces",
     "name": "Elect",
@@ -572,15 +561,37 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnUB3",
-    "entity_key": "zone_1xBFBS5N18MfdblikYnUB3",
+    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnUBD",
+    "entity_key": "zone_1xBFBS5N18MfdblikYnUBD",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1xBFBS5N18MfdblikYnUB3",
+    "zone_key": "zone_1xBFBS5N18MfdblikYnUBD",
     "floor_key": "level_03",
     "layer": "spaces",
     "name": "Staircase",
-    "live": false,
+    "live": true,
     "room_type": "circulation"
+  },
+  {
+    "xeokit_object_id": "zone_2T7gRjEFvBgRaNLZHAfEyu",
+    "entity_key": "zone_2T7gRjEFvBgRaNLZHAfEyu",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2T7gRjEFvBgRaNLZHAfEyu",
+    "floor_key": "basement",
+    "layer": "spaces",
+    "name": "Elect",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
+    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Open Office",
+    "live": true,
+    "room_type": "open_office"
   },
   {
     "xeokit_object_id": "zone_1VG1As2i9CNAES2YSNmuWI",
@@ -594,21 +605,21 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB1VR",
+    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB1VR",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Open Office",
+    "live": true,
+    "room_type": "open_office"
+  },
+  {
     "xeokit_object_id": "zone_36Blhdds16DOgkiAVsPwfN",
     "entity_key": "zone_36Blhdds16DOgkiAVsPwfN",
     "entity_type": "ThermalZone",
     "zone_key": "zone_36Blhdds16DOgkiAVsPwfN",
-    "floor_key": "basement",
-    "layer": "spaces",
-    "name": "Store",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_0SCHpckP52uejwTkqQppMc",
-    "entity_key": "zone_0SCHpckP52uejwTkqQppMc",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0SCHpckP52uejwTkqQppMc",
     "floor_key": "basement",
     "layer": "spaces",
     "name": "Store",
@@ -624,6 +635,28 @@
     "layer": "spaces",
     "name": "Parking",
     "live": true,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_0SCHpckP52uejwTkqQppMc",
+    "entity_key": "zone_0SCHpckP52uejwTkqQppMc",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0SCHpckP52uejwTkqQppMc",
+    "floor_key": "basement",
+    "layer": "spaces",
+    "name": "Store",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3VjWRBBpP8T92ljLOxqe1U",
+    "entity_key": "zone_3VjWRBBpP8T92ljLOxqe1U",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3VjWRBBpP8T92ljLOxqe1U",
+    "floor_key": "basement",
+    "layer": "spaces",
+    "name": "Store",
+    "live": false,
     "room_type": "office"
   },
   {
@@ -649,28 +682,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1ct5EDQ3f00e2ZWyRvpNyV",
-    "entity_key": "zone_1ct5EDQ3f00e2ZWyRvpNyV",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ct5EDQ3f00e2ZWyRvpNyV",
-    "floor_key": "basement",
-    "layer": "spaces",
-    "name": "Store",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnUBD",
-    "entity_key": "zone_1xBFBS5N18MfdblikYnUBD",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1xBFBS5N18MfdblikYnUBD",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Staircase",
-    "live": true,
-    "room_type": "circulation"
-  },
-  {
     "xeokit_object_id": "zone_0SCHpckP52uejwTkqQppKQ",
     "entity_key": "zone_0SCHpckP52uejwTkqQppKQ",
     "entity_type": "ThermalZone",
@@ -682,10 +693,10 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3VjWRBBpP8T92ljLOxqe1U",
-    "entity_key": "zone_3VjWRBBpP8T92ljLOxqe1U",
+    "xeokit_object_id": "zone_1ct5EDQ3f00e2ZWyRvpNyV",
+    "entity_key": "zone_1ct5EDQ3f00e2ZWyRvpNyV",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3VjWRBBpP8T92ljLOxqe1U",
+    "zone_key": "zone_1ct5EDQ3f00e2ZWyRvpNyV",
     "floor_key": "basement",
     "layer": "spaces",
     "name": "Store",
@@ -704,15 +715,15 @@
     "room_type": "open_office"
   },
   {
-    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnHqn",
-    "entity_key": "zone_1xBFBS5N18MfdblikYnHqn",
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFD",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFD",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1xBFBS5N18MfdblikYnHqn",
-    "floor_key": "level_03",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFD",
+    "floor_key": "level_04",
     "layer": "spaces",
-    "name": "Open Office",
+    "name": "Staircase",
     "live": false,
-    "room_type": "open_office"
+    "room_type": "circulation"
   },
   {
     "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnV4N",
@@ -726,37 +737,15 @@
     "room_type": "open_office"
   },
   {
-    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
-    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
+    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnHqd",
+    "entity_key": "zone_1xBFBS5N18MfdblikYnHqd",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB4IZ",
-    "floor_key": "level_02",
+    "zone_key": "zone_1xBFBS5N18MfdblikYnHqd",
+    "floor_key": "level_03",
     "layer": "spaces",
     "name": "Open Office",
-    "live": true,
-    "room_type": "open_office"
-  },
-  {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFD",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFD",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFD",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Staircase",
     "live": false,
-    "room_type": "circulation"
-  },
-  {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFJ",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Staircase",
-    "live": true,
-    "room_type": "circulation"
+    "room_type": "open_office"
   },
   {
     "xeokit_object_id": "zone_0SCHpckP52uejwTkqQpmS1",
@@ -770,6 +759,28 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnHqn",
+    "entity_key": "zone_1xBFBS5N18MfdblikYnHqn",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1xBFBS5N18MfdblikYnHqn",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Open Office",
+    "live": false,
+    "room_type": "open_office"
+  },
+  {
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFJ",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFJ",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Staircase",
+    "live": true,
+    "room_type": "circulation"
+  },
+  {
     "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB8NH",
     "entity_key": "zone_3xtnrBUgHBCwRh_xfyB8NH",
     "entity_type": "ThermalZone",
@@ -779,17 +790,6 @@
     "name": "Staircase",
     "live": false,
     "room_type": "circulation"
-  },
-  {
-    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnHqd",
-    "entity_key": "zone_1xBFBS5N18MfdblikYnHqd",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1xBFBS5N18MfdblikYnHqd",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Open Office",
-    "live": false,
-    "room_type": "open_office"
   },
   {
     "xeokit_object_id": "zone_1VG1As2i9CNAES2YSNmu8x",
@@ -814,17 +814,6 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnUB5",
-    "entity_key": "zone_1xBFBS5N18MfdblikYnUB5",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1xBFBS5N18MfdblikYnUB5",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Open Office",
-    "live": true,
-    "room_type": "open_office"
-  },
-  {
     "xeokit_object_id": "zone_36Blhdds16DOgkiAVsP5o5",
     "entity_key": "zone_36Blhdds16DOgkiAVsP5o5",
     "entity_type": "ThermalZone",
@@ -836,15 +825,15 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_36Blhdds16DOgkiAVsP68h",
-    "entity_key": "zone_36Blhdds16DOgkiAVsP68h",
+    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnUB5",
+    "entity_key": "zone_1xBFBS5N18MfdblikYnUB5",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_36Blhdds16DOgkiAVsP68h",
+    "zone_key": "zone_1xBFBS5N18MfdblikYnUB5",
     "floor_key": "level_03",
     "layer": "spaces",
-    "name": "Office",
-    "live": false,
-    "room_type": "office"
+    "name": "Open Office",
+    "live": true,
+    "room_type": "open_office"
   },
   {
     "xeokit_object_id": "zone_3JI0SE8z59FBfLCYYLZpFk",
@@ -880,6 +869,28 @@
     "room_type": "utility"
   },
   {
+    "xeokit_object_id": "zone_0dEbiQb1r6fw7CerSu3TPG",
+    "entity_key": "zone_0dEbiQb1r6fw7CerSu3TPG",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0dEbiQb1r6fw7CerSu3TPG",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Meeting",
+    "live": false,
+    "room_type": "meeting_room"
+  },
+  {
+    "xeokit_object_id": "zone_36Blhdds16DOgkiAVsP68h",
+    "entity_key": "zone_36Blhdds16DOgkiAVsP68h",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_36Blhdds16DOgkiAVsP68h",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Office",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_0C83sfLu9E9eQLJY7z8Xye",
     "entity_key": "zone_0C83sfLu9E9eQLJY7z8Xye",
     "entity_type": "ThermalZone",
@@ -902,10 +913,10 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_0dEbiQb1r6fw7CerSu3TPG",
-    "entity_key": "zone_0dEbiQb1r6fw7CerSu3TPG",
+    "xeokit_object_id": "zone_0dEbiQb1r6fw7CerSu3TP7",
+    "entity_key": "zone_0dEbiQb1r6fw7CerSu3TP7",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_0dEbiQb1r6fw7CerSu3TPG",
+    "zone_key": "zone_0dEbiQb1r6fw7CerSu3TP7",
     "floor_key": "level_01",
     "layer": "spaces",
     "name": "Meeting",
@@ -924,17 +935,6 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_0dEbiQb1r6fw7CerSu3TP7",
-    "entity_key": "zone_0dEbiQb1r6fw7CerSu3TP7",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0dEbiQb1r6fw7CerSu3TP7",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Meeting",
-    "live": false,
-    "room_type": "meeting_room"
-  },
-  {
     "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgEr",
     "entity_key": "zone_0Q4MSUQx531vKL_w06AgEr",
     "entity_type": "ThermalZone",
@@ -944,17 +944,6 @@
     "name": "Open Office",
     "live": false,
     "room_type": "open_office"
-  },
-  {
-    "xeokit_object_id": "zone_3I0Kk3lRLDw8v2w0zwpO7q",
-    "entity_key": "zone_3I0Kk3lRLDw8v2w0zwpO7q",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3I0Kk3lRLDw8v2w0zwpO7q",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Meeting",
-    "live": false,
-    "room_type": "meeting_room"
   },
   {
     "xeokit_object_id": "zone_0dEbiQb1r6fw7CerSu3VCo",
@@ -968,6 +957,17 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_3I0Kk3lRLDw8v2w0zwpO7q",
+    "entity_key": "zone_3I0Kk3lRLDw8v2w0zwpO7q",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3I0Kk3lRLDw8v2w0zwpO7q",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Meeting",
+    "live": false,
+    "room_type": "meeting_room"
+  },
+  {
     "xeokit_object_id": "zone_3I0Kk3lRLDw8v2w0zwpO7p",
     "entity_key": "zone_3I0Kk3lRLDw8v2w0zwpO7p",
     "entity_type": "ThermalZone",
@@ -977,17 +977,6 @@
     "name": "Meeting",
     "live": false,
     "room_type": "meeting_room"
-  },
-  {
-    "xeokit_object_id": "zone_2Hutkn_Qz94QfZXkZOQRZT",
-    "entity_key": "zone_2Hutkn_Qz94QfZXkZOQRZT",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2Hutkn_Qz94QfZXkZOQRZT",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Public Toilet",
-    "live": false,
-    "room_type": "office"
   },
   {
     "xeokit_object_id": "zone_3I0Kk3lRLDw8v2w0zwpO6E",
@@ -1012,17 +1001,6 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06Ag5_",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06Ag5_",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06Ag5_",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Open Office",
-    "live": false,
-    "room_type": "open_office"
-  },
-  {
     "xeokit_object_id": "zone_2T7gRjEFvBgRaNLZHAfFF9",
     "entity_key": "zone_2T7gRjEFvBgRaNLZHAfFF9",
     "entity_type": "ThermalZone",
@@ -1030,6 +1008,17 @@
     "floor_key": "level_01",
     "layer": "spaces",
     "name": "Office",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_2Hutkn_Qz94QfZXkZOQRZT",
+    "entity_key": "zone_2Hutkn_Qz94QfZXkZOQRZT",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2Hutkn_Qz94QfZXkZOQRZT",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Public Toilet",
     "live": false,
     "room_type": "office"
   },
@@ -1056,17 +1045,6 @@
     "room_type": "utility"
   },
   {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgEp",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06AgEp",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06AgEp",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Open Office",
-    "live": false,
-    "room_type": "open_office"
-  },
-  {
     "xeokit_object_id": "zone_0dEbiQb1r6fw7CerSu3VYp",
     "entity_key": "zone_0dEbiQb1r6fw7CerSu3VYp",
     "entity_type": "ThermalZone",
@@ -1074,17 +1052,6 @@
     "floor_key": "level_01",
     "layer": "spaces",
     "name": "Vestibule",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_2zj90NfNL65vjsnTedSQQ0",
-    "entity_key": "zone_2zj90NfNL65vjsnTedSQQ0",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2zj90NfNL65vjsnTedSQQ0",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Freezer",
     "live": false,
     "room_type": "office"
   },
@@ -1100,15 +1067,26 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_2T7gRjEFvBgRaNLZHAfFna",
-    "entity_key": "zone_2T7gRjEFvBgRaNLZHAfFna",
+    "xeokit_object_id": "zone_2zj90NfNL65vjsnTedSQQ0",
+    "entity_key": "zone_2zj90NfNL65vjsnTedSQQ0",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_2T7gRjEFvBgRaNLZHAfFna",
+    "zone_key": "zone_2zj90NfNL65vjsnTedSQQ0",
     "floor_key": "level_01",
     "layer": "spaces",
-    "name": "Toilet",
+    "name": "Freezer",
     "live": false,
-    "room_type": "utility"
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_2T7gRjEFvBgRaNLZHAfF_0",
+    "entity_key": "zone_2T7gRjEFvBgRaNLZHAfF_0",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2T7gRjEFvBgRaNLZHAfF_0",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Cleaning",
+    "live": false,
+    "room_type": "office"
   },
   {
     "xeokit_object_id": "zone_2DkesObgH6N86CUi08jTVS",
@@ -1122,24 +1100,35 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_2DkesObgH6N86CUi08jTVP",
-    "entity_key": "zone_2DkesObgH6N86CUi08jTVP",
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06Ag5_",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06Ag5_",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_2DkesObgH6N86CUi08jTVP",
-    "floor_key": "level_01",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06Ag5_",
+    "floor_key": "level_04",
     "layer": "spaces",
-    "name": "Meeting",
+    "name": "Open Office",
     "live": false,
-    "room_type": "meeting_room"
+    "room_type": "open_office"
   },
   {
-    "xeokit_object_id": "zone_2T7gRjEFvBgRaNLZHAfF_0",
-    "entity_key": "zone_2T7gRjEFvBgRaNLZHAfF_0",
+    "xeokit_object_id": "zone_2T7gRjEFvBgRaNLZHAfFna",
+    "entity_key": "zone_2T7gRjEFvBgRaNLZHAfFna",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_2T7gRjEFvBgRaNLZHAfF_0",
+    "zone_key": "zone_2T7gRjEFvBgRaNLZHAfFna",
     "floor_key": "level_01",
     "layer": "spaces",
-    "name": "Cleaning",
+    "name": "Toilet",
+    "live": false,
+    "room_type": "utility"
+  },
+  {
+    "xeokit_object_id": "zone_3eHc4RiQ5C9u5ExHSqeWU8",
+    "entity_key": "zone_3eHc4RiQ5C9u5ExHSqeWU8",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3eHc4RiQ5C9u5ExHSqeWU8",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Store",
     "live": false,
     "room_type": "office"
   },
@@ -1155,6 +1144,17 @@
     "room_type": "utility"
   },
   {
+    "xeokit_object_id": "zone_2DkesObgH6N86CUi08jTVP",
+    "entity_key": "zone_2DkesObgH6N86CUi08jTVP",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2DkesObgH6N86CUi08jTVP",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Meeting",
+    "live": false,
+    "room_type": "meeting_room"
+  },
+  {
     "xeokit_object_id": "zone_0dEbiQb1r6fw7CerSu3UST",
     "entity_key": "zone_0dEbiQb1r6fw7CerSu3UST",
     "entity_type": "ThermalZone",
@@ -1162,28 +1162,6 @@
     "floor_key": "level_01",
     "layer": "spaces",
     "name": "Vestibule",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3eHc4RiQ5C9u5ExHSqeWU8",
-    "entity_key": "zone_3eHc4RiQ5C9u5ExHSqeWU8",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3eHc4RiQ5C9u5ExHSqeWU8",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Store",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1JtggxsYb29w1PJMKPQcP0",
-    "entity_key": "zone_1JtggxsYb29w1PJMKPQcP0",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1JtggxsYb29w1PJMKPQcP0",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Office",
     "live": false,
     "room_type": "office"
   },
@@ -1199,46 +1177,13 @@
     "room_type": "utility"
   },
   {
-    "xeokit_object_id": "zone_1JtggxsYb29w1PJMKPQcVO",
-    "entity_key": "zone_1JtggxsYb29w1PJMKPQcVO",
+    "xeokit_object_id": "zone_1JtggxsYb29w1PJMKPQcP0",
+    "entity_key": "zone_1JtggxsYb29w1PJMKPQcP0",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1JtggxsYb29w1PJMKPQcVO",
+    "zone_key": "zone_1JtggxsYb29w1PJMKPQcP0",
     "floor_key": "level_02",
     "layer": "spaces",
-    "name": "Recreation",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1auGEtVRb3NhFYfyi2P6vw",
-    "entity_key": "zone_1auGEtVRb3NhFYfyi2P6vw",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1auGEtVRb3NhFYfyi2P6vw",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Meeting",
-    "live": false,
-    "room_type": "meeting_room"
-  },
-  {
-    "xeokit_object_id": "zone_1auGEtVRb3NhFYfyi2P6vo",
-    "entity_key": "zone_1auGEtVRb3NhFYfyi2P6vo",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1auGEtVRb3NhFYfyi2P6vo",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Meeting",
-    "live": false,
-    "room_type": "meeting_room"
-  },
-  {
-    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB0P5",
-    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB0P5",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB0P5",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Toilet / Accessible",
+    "name": "Office",
     "live": false,
     "room_type": "office"
   },
@@ -1254,6 +1199,17 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_1JtggxsYb29w1PJMKPQcVO",
+    "entity_key": "zone_1JtggxsYb29w1PJMKPQcVO",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1JtggxsYb29w1PJMKPQcVO",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Recreation",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB0P8",
     "entity_key": "zone_3xtnrBUgHBCwRh_xfyB0P8",
     "entity_type": "ThermalZone",
@@ -1265,6 +1221,28 @@
     "room_type": "utility"
   },
   {
+    "xeokit_object_id": "zone_1auGEtVRb3NhFYfyi2P6vo",
+    "entity_key": "zone_1auGEtVRb3NhFYfyi2P6vo",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1auGEtVRb3NhFYfyi2P6vo",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Meeting",
+    "live": false,
+    "room_type": "meeting_room"
+  },
+  {
+    "xeokit_object_id": "zone_1auGEtVRb3NhFYfyi2P6vw",
+    "entity_key": "zone_1auGEtVRb3NhFYfyi2P6vw",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1auGEtVRb3NhFYfyi2P6vw",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Meeting",
+    "live": false,
+    "room_type": "meeting_room"
+  },
+  {
     "xeokit_object_id": "zone_0_1BZVDc5BxwJSwnsVxdyn",
     "entity_key": "zone_0_1BZVDc5BxwJSwnsVxdyn",
     "entity_type": "ThermalZone",
@@ -1272,6 +1250,17 @@
     "floor_key": "level_02",
     "layer": "spaces",
     "name": "Cleaning",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB0P5",
+    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB0P5",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB0P5",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Toilet / Accessible",
     "live": false,
     "room_type": "office"
   },
@@ -1298,17 +1287,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjpab",
-    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjpab",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjpab",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Meeting",
-    "live": false,
-    "room_type": "meeting_room"
-  },
-  {
     "xeokit_object_id": "zone_2Ps55StZr5yRhh62nE9q9X",
     "entity_key": "zone_2Ps55StZr5yRhh62nE9q9X",
     "entity_type": "ThermalZone",
@@ -1320,6 +1298,17 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjpab",
+    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjpab",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjpab",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Meeting",
+    "live": false,
+    "room_type": "meeting_room"
+  },
+  {
     "xeokit_object_id": "zone_36Blhdds16DOgkiAVsPxcV",
     "entity_key": "zone_36Blhdds16DOgkiAVsPxcV",
     "entity_type": "ThermalZone",
@@ -1327,6 +1316,17 @@
     "floor_key": "level_02",
     "layer": "spaces",
     "name": "Shaft",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_05MwHiS6LD_BIlHfVKbp73",
+    "entity_key": "zone_05MwHiS6LD_BIlHfVKbp73",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_05MwHiS6LD_BIlHfVKbp73",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Store",
     "live": false,
     "room_type": "office"
   },
@@ -1353,17 +1353,6 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_05MwHiS6LD_BIlHfVKbp73",
-    "entity_key": "zone_05MwHiS6LD_BIlHfVKbp73",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_05MwHiS6LD_BIlHfVKbp73",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Store",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB0Sg",
     "entity_key": "zone_3xtnrBUgHBCwRh_xfyB0Sg",
     "entity_type": "ThermalZone",
@@ -1386,15 +1375,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB1Vr",
-    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB1Vr",
+    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjpac",
+    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjpac",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB1Vr",
+    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjpac",
     "floor_key": "level_02",
     "layer": "spaces",
-    "name": "Toilet / Accessible",
+    "name": "Meeting",
     "live": false,
-    "room_type": "office"
+    "room_type": "meeting_room"
   },
   {
     "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB1Vw",
@@ -1408,17 +1397,6 @@
     "room_type": "utility"
   },
   {
-    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjpac",
-    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjpac",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjpac",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Meeting",
-    "live": false,
-    "room_type": "meeting_room"
-  },
-  {
     "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB0PT",
     "entity_key": "zone_3xtnrBUgHBCwRh_xfyB0PT",
     "entity_type": "ThermalZone",
@@ -1430,15 +1408,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjpaK",
-    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjpaK",
+    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB1Vr",
+    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB1Vr",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjpaK",
+    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB1Vr",
     "floor_key": "level_02",
     "layer": "spaces",
-    "name": "Meeting",
+    "name": "Toilet / Accessible",
     "live": false,
-    "room_type": "meeting_room"
+    "room_type": "office"
   },
   {
     "xeokit_object_id": "zone_3WcAivD6L3qPu4fxZ5CkSo",
@@ -1448,6 +1426,17 @@
     "floor_key": "level_02",
     "layer": "spaces",
     "name": "Recreation",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB_pa",
+    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB_pa",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB_pa",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Cleaning",
     "live": false,
     "room_type": "office"
   },
@@ -1463,15 +1452,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3xtnrBUgHBCwRh_xfyB_pa",
-    "entity_key": "zone_3xtnrBUgHBCwRh_xfyB_pa",
+    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjpaK",
+    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjpaK",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3xtnrBUgHBCwRh_xfyB_pa",
+    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjpaK",
     "floor_key": "level_02",
     "layer": "spaces",
-    "name": "Cleaning",
+    "name": "Meeting",
     "live": false,
-    "room_type": "office"
+    "room_type": "meeting_room"
   },
   {
     "xeokit_object_id": "zone_3b3bVmE5P4tBwtV6k__NIS",
@@ -1496,13 +1485,24 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_36Blhdds16DOgkiAVsP4Vi",
-    "entity_key": "zone_36Blhdds16DOgkiAVsP4Vi",
+    "xeokit_object_id": "zone_3WcAivD6L3qPu4fxZ5Ck9N",
+    "entity_key": "zone_3WcAivD6L3qPu4fxZ5Ck9N",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_36Blhdds16DOgkiAVsP4Vi",
-    "floor_key": "level_02",
+    "zone_key": "zone_3WcAivD6L3qPu4fxZ5Ck9N",
+    "floor_key": "level_03",
     "layer": "spaces",
-    "name": "Shaft",
+    "name": "Recreation",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06Agzh",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06Agzh",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06Agzh",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Cleaning",
     "live": false,
     "room_type": "office"
   },
@@ -1518,24 +1518,13 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06Agzh",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06Agzh",
+    "xeokit_object_id": "zone_36Blhdds16DOgkiAVsP4Vi",
+    "entity_key": "zone_36Blhdds16DOgkiAVsP4Vi",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06Agzh",
-    "floor_key": "level_03",
+    "zone_key": "zone_36Blhdds16DOgkiAVsP4Vi",
+    "floor_key": "level_02",
     "layer": "spaces",
-    "name": "Cleaning",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3WcAivD6L3qPu4fxZ5Ck9N",
-    "entity_key": "zone_3WcAivD6L3qPu4fxZ5Ck9N",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3WcAivD6L3qPu4fxZ5Ck9N",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Recreation",
+    "name": "Shaft",
     "live": false,
     "room_type": "office"
   },
@@ -1562,6 +1551,17 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+    "entity_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Restaurant",
+    "live": true,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnHqh",
     "entity_key": "zone_1xBFBS5N18MfdblikYnHqh",
     "entity_type": "ThermalZone",
@@ -1577,6 +1577,17 @@
     "entity_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIO",
     "entity_type": "ThermalZone",
     "zone_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIO",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Office",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3NFa8Y9Jf5RwZBvcfUAVIT",
+    "entity_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIT",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIT",
     "floor_key": "level_03",
     "layer": "spaces",
     "name": "Office",
@@ -1606,10 +1617,10 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_3NFa8Y9Jf5RwZBvcfUAVIT",
-    "entity_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIT",
+    "xeokit_object_id": "zone_3NFa8Y9Jf5RwZBvcfUAVIR",
+    "entity_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIR",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIT",
+    "zone_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIR",
     "floor_key": "level_03",
     "layer": "spaces",
     "name": "Office",
@@ -1628,17 +1639,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3NFa8Y9Jf5RwZBvcfUAVIR",
-    "entity_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIR",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3NFa8Y9Jf5RwZBvcfUAVIR",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Office",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_0FmGuf5a54T9pmsaibMAqb",
     "entity_key": "zone_0FmGuf5a54T9pmsaibMAqb",
     "entity_type": "ThermalZone",
@@ -1648,6 +1648,39 @@
     "name": "Meeting",
     "live": false,
     "room_type": "meeting_room"
+  },
+  {
+    "xeokit_object_id": "zone_3WcAivD6L3qPu4fxZ5Clqa",
+    "entity_key": "zone_3WcAivD6L3qPu4fxZ5Clqa",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3WcAivD6L3qPu4fxZ5Clqa",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Recreation",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFH",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFH",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFH",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Open Office",
+    "live": true,
+    "room_type": "open_office"
+  },
+  {
+    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnHqZ",
+    "entity_key": "zone_1xBFBS5N18MfdblikYnHqZ",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1xBFBS5N18MfdblikYnHqZ",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Recreation",
+    "live": false,
+    "room_type": "office"
   },
   {
     "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnHqX",
@@ -1672,15 +1705,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnHqZ",
-    "entity_key": "zone_1xBFBS5N18MfdblikYnHqZ",
+    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjoa7",
+    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjoa7",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1xBFBS5N18MfdblikYnHqZ",
+    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjoa7",
     "floor_key": "level_03",
     "layer": "spaces",
-    "name": "Recreation",
+    "name": "Meeting",
     "live": false,
-    "room_type": "office"
+    "room_type": "meeting_room"
   },
   {
     "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnHqt",
@@ -1694,39 +1727,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06Agwi",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06Agwi",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06Agwi",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Cleaning",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3WcAivD6L3qPu4fxZ5Clqa",
-    "entity_key": "zone_3WcAivD6L3qPu4fxZ5Clqa",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3WcAivD6L3qPu4fxZ5Clqa",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Recreation",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjoa7",
-    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjoa7",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjoa7",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Meeting",
-    "live": false,
-    "room_type": "meeting_room"
-  },
-  {
     "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjoaU",
     "entity_key": "zone_2xP8Oy_oH5JP_1bqohjoaU",
     "entity_type": "ThermalZone",
@@ -1738,6 +1738,17 @@
     "room_type": "meeting_room"
   },
   {
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06Agwi",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06Agwi",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06Agwi",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Cleaning",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06Ag5j",
     "entity_key": "zone_0Q4MSUQx531vKL_w06Ag5j",
     "entity_type": "ThermalZone",
@@ -1745,6 +1756,28 @@
     "floor_key": "level_04",
     "layer": "spaces",
     "name": "Cleaning",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgEb",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06AgEb",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06AgEb",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Toilet",
+    "live": false,
+    "room_type": "utility"
+  },
+  {
+    "xeokit_object_id": "zone_3WcAivD6L3qPu4fxZ5CWCZ",
+    "entity_key": "zone_3WcAivD6L3qPu4fxZ5CWCZ",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3WcAivD6L3qPu4fxZ5CWCZ",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Recreation",
     "live": false,
     "room_type": "office"
   },
@@ -1760,39 +1793,6 @@
     "room_type": "meeting_room"
   },
   {
-    "xeokit_object_id": "zone_3WcAivD6L3qPu4fxZ5CWCZ",
-    "entity_key": "zone_3WcAivD6L3qPu4fxZ5CWCZ",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3WcAivD6L3qPu4fxZ5CWCZ",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Recreation",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFH",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFH",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFH",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Open Office",
-    "live": true,
-    "room_type": "open_office"
-  },
-  {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgEb",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06AgEb",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06AgEb",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Toilet",
-    "live": false,
-    "room_type": "utility"
-  },
-  {
     "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgEd",
     "entity_key": "zone_0Q4MSUQx531vKL_w06AgEd",
     "entity_type": "ThermalZone",
@@ -1804,13 +1804,13 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1xUTe5Sh9DreNEkJ9QibKz",
-    "entity_key": "zone_1xUTe5Sh9DreNEkJ9QibKz",
+    "xeokit_object_id": "zone_2Ps55StZr5yRhh62nE9q0_",
+    "entity_key": "zone_2Ps55StZr5yRhh62nE9q0_",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1xUTe5Sh9DreNEkJ9QibKz",
+    "zone_key": "zone_2Ps55StZr5yRhh62nE9q0_",
     "floor_key": "level_04",
     "layer": "spaces",
-    "name": "Recreation",
+    "name": "Office",
     "live": false,
     "room_type": "office"
   },
@@ -1819,17 +1819,6 @@
     "entity_key": "zone_2Ps55StZr5yRhh62nE9q0p",
     "entity_type": "ThermalZone",
     "zone_key": "zone_2Ps55StZr5yRhh62nE9q0p",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Office",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_2Ps55StZr5yRhh62nE9q0_",
-    "entity_key": "zone_2Ps55StZr5yRhh62nE9q0_",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2Ps55StZr5yRhh62nE9q0_",
     "floor_key": "level_04",
     "layer": "spaces",
     "name": "Office",
@@ -1846,6 +1835,17 @@
     "name": "Meeting",
     "live": false,
     "room_type": "meeting_room"
+  },
+  {
+    "xeokit_object_id": "zone_1xUTe5Sh9DreNEkJ9QibKz",
+    "entity_key": "zone_1xUTe5Sh9DreNEkJ9QibKz",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1xUTe5Sh9DreNEkJ9QibKz",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Recreation",
+    "live": false,
+    "room_type": "office"
   },
   {
     "xeokit_object_id": "zone_2Ps55StZr5yRhh62nE9q0q",
@@ -1870,26 +1870,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgEx",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06AgEx",
+    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjoDt",
+    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjoDt",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06AgEx",
+    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjoDt",
     "floor_key": "level_04",
     "layer": "spaces",
-    "name": "Store",
+    "name": "Meeting",
     "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
-    "entity_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0tWM7C8ybBZQ4c5DL1_lwj",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Restaurant",
-    "live": true,
-    "room_type": "office"
+    "room_type": "meeting_room"
   },
   {
     "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgEt",
@@ -1903,10 +1892,21 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjoDt",
-    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjoDt",
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgEx",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06AgEx",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjoDt",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06AgEx",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Store",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjoDo",
+    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjoDo",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjoDo",
     "floor_key": "level_04",
     "layer": "spaces",
     "name": "Meeting",
@@ -1923,6 +1923,17 @@
     "name": "Meeting",
     "live": false,
     "room_type": "meeting_room"
+  },
+  {
+    "xeokit_object_id": "zone_3WcAivD6L3qPu4fxZ5CWCa",
+    "entity_key": "zone_3WcAivD6L3qPu4fxZ5CWCa",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3WcAivD6L3qPu4fxZ5CWCa",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Recreation",
+    "live": false,
+    "room_type": "office"
   },
   {
     "xeokit_object_id": "zone_0UP3u1jcLAoucZnULlRg3r",
@@ -1958,50 +1969,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3nyidG4wTF_9_mvrir11rr",
-    "entity_key": "zone_3nyidG4wTF_9_mvrir11rr",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3nyidG4wTF_9_mvrir11rr",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Cleaning",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_2xP8Oy_oH5JP_1bqohjoDo",
-    "entity_key": "zone_2xP8Oy_oH5JP_1bqohjoDo",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2xP8Oy_oH5JP_1bqohjoDo",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Meeting",
-    "live": false,
-    "room_type": "meeting_room"
-  },
-  {
-    "xeokit_object_id": "zone_3JI0SE8z59FBfLCYYLZpFT",
-    "entity_key": "zone_3JI0SE8z59FBfLCYYLZpFT",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3JI0SE8z59FBfLCYYLZpFT",
-    "floor_key": "level_05",
-    "layer": "spaces",
-    "name": "Locker Room",
-    "live": false,
-    "room_type": "amenity"
-  },
-  {
-    "xeokit_object_id": "zone_3WcAivD6L3qPu4fxZ5CWCa",
-    "entity_key": "zone_3WcAivD6L3qPu4fxZ5CWCa",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3WcAivD6L3qPu4fxZ5CWCa",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Recreation",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_3JI0SE8z59FBfLCYYLZpFO",
     "entity_key": "zone_3JI0SE8z59FBfLCYYLZpFO",
     "entity_type": "ThermalZone",
@@ -2013,6 +1980,17 @@
     "room_type": "utility"
   },
   {
+    "xeokit_object_id": "zone_3nyidG4wTF_9_mvrir11rr",
+    "entity_key": "zone_3nyidG4wTF_9_mvrir11rr",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3nyidG4wTF_9_mvrir11rr",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Cleaning",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_0kzCK4OGP3yfwYsaxA5V1l",
     "entity_key": "zone_0kzCK4OGP3yfwYsaxA5V1l",
     "entity_type": "ThermalZone",
@@ -2022,6 +2000,17 @@
     "name": "Elect",
     "live": false,
     "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3JI0SE8z59FBfLCYYLZpFT",
+    "entity_key": "zone_3JI0SE8z59FBfLCYYLZpFT",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3JI0SE8z59FBfLCYYLZpFT",
+    "floor_key": "level_05",
+    "layer": "spaces",
+    "name": "Locker Room",
+    "live": false,
+    "room_type": "amenity"
   },
   {
     "xeokit_object_id": "zone_0_1BZVDc5BxwJSwnsVxdzZ",
@@ -2090,26 +2079,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3JI0SE8z59FBfLCYYLZlAY",
-    "entity_key": "zone_3JI0SE8z59FBfLCYYLZlAY",
+    "xeokit_object_id": "zone_2iOIITjL90wPZVGpFrW07_",
+    "entity_key": "zone_2iOIITjL90wPZVGpFrW07_",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3JI0SE8z59FBfLCYYLZlAY",
-    "floor_key": "level_05",
+    "zone_key": "zone_2iOIITjL90wPZVGpFrW07_",
+    "floor_key": "level_03",
     "layer": "spaces",
-    "name": "Sauna",
+    "name": "Shaft",
     "live": false,
     "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFP",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFP",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFP",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Toilet",
-    "live": false,
-    "room_type": "utility"
   },
   {
     "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnUBT",
@@ -2121,6 +2099,28 @@
     "name": "Toilet",
     "live": false,
     "room_type": "utility"
+  },
+  {
+    "xeokit_object_id": "zone_3JI0SE8z59FBfLCYYLZlAY",
+    "entity_key": "zone_3JI0SE8z59FBfLCYYLZlAY",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3JI0SE8z59FBfLCYYLZlAY",
+    "floor_key": "level_05",
+    "layer": "spaces",
+    "name": "Sauna",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg0k",
+    "entity_key": "zone_1F880bSDL9nPujvxIbzg0k",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1F880bSDL9nPujvxIbzg0k",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Cleaning",
+    "live": false,
+    "room_type": "office"
   },
   {
     "xeokit_object_id": "zone_1xBFBS5N18MfdblikYnUBS",
@@ -2145,32 +2145,43 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg0k",
-    "entity_key": "zone_1F880bSDL9nPujvxIbzg0k",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1F880bSDL9nPujvxIbzg0k",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Cleaning",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_2iOIITjL90wPZVGpFrW07_",
-    "entity_key": "zone_2iOIITjL90wPZVGpFrW07_",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2iOIITjL90wPZVGpFrW07_",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Shaft",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6mK",
     "entity_key": "zone_3M4BY9f2fEkQXYemrsO6mK",
     "entity_type": "ThermalZone",
     "zone_key": "zone_3M4BY9f2fEkQXYemrsO6mK",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Chase",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFP",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFP",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFP",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Toilet",
+    "live": false,
+    "room_type": "utility"
+  },
+  {
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFQ",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFQ",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFQ",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Toilet / Accessible",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6tz",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6tz",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6tz",
     "floor_key": "level_01",
     "layer": "spaces",
     "name": "Chase",
@@ -2189,77 +2200,11 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgFQ",
-    "entity_key": "zone_0Q4MSUQx531vKL_w06AgFQ",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_0Q4MSUQx531vKL_w06AgFQ",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Toilet / Accessible",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO16f",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO16f",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO16f",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Chase",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6gr",
     "entity_key": "zone_3M4BY9f2fEkQXYemrsO6gr",
     "entity_type": "ThermalZone",
     "zone_key": "zone_3M4BY9f2fEkQXYemrsO6gr",
     "floor_key": "level_05",
-    "layer": "spaces",
-    "name": "Chase",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6_Q",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6_Q",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6_Q",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Chase",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6tz",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6tz",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6tz",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Chase",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO178",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO178",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO178",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Chase",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6_r",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6_r",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6_r",
-    "floor_key": "level_02",
     "layer": "spaces",
     "name": "Chase",
     "live": false,
@@ -2277,11 +2222,11 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6jr",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6jr",
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6_r",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6_r",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6jr",
-    "floor_key": "level_03",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6_r",
+    "floor_key": "level_02",
     "layer": "spaces",
     "name": "Chase",
     "live": false,
@@ -2299,6 +2244,50 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO178",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO178",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO178",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Chase",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6jr",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6jr",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6jr",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Chase",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO16f",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO16f",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO16f",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Chase",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6_Q",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6_Q",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6_Q",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Chase",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_0_1BZVDc5BxwJSwnsVxduU",
     "entity_key": "zone_0_1BZVDc5BxwJSwnsVxduU",
     "entity_type": "ThermalZone",
@@ -2310,10 +2299,10 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg1l",
-    "entity_key": "zone_1F880bSDL9nPujvxIbzg1l",
+    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg02",
+    "entity_key": "zone_1F880bSDL9nPujvxIbzg02",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1F880bSDL9nPujvxIbzg1l",
+    "zone_key": "zone_1F880bSDL9nPujvxIbzg02",
     "floor_key": "level_01",
     "layer": "spaces",
     "name": "Elect",
@@ -2321,10 +2310,10 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg02",
-    "entity_key": "zone_1F880bSDL9nPujvxIbzg02",
+    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg1l",
+    "entity_key": "zone_1F880bSDL9nPujvxIbzg1l",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1F880bSDL9nPujvxIbzg02",
+    "zone_key": "zone_1F880bSDL9nPujvxIbzg1l",
     "floor_key": "level_01",
     "layer": "spaces",
     "name": "Elect",
@@ -2365,17 +2354,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg2q",
-    "entity_key": "zone_1F880bSDL9nPujvxIbzg2q",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1F880bSDL9nPujvxIbzg2q",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Elect",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg1P",
     "entity_key": "zone_1F880bSDL9nPujvxIbzg1P",
     "entity_type": "ThermalZone",
@@ -2387,11 +2365,11 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg2R",
-    "entity_key": "zone_1F880bSDL9nPujvxIbzg2R",
+    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg2q",
+    "entity_key": "zone_1F880bSDL9nPujvxIbzg2q",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1F880bSDL9nPujvxIbzg2R",
-    "floor_key": "level_03",
+    "zone_key": "zone_1F880bSDL9nPujvxIbzg2q",
+    "floor_key": "level_02",
     "layer": "spaces",
     "name": "Elect",
     "live": false,
@@ -2409,21 +2387,10 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6kA",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6kA",
+    "xeokit_object_id": "zone_1F880bSDL9nPujvxIbzg2R",
+    "entity_key": "zone_1F880bSDL9nPujvxIbzg2R",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6kA",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Elect",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6kM",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6kM",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6kM",
+    "zone_key": "zone_1F880bSDL9nPujvxIbzg2R",
     "floor_key": "level_03",
     "layer": "spaces",
     "name": "Elect",
@@ -2436,17 +2403,6 @@
     "entity_type": "ThermalZone",
     "zone_key": "zone_3M4BY9f2fEkQXYemrsO17S",
     "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Elect",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6jj",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6jj",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6jj",
-    "floor_key": "level_03",
     "layer": "spaces",
     "name": "Elect",
     "live": false,
@@ -2475,11 +2431,66 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mEDH",
-    "entity_key": "zone_1BI3W4_qjCRul28Xx_mEDH",
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6kA",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6kA",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1BI3W4_qjCRul28Xx_mEDH",
-    "floor_key": "level_01",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6kA",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Elect",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6jj",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6jj",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6jj",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Elect",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1CEwDhGXz6rf1qZbuMomxT",
+    "entity_key": "zone_1CEwDhGXz6rf1qZbuMomxT",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1CEwDhGXz6rf1qZbuMomxT",
+    "floor_key": "basement",
+    "layer": "spaces",
+    "name": "Lift",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO6kM",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO6kM",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO6kM",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Elect",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO17n",
+    "entity_key": "zone_3M4BY9f2fEkQXYemrsO17n",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3M4BY9f2fEkQXYemrsO17n",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Elect",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mES5",
+    "entity_key": "zone_1BI3W4_qjCRul28Xx_mES5",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1BI3W4_qjCRul28Xx_mES5",
+    "floor_key": "level_02",
     "layer": "spaces",
     "name": "Shaft",
     "live": false,
@@ -2497,22 +2508,11 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1CEwDhGXz6rf1qZbuMomxT",
-    "entity_key": "zone_1CEwDhGXz6rf1qZbuMomxT",
+    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mEDH",
+    "entity_key": "zone_1BI3W4_qjCRul28Xx_mEDH",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1CEwDhGXz6rf1qZbuMomxT",
-    "floor_key": "basement",
-    "layer": "spaces",
-    "name": "Lift",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mES5",
-    "entity_key": "zone_1BI3W4_qjCRul28Xx_mES5",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1BI3W4_qjCRul28Xx_mES5",
-    "floor_key": "level_02",
+    "zone_key": "zone_1BI3W4_qjCRul28Xx_mEDH",
+    "floor_key": "level_01",
     "layer": "spaces",
     "name": "Shaft",
     "live": false,
@@ -2530,13 +2530,13 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3M4BY9f2fEkQXYemrsO17n",
-    "entity_key": "zone_3M4BY9f2fEkQXYemrsO17n",
+    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mExk",
+    "entity_key": "zone_1BI3W4_qjCRul28Xx_mExk",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3M4BY9f2fEkQXYemrsO17n",
-    "floor_key": "level_04",
+    "zone_key": "zone_1BI3W4_qjCRul28Xx_mExk",
+    "floor_key": "level_03",
     "layer": "spaces",
-    "name": "Elect",
+    "name": "Shaft",
     "live": false,
     "room_type": "office"
   },
@@ -2546,17 +2546,6 @@
     "entity_type": "ThermalZone",
     "zone_key": "zone_3jCS7E4Nb3qBkgP0MIoqI9",
     "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Shaft",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mExk",
-    "entity_key": "zone_1BI3W4_qjCRul28Xx_mExk",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1BI3W4_qjCRul28Xx_mExk",
-    "floor_key": "level_03",
     "layer": "spaces",
     "name": "Shaft",
     "live": false,
@@ -2574,11 +2563,33 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mFxY",
+    "entity_key": "zone_1BI3W4_qjCRul28Xx_mFxY",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1BI3W4_qjCRul28Xx_mFxY",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Shaft",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_2gcNnmocjA5uvLJTxY_5Hp",
     "entity_key": "zone_2gcNnmocjA5uvLJTxY_5Hp",
     "entity_type": "ThermalZone",
     "zone_key": "zone_2gcNnmocjA5uvLJTxY_5Hp",
     "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Shaft",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mFxa",
+    "entity_key": "zone_1BI3W4_qjCRul28Xx_mFxa",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1BI3W4_qjCRul28Xx_mFxa",
+    "floor_key": "level_04",
     "layer": "spaces",
     "name": "Shaft",
     "live": false,
@@ -2607,44 +2618,22 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_2Ab53HB9b2wfqHriZIzvth",
-    "entity_key": "zone_2Ab53HB9b2wfqHriZIzvth",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2Ab53HB9b2wfqHriZIzvth",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Shaft",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mFxa",
-    "entity_key": "zone_1BI3W4_qjCRul28Xx_mFxa",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1BI3W4_qjCRul28Xx_mFxa",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Shaft",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1BI3W4_qjCRul28Xx_mFxY",
-    "entity_key": "zone_1BI3W4_qjCRul28Xx_mFxY",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1BI3W4_qjCRul28Xx_mFxY",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Shaft",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_2gcNnmocjA5uvLJTxY_5Hl",
     "entity_key": "zone_2gcNnmocjA5uvLJTxY_5Hl",
     "entity_type": "ThermalZone",
     "zone_key": "zone_2gcNnmocjA5uvLJTxY_5Hl",
     "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Shaft",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_2Ab53HB9b2wfqHriZIzvth",
+    "entity_key": "zone_2Ab53HB9b2wfqHriZIzvth",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2Ab53HB9b2wfqHriZIzvth",
+    "floor_key": "level_01",
     "layer": "spaces",
     "name": "Shaft",
     "live": false,
@@ -2695,17 +2684,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_2zhoehGLvBbwmT_FUY8B0q",
-    "entity_key": "zone_2zhoehGLvBbwmT_FUY8B0q",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2zhoehGLvBbwmT_FUY8B0q",
-    "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Gfa",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_2zhoehGLvBbwmT_FUY8B0L",
     "entity_key": "zone_2zhoehGLvBbwmT_FUY8B0L",
     "entity_type": "ThermalZone",
@@ -2717,11 +2695,55 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_1VG1As2i9CNAES2YSNmuLw",
+    "entity_key": "zone_1VG1As2i9CNAES2YSNmuLw",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1VG1As2i9CNAES2YSNmuLw",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Gfa 250Mm",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_2zhoehGLvBbwmT_FUY8C_x",
     "entity_key": "zone_2zhoehGLvBbwmT_FUY8C_x",
     "entity_type": "ThermalZone",
     "zone_key": "zone_2zhoehGLvBbwmT_FUY8C_x",
     "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Gfa",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_2zhoehGLvBbwmT_FUY8B0q",
+    "entity_key": "zone_2zhoehGLvBbwmT_FUY8B0q",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2zhoehGLvBbwmT_FUY8B0q",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Gfa",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_2zhoehGLvBbwmT_FUY8C_P",
+    "entity_key": "zone_2zhoehGLvBbwmT_FUY8C_P",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2zhoehGLvBbwmT_FUY8C_P",
+    "floor_key": "level_01",
+    "layer": "spaces",
+    "name": "Gfa",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_2zhoehGLvBbwmT_FUY8CyO",
+    "entity_key": "zone_2zhoehGLvBbwmT_FUY8CyO",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_2zhoehGLvBbwmT_FUY8CyO",
+    "floor_key": "level_05",
     "layer": "spaces",
     "name": "Gfa",
     "live": false,
@@ -2739,44 +2761,11 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_2zhoehGLvBbwmT_FUY8C_P",
-    "entity_key": "zone_2zhoehGLvBbwmT_FUY8C_P",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2zhoehGLvBbwmT_FUY8C_P",
-    "floor_key": "level_01",
-    "layer": "spaces",
-    "name": "Gfa",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_1VG1As2i9CNAES2YSNmuK1",
     "entity_key": "zone_1VG1As2i9CNAES2YSNmuK1",
     "entity_type": "ThermalZone",
     "zone_key": "zone_1VG1As2i9CNAES2YSNmuK1",
     "floor_key": "level_03",
-    "layer": "spaces",
-    "name": "Gfa 250Mm",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_2zhoehGLvBbwmT_FUY8CyO",
-    "entity_key": "zone_2zhoehGLvBbwmT_FUY8CyO",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2zhoehGLvBbwmT_FUY8CyO",
-    "floor_key": "level_05",
-    "layer": "spaces",
-    "name": "Gfa",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1VG1As2i9CNAES2YSNmuLw",
-    "entity_key": "zone_1VG1As2i9CNAES2YSNmuLw",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1VG1As2i9CNAES2YSNmuLw",
-    "floor_key": "level_04",
     "layer": "spaces",
     "name": "Gfa 250Mm",
     "live": false,
@@ -2838,6 +2827,17 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50dj",
+    "entity_key": "zone_3PHN3kec17q9UkUqax50dj",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3PHN3kec17q9UkUqax50dj",
+    "floor_key": "level_04",
+    "layer": "spaces",
+    "name": "Office",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_1rU_t3tkDF9h1LzFTQbFDG",
     "entity_key": "zone_1rU_t3tkDF9h1LzFTQbFDG",
     "entity_type": "ThermalZone",
@@ -2856,6 +2856,17 @@
     "floor_key": "level_01",
     "layer": "spaces",
     "name": "Heated Netarea",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50vF",
+    "entity_key": "zone_3PHN3kec17q9UkUqax50vF",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3PHN3kec17q9UkUqax50vF",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Office",
     "live": false,
     "room_type": "office"
   },
@@ -2882,11 +2893,11 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50vF",
-    "entity_key": "zone_3PHN3kec17q9UkUqax50vF",
+    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax503K",
+    "entity_key": "zone_3PHN3kec17q9UkUqax503K",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3PHN3kec17q9UkUqax50vF",
-    "floor_key": "level_03",
+    "zone_key": "zone_3PHN3kec17q9UkUqax503K",
+    "floor_key": "level_02",
     "layer": "spaces",
     "name": "Office",
     "live": false,
@@ -2904,10 +2915,10 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50dj",
-    "entity_key": "zone_3PHN3kec17q9UkUqax50dj",
+    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50dZ",
+    "entity_key": "zone_3PHN3kec17q9UkUqax50dZ",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3PHN3kec17q9UkUqax50dj",
+    "zone_key": "zone_3PHN3kec17q9UkUqax50dZ",
     "floor_key": "level_04",
     "layer": "spaces",
     "name": "Office",
@@ -2937,17 +2948,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50dZ",
-    "entity_key": "zone_3PHN3kec17q9UkUqax50dZ",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3PHN3kec17q9UkUqax50dZ",
-    "floor_key": "level_04",
-    "layer": "spaces",
-    "name": "Office",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_2zhoehGLvBbwmT_FUY8CNA",
     "entity_key": "zone_2zhoehGLvBbwmT_FUY8CNA",
     "entity_type": "ThermalZone",
@@ -2970,17 +2970,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_2yC6uZ1Mj3WfWcT4GmORMG",
-    "entity_key": "zone_2yC6uZ1Mj3WfWcT4GmORMG",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_2yC6uZ1Mj3WfWcT4GmORMG",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "VOLUME / OFFICE:VOLUME / OFFICE:2646424",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpEf",
     "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpEf",
     "entity_type": "ThermalZone",
@@ -2992,13 +2981,13 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax503K",
-    "entity_key": "zone_3PHN3kec17q9UkUqax503K",
+    "xeokit_object_id": "zone_2yC6uZ1Mj3WfWcT4GmORMG",
+    "entity_key": "zone_2yC6uZ1Mj3WfWcT4GmORMG",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3PHN3kec17q9UkUqax503K",
-    "floor_key": "level_02",
+    "zone_key": "zone_2yC6uZ1Mj3WfWcT4GmORMG",
+    "floor_key": "building",
     "layer": "spaces",
-    "name": "Office",
+    "name": "VOLUME / OFFICE:VOLUME / OFFICE:2646424",
     "live": false,
     "room_type": "office"
   },
@@ -3014,22 +3003,11 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax5039",
-    "entity_key": "zone_3PHN3kec17q9UkUqax5039",
+    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50dk",
+    "entity_key": "zone_3PHN3kec17q9UkUqax50dk",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3PHN3kec17q9UkUqax5039",
-    "floor_key": "level_02",
-    "layer": "spaces",
-    "name": "Office",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50vA",
-    "entity_key": "zone_3PHN3kec17q9UkUqax50vA",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_3PHN3kec17q9UkUqax50vA",
-    "floor_key": "level_03",
+    "zone_key": "zone_3PHN3kec17q9UkUqax50dk",
+    "floor_key": "level_04",
     "layer": "spaces",
     "name": "Office",
     "live": false,
@@ -3047,17 +3025,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYp1F",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYp1F",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYp1F",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3441221",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYp1p",
     "entity_key": "zone_1ihDn_IqL2a8bCCZUoYp1p",
     "entity_type": "ThermalZone",
@@ -3065,6 +3032,17 @@
     "floor_key": "building",
     "layer": "spaces",
     "name": "Turning Free Space:Turning Free Space 1500 mm:3441273",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYp1F",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYp1F",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYp1F",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3441221",
     "live": false,
     "room_type": "office"
   },
@@ -3113,6 +3091,17 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpPA",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpPA",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpPA",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3441728",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpO6",
     "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpO6",
     "entity_type": "ThermalZone",
@@ -3124,15 +3113,15 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpPA",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpPA",
+    "xeokit_object_id": "zone_0Q4MSUQx531vKL_w06AgEp",
+    "entity_key": "zone_0Q4MSUQx531vKL_w06AgEp",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpPA",
-    "floor_key": "building",
+    "zone_key": "zone_0Q4MSUQx531vKL_w06AgEp",
+    "floor_key": "level_04",
     "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3441728",
+    "name": "Open Office",
     "live": false,
-    "room_type": "office"
+    "room_type": "open_office"
   },
   {
     "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpPM",
@@ -3157,17 +3146,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpTf",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpTf",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpTf",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3442019",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpTb",
     "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpTb",
     "entity_type": "ThermalZone",
@@ -3179,13 +3157,13 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50dk",
-    "entity_key": "zone_3PHN3kec17q9UkUqax50dk",
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpTf",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpTf",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_3PHN3kec17q9UkUqax50dk",
-    "floor_key": "level_04",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpTf",
+    "floor_key": "building",
     "layer": "spaces",
-    "name": "Office",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3442019",
     "live": false,
     "room_type": "office"
   },
@@ -3201,17 +3179,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpU9",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpU9",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpU9",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3442051",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpU7",
     "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpU7",
     "entity_type": "ThermalZone",
@@ -3219,6 +3186,17 @@
     "floor_key": "building",
     "layer": "spaces",
     "name": "Turning Free Space:Turning Free Space 1500 mm:3442061",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpU9",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpU9",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpU9",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3442051",
     "live": false,
     "room_type": "office"
   },
@@ -3267,6 +3245,17 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpIG",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpIG",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpIG",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3442330",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpVt",
     "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpVt",
     "entity_type": "ThermalZone",
@@ -3278,13 +3267,46 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpIG",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpIG",
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpJU",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpJU",
     "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpIG",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpJU",
     "floor_key": "building",
     "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3442330",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3442388",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax5039",
+    "entity_key": "zone_3PHN3kec17q9UkUqax5039",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3PHN3kec17q9UkUqax5039",
+    "floor_key": "level_02",
+    "layer": "spaces",
+    "name": "Office",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_3PHN3kec17q9UkUqax50vA",
+    "entity_key": "zone_3PHN3kec17q9UkUqax50vA",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_3PHN3kec17q9UkUqax50vA",
+    "floor_key": "level_03",
+    "layer": "spaces",
+    "name": "Office",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpL6",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpL6",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpL6",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3442508",
     "live": false,
     "room_type": "office"
   },
@@ -3322,28 +3344,6 @@
     "room_type": "office"
   },
   {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpL6",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpL6",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpL6",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3442508",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpJU",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpJU",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpJU",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3442388",
-    "live": false,
-    "room_type": "office"
-  },
-  {
     "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpfj",
     "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpfj",
     "entity_type": "ThermalZone",
@@ -3377,6 +3377,72 @@
     "room_type": "office"
   },
   {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpjV",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpjV",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpjV",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3443029",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpaF",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpaF",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpaF",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3443461",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpb_",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpb_",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpb_",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3443573",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYplB",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYplB",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYplB",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3443137",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpZ5",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpZ5",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpZ5",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3443407",
+    "live": false,
+    "room_type": "office"
+  },
+  {
+    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpYV",
+    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpYV",
+    "entity_type": "ThermalZone",
+    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpYV",
+    "floor_key": "building",
+    "layer": "spaces",
+    "name": "Turning Free Space:Turning Free Space 1500 mm:3443349",
+    "live": false,
+    "room_type": "office"
+  },
+  {
     "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpiH",
     "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpiH",
     "entity_type": "ThermalZone",
@@ -3395,72 +3461,6 @@
     "floor_key": "building",
     "layer": "spaces",
     "name": "Turning Free Space:Turning Free Space 1500 mm:3443517",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpYV",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpYV",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpYV",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3443349",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpb_",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpb_",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpb_",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3443573",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpaF",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpaF",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpaF",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3443461",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpZ5",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpZ5",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpZ5",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3443407",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYpjV",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYpjV",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYpjV",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3443029",
-    "live": false,
-    "room_type": "office"
-  },
-  {
-    "xeokit_object_id": "zone_1ihDn_IqL2a8bCCZUoYplB",
-    "entity_key": "zone_1ihDn_IqL2a8bCCZUoYplB",
-    "entity_type": "ThermalZone",
-    "zone_key": "zone_1ihDn_IqL2a8bCCZUoYplB",
-    "floor_key": "building",
-    "layer": "spaces",
-    "name": "Turning Free Space:Turning Free Space 1500 mm:3443137",
     "live": false,
     "room_type": "office"
   },
@@ -3520,8 +3520,85 @@
     "room_type": null
   },
   {
-    "xeokit_object_id": "structural_unknown",
-    "entity_key": "structural_unknown",
+    "xeokit_object_id": "structural_unknown_168_160_150",
+    "entity_key": "structural_unknown_168_160_150",
+    "entity_type": "StructuralElement",
+    "zone_key": null,
+    "floor_key": "unknown",
+    "layer": "structural",
+    "name": "Structural \u00b7 Unknown",
+    "live": false,
+    "room_type": null
+  },
+  {
+    "xeokit_object_id": "structural_unknown_153_147_140",
+    "entity_key": "structural_unknown_153_147_140",
+    "entity_type": "StructuralElement",
+    "zone_key": null,
+    "floor_key": "unknown",
+    "layer": "structural",
+    "name": "Structural \u00b7 Unknown",
+    "live": false,
+    "room_type": null
+  },
+  {
+    "xeokit_object_id": "structural_unknown_204_201_193",
+    "entity_key": "structural_unknown_204_201_193",
+    "entity_type": "StructuralElement",
+    "zone_key": null,
+    "floor_key": "unknown",
+    "layer": "structural",
+    "name": "Structural \u00b7 Unknown",
+    "live": false,
+    "room_type": null
+  },
+  {
+    "xeokit_object_id": "structural_unknown_186_183_175",
+    "entity_key": "structural_unknown_186_183_175",
+    "entity_type": "StructuralElement",
+    "zone_key": null,
+    "floor_key": "unknown",
+    "layer": "structural",
+    "name": "Structural \u00b7 Unknown",
+    "live": false,
+    "room_type": null
+  },
+  {
+    "xeokit_object_id": "structural_unknown_142_147_155",
+    "entity_key": "structural_unknown_142_147_155",
+    "entity_type": "StructuralElement",
+    "zone_key": null,
+    "floor_key": "unknown",
+    "layer": "structural",
+    "name": "Structural \u00b7 Unknown",
+    "live": false,
+    "room_type": null
+  },
+  {
+    "xeokit_object_id": "structural_unknown_132_140_150",
+    "entity_key": "structural_unknown_132_140_150",
+    "entity_type": "StructuralElement",
+    "zone_key": null,
+    "floor_key": "unknown",
+    "layer": "structural",
+    "name": "Structural \u00b7 Unknown",
+    "live": false,
+    "room_type": null
+  },
+  {
+    "xeokit_object_id": "structural_unknown_178_168_155",
+    "entity_key": "structural_unknown_178_168_155",
+    "entity_type": "StructuralElement",
+    "zone_key": null,
+    "floor_key": "unknown",
+    "layer": "structural",
+    "name": "Structural \u00b7 Unknown",
+    "live": false,
+    "room_type": null
+  },
+  {
+    "xeokit_object_id": "structural_unknown_127_124_119",
+    "entity_key": "structural_unknown_127_124_119",
     "entity_type": "StructuralElement",
     "zone_key": null,
     "floor_key": "unknown",

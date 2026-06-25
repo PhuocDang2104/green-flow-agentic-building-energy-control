@@ -6,7 +6,7 @@ import { FileDown, Loader2 } from "lucide-react";
 import PageHeader from "@/components/shell/PageHeader";
 import KpiCard from "@/components/dashboard/KpiCard";
 import BuildingHealthCard from "@/components/dashboard/BuildingHealthCard";
-import EnergyAnalyticsSection from "@/components/dashboard/EnergyAnalyticsSection";
+import ClimateScenarioSection from "@/components/dashboard/ClimateScenarioSection";
 import Skeleton from "@/components/shared/Skeleton";
 import EntityInsightPanel from "@/components/dashboard/EntityInsightPanel";
 import ZoneStateTable from "@/components/dashboard/ZoneStateTable";
@@ -85,7 +85,7 @@ export default function DashboardPage() {
         <BuildingHealthCard />
       </div>
 
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard title="Total Load" value={fmtKw(totalKw)} loading={!kpis}
                  delta={kpis?.kwh != null ? `${Number(kpis.kwh).toFixed(0)} kWh today` : undefined}
                  status="normal" />
@@ -99,12 +99,10 @@ export default function DashboardPage() {
         <KpiCard title="Occupancy" value={`${occupancy ?? "–"} people`} loading={!kpis}
                  delta={kpis?.occ_conf != null ? `${fmtPct(kpis.occ_conf)} confidence` : undefined}
                  status="info" />
-        <KpiCard title="Agent Actions" value={`${kpis?.executed ?? 0} executed`} loading={!kpis}
-                 delta={`${kpis?.pending ?? 0} pending approval`}
-                 status={kpis?.pending ? "warning" : "success"} />
       </div>
 
-      <div className="mt-4 grid gap-4 xl:grid-cols-[1fr_360px]">
+      {/* fixed-height row: the inspector matches the 3D card height and scrolls inside */}
+      <div className="mt-4 grid gap-4 xl:h-[560px] xl:grid-cols-[1fr_360px]">
         <GreenFlowViewer />
         <EntityInsightPanel />
       </div>
@@ -113,7 +111,7 @@ export default function DashboardPage() {
         <ZoneStateTable zones={zones} />
       </div>
 
-      <EnergyAnalyticsSection />
+      <ClimateScenarioSection />
     </div>
   );
 }

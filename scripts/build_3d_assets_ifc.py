@@ -151,7 +151,8 @@ def main(skip_xkt: bool = False) -> None:
     st = G.tessellate(STRUCT)
     process("structural", "StructuralElement",
             G.emit_merged_objects(st, origin, "structural", "StructuralElement",
-                                  cell=0.2))
+                                  cell=0.2, material_color=True,
+                                  class_palette=G.STRUCT_MATERIAL))
     del st
 
     # MEP geometry is dense pre-tessellated curves (ducts/fixtures) -> decimate.

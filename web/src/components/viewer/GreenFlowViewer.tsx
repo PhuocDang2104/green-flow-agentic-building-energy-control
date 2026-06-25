@@ -36,6 +36,7 @@ const ALERT_COLOR: Record<AlertSeverity, [number, number, number]> = {
 const ALERT_RANK: Record<AlertSeverity, number> = { info: 0, warning: 1, critical: 2 };
 
 export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightClass?: string }) {
+  const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const viewerRef = useRef<XeokitViewer | null>(null);
   const modelsRef = useRef<Record<string, any>>({});
@@ -50,6 +51,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const [alertByZone, setAlertByZone] = useState<Record<string, AlertSeverity>>({});
 
   const layers = useAppStore((s) => s.layers);
+  const techHeatmap = useAppStore((s) => s.techHeatmap);
   const activeMetric = useAppStore((s) => s.activeMetric);
   const zoneStates = useAppStore((s) => s.zoneStates);
   const selectedEntityKey = useAppStore((s) => s.selectedEntityKey);
@@ -201,7 +203,12 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   function styleDefaults(viewer: any) {
     for (const [id, entry] of Object.entries(objectMapRef.current)) {
       const entity = viewer.scene.objects[id];
-      if (entity && entry.layer === "spaces") styleSpace(entity, entry);
+      if (entity && entry.layer === "spaces") {
+        styleSpace(entity, entry);
+        // Only the 14 curated/live zones are clickable — they match the table
+        // below; the other ~294 spaces are visual context, not selectable.
+        entity.pickable = !!entry.live;
+      }
     }
     viewer.scene.highlightMaterial.fillColor = [0.06, 0.46, 0.43];
     viewer.scene.highlightMaterial.fillAlpha = 0.5;
@@ -251,6 +258,30 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       if (!styled) styleSpace(entity, entry);
     }
   }, [zoneStates, activeMetric, ready, alertByZone]);
+
+  // --- Technical Systems heatmaps (Electrical %Load / HVAC power) -----------
+  // No per-element load is mapped onto the architecture XKT yet, so the tint is
+  // a floor-stable estimate (reads as a heatmap by storey); swap in real
+  // per-object current/power here once that mapping exists.
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !ready) return;
+    const ramps: Record<string, [number, number, number][]> = {
+      electrical: [[0.13, 0.77, 0.37], [0.92, 0.7, 0.04], [0.94, 0.27, 0.27]],
+      hvac: [[0.73, 0.9, 0.99], [0.22, 0.74, 0.97], [0.11, 0.31, 0.85]],
+    };
+    (["electrical", "hvac"] as const).forEach((layer) => {
+      const on = techHeatmap[layer];
+      for (const [id, entry] of Object.entries(objectMapRef.current)) {
+        if (entry.layer !== layer) continue;
+        const entity = viewer.scene.objects[id];
+        if (!entity) continue;
+        entity.colorize = on
+          ? ramp3(ramps[layer], stableUnit(entry.floor_key || entry.entity_key || id))
+          : [1, 1, 1];
+      }
+    });
+  }, [techHeatmap, ready, layers]);
 
   // --- occupancy dots: one red dot per person, scattered in the zone footprint
   useEffect(() => {
@@ -382,8 +413,17 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     if (viewer) viewer.cameraFlight.flyTo({ aabb: viewer.scene.getAABB(viewer.scene.visibleObjectIds), duration: 0.6 });
   };
 
+  // Capture the wheel inside the 3D card: zoom the scene, never scroll the page.
+  useEffect(() => {
+    const el = wrapRef.current;
+    if (!el) return;
+    const onWheel = (e: WheelEvent) => e.preventDefault();
+    el.addEventListener("wheel", onWheel, { passive: false });
+    return () => el.removeEventListener("wheel", onWheel);
+  }, []);
+
   return (
-    <div className={`relative w-full overflow-hidden rounded-card border border-border bg-gradient-to-b from-slate-50 to-white ${heightClass}`}>
+    <div ref={wrapRef} className={`relative w-full overflow-hidden rounded-card border border-border bg-gradient-to-b from-slate-50 to-white ${heightClass}`}>
       <canvas ref={canvasRef} className="viewer-canvas" />
       {!ready && !error && (
         <div className="absolute inset-0 grid place-items-center">
@@ -447,6 +487,22 @@ function ramp(v: number): [number, number, number] {
   }
   const t = (v - 0.5) / 0.5;
   return [0.96 - t * (0.96 - 0.86), 0.62 - t * (0.62 - 0.15), 0.04 + t * (0.15 - 0.04)];
+}
+
+/** Stable [0,1] from a string key (so a layer's tint is steady, not random). */
+function stableUnit(seed: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  return ((h >>> 0) % 1000) / 1000;
+}
+
+/** Interpolate a 3-stop colour ramp at t∈[0,1]. */
+function ramp3(stops: [number, number, number][], t: number): [number, number, number] {
+  const x = Math.max(0, Math.min(1, t)) * 2;
+  const i = Math.min(1, Math.floor(x));
+  const f = x - i;
+  const a = stops[i], b = stops[i + 1];
+  return [a[0] + (b[0] - a[0]) * f, a[1] + (b[1] - a[1]) * f, a[2] + (b[2] - a[2]) * f];
 }
 
 function hexToRgb(hex: string): [number, number, number] {

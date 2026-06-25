@@ -14,6 +14,9 @@ interface AppState {
   selectedEntityKey: string | null;
   activeMetric: MetricId;
   layers: Record<string, boolean>;
+  // per-layer technical heatmaps (Technical Systems group), independent of the
+  // Spatial/Zone mode bar (activeMetric)
+  techHeatmap: { electrical: boolean; hvac: boolean };
   viewerUpdates: ViewerUpdate[];
   chatbotOpen: boolean;
   activeAgentRunId: string | null;
@@ -26,6 +29,7 @@ interface AppState {
   setMetric: (m: MetricId) => void;
   setLayer: (layer: string, visible: boolean) => void;
   setLayers: (layers: Record<string, boolean>) => void;
+  setTechHeatmap: (layer: "electrical" | "hvac", on: boolean) => void;
   setViewerUpdates: (u: ViewerUpdate[]) => void;
   setChatbotOpen: (v: boolean) => void;
   setActiveAgentRunId: (id: string | null) => void;
@@ -44,6 +48,7 @@ export const useAppStore = create<AppState>((set) => ({
   activeMetric: "none",
   layers: { architecture: true, spaces: true, fenestration: false,
             structural: false, hvac: false, electrical: false },
+  techHeatmap: { electrical: false, hvac: false },
   viewerUpdates: [],
   chatbotOpen: false,
   activeAgentRunId: null,
@@ -57,6 +62,8 @@ export const useAppStore = create<AppState>((set) => ({
   setLayer: (layer, visible) =>
     set((s) => ({ layers: { ...s.layers, [layer]: visible } })),
   setLayers: (layers) => set({ layers }),
+  setTechHeatmap: (layer, on) =>
+    set((s) => ({ techHeatmap: { ...s.techHeatmap, [layer]: on } })),
   setViewerUpdates: (u) => set({ viewerUpdates: u }),
   setChatbotOpen: (v) => set({ chatbotOpen: v }),
   setActiveAgentRunId: (id) => set({ activeAgentRunId: id }),

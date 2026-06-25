@@ -43,12 +43,35 @@ function heatColor(t: number) {
   return c;
 }
 const WHITE = new THREE.Color("#ffffff");
-function zoneColor(z: any, mode: ColorMode) {
-  let c: THREE.Color;
-  if (mode === "load") c = heatColor(z.intensity ?? 0);
-  else if (mode === "feeder") c = new THREE.Color(feederColor(z.color_idx ?? -1));
-  else c = new THREE.Color("#aebfd9");
-  return c.lerp(WHITE, 0.55); // bright & airy on the white scene
+const ZONE_GRAY = new THREE.Color("#d6dde7");   // light grey shell
+const ZONE_EDGE = "#22c55e";                    // green bounding box (like the dashboard)
+function zoneFillColor(z: any, mode: ColorMode) {
+  // grey shell in status/feeder; tinted by load heat (lightened) in load mode
+  if (mode === "load") return heatColor(z.intensity ?? 0).lerp(WHITE, 0.25);
+  return ZONE_GRAY;
+}
+
+/** 12 edges of every zone box merged into one green LineSegments geometry. */
+function buildZoneEdges(zones: any[]): THREE.BufferGeometry {
+  const EP = [[0, 1], [1, 3], [3, 2], [2, 0], [4, 5], [5, 7], [7, 6], [6, 4],
+              [0, 4], [1, 5], [2, 6], [3, 7]];
+  const pos = new Float32Array(zones.length * EP.length * 2 * 3);
+  let o = 0;
+  for (const z of zones) {
+    const [sx, sy, sz] = z.size ?? [3.5, 3, 3.5];
+    const hx = Math.max(sx, 0.6) / 2, hy = Math.max(sy, 0.6) / 2, hz = Math.max(sz, 0.6) / 2;
+    const [cx, cy, cz] = z.pos;
+    const corner = (i: number) => [cx + ((i & 1) ? hx : -hx),
+      cy + ((i & 2) ? hy : -hy), cz + ((i & 4) ? hz : -hz)];
+    for (const [a, b] of EP) {
+      const ca = corner(a), cb = corner(b);
+      pos[o++] = ca[0]; pos[o++] = ca[1]; pos[o++] = ca[2];
+      pos[o++] = cb[0]; pos[o++] = cb[1]; pos[o++] = cb[2];
+    }
+  }
+  const g = new THREE.BufferGeometry();
+  g.setAttribute("position", new THREE.BufferAttribute(pos, 3));
+  return g;
 }
 
 /* ---------------- floors ---------------- */
@@ -83,25 +106,33 @@ function Zones({ zones, mode, onPick }: { zones: any[]; mode: ColorMode; onPick:
       s.set(Math.max(sx, 0.6), Math.max(sy, 0.6), Math.max(sz, 0.6));
       m.compose(p, q, s);
       mesh.setMatrixAt(i, m);
-      mesh.setColorAt(i, zoneColor(z, mode));
+      mesh.setColorAt(i, zoneFillColor(z, mode));
     });
     mesh.instanceMatrix.needsUpdate = true;
     if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
   }, [zones, mode]);
 
+  const edges = useMemo(() => buildZoneEdges(zones), [zones]);
+
   return (
-    <instancedMesh key={zones.length} ref={ref}
-      args={[undefined as any, undefined as any, Math.max(zones.length, 1)]}
-      onPointerDown={(e: ThreeEvent<PointerEvent>) => {
-        e.stopPropagation();
-        const z = zones[e.instanceId ?? -1];
-        if (z) onPick({ type: "zone", ...z });
-      }}>
-      <boxGeometry args={[1, 1, 1]} />
-      {/* unlit so the boxes stay bright/airy regardless of camera angle */}
-      <meshBasicMaterial vertexColors transparent opacity={mode === "status" ? 0.22 : 0.3}
-        side={THREE.DoubleSide} depthWrite={false} polygonOffset polygonOffsetFactor={1} />
-    </instancedMesh>
+    <group>
+      {/* light-grey see-through shell */}
+      <instancedMesh key={zones.length} ref={ref}
+        args={[undefined as any, undefined as any, Math.max(zones.length, 1)]}
+        onPointerDown={(e: ThreeEvent<PointerEvent>) => {
+          e.stopPropagation();
+          const z = zones[e.instanceId ?? -1];
+          if (z) onPick({ type: "zone", ...z });
+        }}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial vertexColors transparent opacity={mode === "load" ? 0.28 : 0.12}
+          side={THREE.DoubleSide} depthWrite={false} polygonOffset polygonOffsetFactor={1} />
+      </instancedMesh>
+      {/* green bounding-box edges (like the dashboard digital twin) */}
+      <lineSegments key={"ze" + zones.length} geometry={edges}>
+        <lineBasicMaterial color={ZONE_EDGE} transparent opacity={0.55} />
+      </lineSegments>
+    </group>
   );
 }
 

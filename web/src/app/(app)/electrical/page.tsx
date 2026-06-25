@@ -3,10 +3,10 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import dynamic from "next/dynamic";
 import {
-  Loader2, Send, Zap, Layers, Activity, ShieldCheck, PlugZap, ChevronDown, Check,
+  Loader2, Zap, Layers, Activity, PlugZap, ChevronDown, Check,
 } from "lucide-react";
 import PageHeader from "@/components/shell/PageHeader";
-import KpiCard from "@/components/dashboard/KpiCard";
+import EnergyAnalyticsSection from "@/components/dashboard/EnergyAnalyticsSection";
 import { api } from "@/lib/api";
 import { fmtKw, fmtKwh, titleCase } from "@/lib/format";
 import type { ColorMode } from "@/components/electrical/ElectricalTwin3D";
@@ -63,7 +63,6 @@ function SectionTitle({ icon: Icon, title, sub }: { icon: any; title: string; su
 }
 
 export default function ElectricalPage() {
-  const [overview, setOverview] = useState<any | null>(null);
   const [boards, setBoards] = useState<any[]>([]);
   const [scene, setScene] = useState<any | null>(null);
   const [circuits, setCircuits] = useState<any[]>([]);
@@ -78,12 +77,8 @@ export default function ElectricalPage() {
   const [loadSel, setLoadSel] = useState<Set<string>>(new Set(["lighting", "plug", "alarm"]));
   const [openMenu, setOpenMenu] = useState<string | null>(null);
 
-  const [question, setQuestion] = useState("Which board supplies the highest load and is it overloaded?");
-  const [ragBusy, setRagBusy] = useState(false);
-  const [ragAnswer, setRagAnswer] = useState<any | null>(null);
-
   useEffect(() => {
-    api.elecOverview().then(setOverview).catch((e) => setErr(String(e)));
+    api.elecOverview().catch((e) => setErr(String(e)));
     api.elecBoards().then((r) => setBoards(r.boards)).catch(() => null);
     api.elecScene(true, 700).then(setScene).catch(() => null);
     api.elecCircuits().then((r) => setCircuits(r.circuits)).catch(() => null);
@@ -110,20 +105,6 @@ export default function ElectricalPage() {
   const toggleSet = (s: Set<string>, setter: (x: Set<string>) => void, id: string) => {
     const n = new Set(s); n.has(id) ? n.delete(id) : n.add(id); setter(n);
   };
-
-  const ask = async () => {
-    if (!question.trim()) return;
-    setRagBusy(true); setRagAnswer(null);
-    try { setRagAnswer(await api.elecRagAnswer(question)); }
-    catch (e) { setRagAnswer({ answer: `Error: ${e}` }); }
-    finally { setRagBusy(false); }
-  };
-
-  const split = overview?.energy_split_kwh ?? {};
-  const vsum = overview?.validation_summary ?? {};
-  const ranking: any[] = overview?.board_demand_ranking ?? [];
-  const top = ranking[0];
-  const totalKwh = (Object.values(split) as any[]).reduce((a, b) => a + (Number(b) || 0), 0);
 
   const floorGroups = useMemo(() => {
     const g: Record<string, any> = {};
@@ -157,17 +138,8 @@ export default function ElectricalPage() {
         subtitle="3D digital twin of the LV distribution — boards, supply topology and EnergyPlus-simulated demand, every value provenance-tagged."
       />
 
-      {/* KPI row */}
-      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
-        <KpiCard title="Distribution Boards" value={`${overview?.boards ?? "–"}`}
-          delta={`${overview?.zones ?? 0} zones · ${scene?.counts?.links ?? 0} supply links`} status="info" />
-        <KpiCard title="Largest Board" value={fmtKw(top?.peak_total_kw)}
-          delta={top ? (top.device_tag || top.board_id) : undefined} status="normal" />
-        <KpiCard title="Annual Energy" value={fmtKwh(totalKwh)} delta="EnergyPlus-simulated" status="success" />
-        <KpiCard title="Validation" value={vsum.fail === 0 ? "Pass" : `${vsum.fail ?? "?"} fail`}
-          delta={`no double-count · ${vsum.manual_review_items ?? 0} review`}
-          status={vsum.fail === 0 ? "success" : "danger"} />
-      </div>
+      {/* Energy & performance analytics (moved here from the dashboard) */}
+      <EnergyAnalyticsSection />
 
       {/* ===== 3D TWIN ===== */}
       <Reveal>
@@ -351,53 +323,6 @@ export default function ElectricalPage() {
         </Reveal>
       </div>
 
-      {/* ===== PROVENANCE ===== */}
-      <Reveal>
-        <SectionTitle icon={ShieldCheck} title="Data provenance & engineering caveats"
-          sub="What is measured, simulated, IFC-derived or inferred — read before using these numbers." />
-        <div className="card grid gap-3 p-5 text-[13px] md:grid-cols-2">
-          {[
-            ["EnergyPlus-simulated", "Zone lights / equipment / HVAC energy and all board demand totals come from the EnergyPlus gold dataset — not metered.", "bg-emerald-500"],
-            ["IFC-derived", "Board / load-point geometry, voltage, phase and system codes are read from the enriched IFC (Finnish MEP psets).", "bg-sky-500"],
-            ["Spatially / naming-inferred", "Board↔zone supply links use system-code + floor + nearest-board evidence with a confidence — this is an estimated graph, not as-wired.", "bg-amber-500"],
-            ["Manual-review / rating-missing", "Most board rated currents are placeholder 0 in the IFC, so overload is reported as 'rating_missing' (demand ranking only).", "bg-slate-400"],
-          ].map(([t, d, c]) => (
-            <div key={t as string} className="flex gap-2.5">
-              <span className={`mt-1 h-2.5 w-2.5 shrink-0 rounded-full ${c}`} />
-              <div><p className="font-medium">{t}</p><p className="text-[12px] text-text-muted">{d}</p></div>
-            </div>
-          ))}
-          <p className="md:col-span-2 rounded-lg bg-surface-muted px-3 py-2 text-[12px] text-text-muted">
-            This is an engineering-reasoning + visualisation layer. It is <b>not</b> a certified protection-coordination
-            or load-flow study. Energy is never double-counted: Σ board energy = Σ allocated zone energy (validated 0.0% mismatch).
-          </p>
-        </div>
-      </Reveal>
-
-      {/* ===== GRAPH-RAG ===== */}
-      <Reveal>
-        <SectionTitle icon={Send} title="Ask the electrical knowledge graph"
-          sub="Graph-RAG over entity & relationship cards — answers state provenance and confidence." />
-        <div className="card p-5">
-          <div className="flex gap-2">
-            <input value={question} onChange={(e) => setQuestion(e.target.value)}
-              onKeyDown={(e) => e.key === "Enter" && ask()}
-              placeholder="e.g. Which board feeds zone X, and is it overloaded?"
-              className="min-w-0 flex-1 rounded-lg border border-border px-3 py-2 text-[13px] outline-none focus:border-teal" />
-            <button onClick={ask} disabled={ragBusy} className="btn-primary shrink-0">
-              {ragBusy ? <Loader2 size={15} className="animate-spin" /> : <Send size={15} />}
-            </button>
-          </div>
-          {ragAnswer && (
-            <div className="mt-3 space-y-2 rounded-lg bg-surface-muted p-3 text-[13px]">
-              <p className="whitespace-pre-wrap leading-relaxed">{ragAnswer.answer}</p>
-              {ragAnswer.sources?.length > 0 && (
-                <p className="text-[11px] text-text-muted">sources: {ragAnswer.sources.map((s: any) => s.entity_id || s).join(", ")}</p>
-              )}
-            </div>
-          )}
-        </div>
-      </Reveal>
     </div>
   );
 }

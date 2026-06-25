@@ -49,6 +49,16 @@ LAYER_THEME: dict[str, dict[str, Any]] = {
     "electrical": {"color": [0.92, 0.66, 0.20], "opacity": 0.95},
 }
 
+# Structural material palette by IFC class — the STRUCTURAL IFC carries no
+# surface styles, so we colour by element type the way structural drawings do
+# (concrete slabs/columns/beams/walls, steel members/stairs, dark footings).
+STRUCT_MATERIAL: dict[str, list[float]] = {
+    "IfcSlab": [0.80, 0.79, 0.76], "IfcColumn": [0.66, 0.63, 0.59],
+    "IfcBeam": [0.60, 0.58, 0.55], "IfcWall": [0.73, 0.72, 0.69],
+    "IfcMember": [0.52, 0.55, 0.59], "IfcStair": [0.56, 0.58, 0.61],
+    "IfcRoof": [0.70, 0.66, 0.61], "IfcFooting": [0.50, 0.49, 0.47],
+}
+
 # Per-discipline IFC class filters (applied before tessellation).
 # Architecture shell. Excluded for triangle budget:
 #  - IfcMember (~10k curtain-wall mullions)
@@ -270,32 +280,49 @@ def decimate_mesh(positions: list[float], indices: list[int],
 
 
 def emit_merged_objects(res: TessResult, origin, layer: str, entity_type: str,
-                        cell: float | None = None) -> list[dict[str, Any]]:
-    """Merge a discipline's elements into one object per storey.
+                        cell: float | None = None,
+                        material_color: bool = False,
+                        class_palette: dict[str, list[float]] | None = None) -> list[dict[str, Any]]:
+    """Merge a discipline's elements into objects (one per storey by default).
 
     `cell` enables grid-snap decimation (metres) for heavy curved disciplines.
+    `material_color=True` groups by (storey, IFC material diffuse colour) instead
+    of one flat theme colour — so the real IFC surface-style palette (e.g.
+    concrete / steel / rebar on structural) is preserved instead of flat white.
+    Elements without an IFC style fall back to the discipline theme colour.
     """
     theme = LAYER_THEME[layer]
-    by_storey: dict[str, dict[str, list]] = {}
+    # bucket key: storey (default) OR (storey, colour) when material_color
+    buckets: dict[Any, dict[str, Any]] = {}
     for el in res.elements:
-        bucket = by_storey.setdefault(el.storey, {"pos": [], "idx": [], "n": 0})
+        if material_color:
+            col = (el.color or (class_palette.get(el.ifc_class) if class_palette else None)
+                   or theme["color"])
+        else:
+            col = theme["color"]
+        key = (el.storey, tuple(round(c, 3) for c in col)) if material_color else el.storey
+        bucket = buckets.setdefault(key, {"pos": [], "idx": [], "n": 0,
+                                          "storey": el.storey, "color": col})
         base = len(bucket["pos"]) // 3
         bucket["pos"].extend(_transform(el.verts, origin))
         bucket["idx"].extend(i + base for i in el.faces)
         bucket["n"] += 1
     objs = []
-    for storey, bucket in by_storey.items():
+    for key, bucket in buckets.items():
         pos, idx = bucket["pos"], bucket["idx"]
         if not idx:
             continue
         if cell:
             pos, idx = decimate_mesh(pos, idx, cell)
+        storey = bucket["storey"]
+        color = bucket["color"]
+        suffix = f"_{_slug('-'.join(str(int(c * 255)) for c in color))}" if material_color else ""
         objs.append({
-            "id": f"{layer}_{_slug(storey)}",
+            "id": f"{layer}_{_slug(storey)}{suffix}",
             "name": f"{layer.title()} · {storey}",
             "entity_type": entity_type, "layer": layer,
             "zone_key": None, "floor_key": _slug(storey),
-            "color": theme["color"], "opacity": theme["opacity"],
+            "color": color, "opacity": theme["opacity"],
             "positions": pos, "indices": idx,
             "properties": {"storey": storey, "element_count": bucket["n"]},
         })
