@@ -1,19 +1,41 @@
 "use client";
 
-import { useEffect } from "react";
-import { Radio } from "lucide-react";
+import { useEffect, useState } from "react";
+import { Clock, Radio } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/stores/appStore";
+import { usePollMs } from "@/hooks/usePollMs";
 import SearchBar from "./SearchBar";
 import UserMenu from "./UserMenu";
 
 export default function TopBar() {
   const streaming = useAppStore((s) => s.streaming);
   const setStreaming = useAppStore((s) => s.setStreaming);
+  const [now, setNow] = useState<string | null>(null);
 
   useEffect(() => {
     api.replayStatus().then((s) => setStreaming(!!s.streaming)).catch(() => {});
   }, [setStreaming]);
+
+  // virtual-clock label — polls fast while live so it ticks through the day
+  const pollMs = usePollMs(60000);
+  useEffect(() => {
+    const tick = () => api.replayStatus().then((s) => setNow(s.now)).catch(() => {});
+    tick();
+    const t = setInterval(tick, pollMs);
+    return () => clearInterval(t);
+  }, [pollMs]);
+
+  // weekday · dd/mm/yyyy · hh:mm in building-local (Vietnam) time, in that order
+  const clock = now
+    ? (() => {
+        const d = new Date(now), tz = { timeZone: "Asia/Ho_Chi_Minh" } as const;
+        const wd = d.toLocaleDateString("vi-VN", { ...tz, weekday: "long" });
+        const date = d.toLocaleDateString("vi-VN", { ...tz, day: "2-digit", month: "2-digit", year: "numeric" });
+        const time = d.toLocaleTimeString("vi-VN", { ...tz, hour: "2-digit", minute: "2-digit", hour12: false });
+        return `${wd}, ${date} ${time}`;
+      })()
+    : "…";
 
   const toggleLive = () => {
     const next = !streaming;
@@ -39,7 +61,11 @@ export default function TopBar() {
           <SearchBar />
         </div>
 
-        {/* right: live streaming toggle + user menu */}
+        {/* right: virtual clock + live streaming toggle + user menu */}
+        <span className="hidden items-center gap-1.5 text-xs text-text-secondary md:flex tabular-nums">
+          <Clock size={13} className="text-teal" />
+          <span className="capitalize">{clock}</span>
+        </span>
         <button
           onClick={toggleLive}
           title={streaming ? "Streaming the digital twin — click to pause"

@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import { AlertTriangle, Check, RefreshCw, ShieldCheck } from "lucide-react";
 import { api } from "@/lib/api";
 import { fmtTime } from "@/lib/format";
+import { usePollMs } from "@/hooks/usePollMs";
 import EmptyState from "@/components/shared/EmptyState";
 import type { Alert } from "@/lib/types";
 
@@ -38,11 +39,12 @@ export default function FaultsPanel() {
     api.alertsSummary().then(setSummary).catch(() => null);
   }, []);
 
+  const pollMs = usePollMs(15000);
   useEffect(() => {
     load();
-    const t = setInterval(load, 15000);
+    const t = setInterval(load, pollMs);
     return () => clearInterval(t);
-  }, [load]);
+  }, [load, pollMs]);
 
   const acknowledge = async (id: string) => {
     setBusyId(id);

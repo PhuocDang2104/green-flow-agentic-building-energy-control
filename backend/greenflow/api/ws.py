@@ -47,6 +47,7 @@ manager = ConnectionManager()
 
 async def replay_ticker() -> None:
     """Cycle through the latest day of telemetry, one 15-min tick per interval."""
+    from ..replayclock import stream_status
     settings = get_settings()
     building_id = settings.default_building_id
     interval = max(2, settings.replay_speed_seconds)
@@ -56,10 +57,16 @@ async def replay_ticker() -> None:
         try:
             # psycopg connect/query is blocking; run it off the event loop so a
             # slow or unreachable Postgres never freezes HTTP request handling.
-            timestamps = await asyncio.to_thread(_distinct_timestamps, building_id)
-            if timestamps:
-                ts = timestamps[tick_index % len(timestamps)]
+            status = await asyncio.to_thread(stream_status)
+            if status["streaming"]:
+                # Streaming: broadcast the virtual 'now' (grid-snapped) so the 3D
+                # viewer tracks the same clock as the polled KPI cards.
+                ts = status["now"]
+            else:
+                timestamps = await asyncio.to_thread(_distinct_timestamps, building_id)
+                ts = timestamps[tick_index % len(timestamps)] if timestamps else None
                 tick_index += 1
+            if ts:
                 zones = await asyncio.to_thread(_zone_states_at, building_id, ts)
                 total_kw = sum(z.get("total_power_kw") or 0 for z in zones.values())
                 occupancy = sum(z.get("occupancy_count") or 0 for z in zones.values())

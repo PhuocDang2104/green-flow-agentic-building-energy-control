@@ -17,6 +17,7 @@ import { MANIFEST_URL } from "@/lib/constants";
 import type { ObjectMapEntry, ViewerManifest } from "@/lib/types";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/stores/appStore";
+import { usePollMs } from "@/hooks/usePollMs";
 import LayerPanel from "./LayerPanel";
 import AnalysisBar from "./AnalysisBar";
 import ViewModeToolbar from "./ViewModeToolbar";
@@ -68,6 +69,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const viewerUpdates = useAppStore((s) => s.viewerUpdates);
   const selectEntity = useAppStore((s) => s.selectEntity);
   const setLayers = useAppStore((s) => s.setLayers);
+  const pollMs = usePollMs(15000);
 
   // --- init viewer once ---------------------------------------------------
   useEffect(() => {
@@ -410,9 +412,9 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
         setAlertByZone(m);
       }).catch(() => null);
     load();
-    const t = setInterval(load, 15000);
+    const t = setInterval(load, pollMs);
     return () => { stop = true; clearInterval(t); };
-  }, [ready]);
+  }, [ready, pollMs]);
 
   // --- alert markers: a severity-colored pin floating above each faulted zone
   useEffect(() => {
