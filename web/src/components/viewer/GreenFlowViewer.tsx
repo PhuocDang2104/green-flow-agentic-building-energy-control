@@ -72,6 +72,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   // --- init viewer once ---------------------------------------------------
   useEffect(() => {
     let disposed = false;
+    const cleanups: Array<() => void> = [];
 
     (async () => {
       try {
@@ -168,7 +169,33 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
         setLayers(initialLayers);
         styleDefaults(viewer);
 
+        let pickedOnPointer = false;
+        let pointerDown: { x: number; y: number } | null = null;
+        const canvas = canvasRef.current;
+        if (canvas) {
+          const onPointerDown = (event: PointerEvent) => {
+            pickedOnPointer = false;
+            pointerDown = { x: event.clientX, y: event.clientY };
+          };
+          const onPointerUp = (event: PointerEvent) => {
+            if (!pointerDown) return;
+            const moved = Math.hypot(event.clientX - pointerDown.x, event.clientY - pointerDown.y);
+            pointerDown = null;
+            if (moved > 4) return;
+            window.setTimeout(() => {
+              if (!pickedOnPointer) selectEntity(null);
+            }, 0);
+          };
+          canvas.addEventListener("pointerdown", onPointerDown);
+          canvas.addEventListener("pointerup", onPointerUp);
+          cleanups.push(() => {
+            canvas.removeEventListener("pointerdown", onPointerDown);
+            canvas.removeEventListener("pointerup", onPointerUp);
+          });
+        }
+
         viewer.cameraControl.on("picked", (e: any) => {
+          pickedOnPointer = true;
           const id = e.entity?.id as string | undefined;
           if (!id) return;
           const entry = objectMapRef.current[id];
@@ -177,6 +204,10 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
             ? entry.entity_key
             : entry?.zone_key || entry?.entity_key || id;
           selectEntity(key);
+        });
+        viewer.cameraControl.on("pickedNothing", () => {
+          pickedOnPointer = false;
+          selectEntity(null);
         });
         viewer.cameraControl.on("hoverEnter", (e: any) => {
           const id = e.entity?.id as string | undefined;
@@ -192,6 +223,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
 
     return () => {
       disposed = true;
+      cleanups.forEach((fn) => fn());
       occupancyModelRef.current = null;
       alertModelRef.current = null;
       viewerRef.current?.destroy?.();

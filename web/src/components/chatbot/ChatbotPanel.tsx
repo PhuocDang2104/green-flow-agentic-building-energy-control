@@ -14,15 +14,15 @@ const SESSION_STORAGE_KEY = "greenflow_chat_session_id";
 const BOT_STATES = [
   {
     src: "/assets/landing/chatbot/bot_building.png",
-    speech: "Can xem toa nha nao?",
+    speech: "Need a quick building insight?",
   },
   {
     src: "/assets/landing/chatbot/bot_hi.png",
-    speech: "Hi, minh la GreenFlow!",
+    speech: "Hi, I am GreenFlow!",
   },
   {
     src: "/assets/landing/chatbot/bot_love.png",
-    speech: "Toi uu nang luong nao!",
+    speech: "Ready to optimize energy?",
   },
 ];
 

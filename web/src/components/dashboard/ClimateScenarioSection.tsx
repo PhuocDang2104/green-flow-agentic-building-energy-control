@@ -20,42 +20,7 @@ const BASELINE: Scenario = {
   wind_direction_deg: 135,
 };
 
-const MAP_ROADS = [
-  { left: 5, top: 32, width: 82, rotate: -9, size: 5 },
-  { left: 10, top: 55, width: 74, rotate: 17, size: 4 },
-  { left: 22, top: 16, width: 66, rotate: 41, size: 4 },
-  { left: 2, top: 73, width: 74, rotate: -31, size: 3 },
-  { left: 34, top: 3, width: 52, rotate: 82, size: 3 },
-  { left: 51, top: 17, width: 45, rotate: -54, size: 3 },
-  { left: 9, top: 12, width: 38, rotate: 74, size: 2 },
-  { left: 58, top: 66, width: 38, rotate: 19, size: 2 },
-];
-
-const MAP_BLOCKS = [
-  { left: 18, top: 22, width: 8, height: 8, z: 18, topColor: "#d7e2d8", sideColor: "#9fb7a7" },
-  { left: 29, top: 19, width: 10, height: 9, z: 28, topColor: "#e3e8dd", sideColor: "#a7b99e" },
-  { left: 42, top: 23, width: 7, height: 10, z: 36, topColor: "#d7e5e7", sideColor: "#8db2b5" },
-  { left: 55, top: 18, width: 9, height: 11, z: 44, topColor: "#e6ddd1", sideColor: "#b69f85" },
-  { left: 68, top: 27, width: 11, height: 9, z: 26, topColor: "#dce8d3", sideColor: "#9db58f" },
-  { left: 20, top: 44, width: 12, height: 9, z: 38, topColor: "#d6e6e1", sideColor: "#86afa7" },
-  { left: 36, top: 41, width: 10, height: 11, z: 54, topColor: "#efe2cc", sideColor: "#c2a676" },
-  { left: 50, top: 45, width: 8, height: 10, z: 70, topColor: "#dbe7ec", sideColor: "#8baebd" },
-  { left: 61, top: 43, width: 13, height: 12, z: 50, topColor: "#e8e1d5", sideColor: "#bda78b" },
-  { left: 13, top: 65, width: 10, height: 8, z: 22, topColor: "#d9e5d5", sideColor: "#9ab18f" },
-  { left: 30, top: 67, width: 13, height: 11, z: 46, topColor: "#e4e7dd", sideColor: "#acb894" },
-  { left: 48, top: 70, width: 9, height: 9, z: 34, topColor: "#d5e5e9", sideColor: "#86aab7" },
-  { left: 63, top: 66, width: 10, height: 12, z: 62, topColor: "#efe0d1", sideColor: "#bd9870" },
-  { left: 77, top: 58, width: 8, height: 9, z: 30, topColor: "#dce8d7", sideColor: "#9eb393" },
-];
-
-const WIND_POINTS = [
-  { left: 18, top: 28 },
-  { left: 76, top: 30 },
-  { left: 25, top: 76 },
-  { left: 72, top: 72 },
-  { left: 50, top: 82 },
-];
-
+const CLIMATE_MAP_IMAGE = "/assets/landing/hanoi_climate_map_google_3d.png";
 const DIRS = ["N", "NE", "E", "SE", "S", "SW", "W", "NW"];
 const dirLabel = (deg: number) => DIRS[Math.round(((deg % 360) / 45)) % 8];
 
@@ -157,6 +122,7 @@ export default function ClimateScenarioSection() {
   const tempTone = s.outdoor_temp_c >= 38 ? "danger" : s.outdoor_temp_c >= 34 ? "hot" : s.outdoor_temp_c >= 31 ? "warn" : "normal";
   const humTone = s.humidity_pct >= 80 ? "danger" : s.humidity_pct >= 65 ? "warn" : "normal";
   const solarTone = s.solar_multiplier >= 1.2 ? "danger" : s.solar_multiplier >= 1.05 ? "hot" : "normal";
+  const heatOpacity = Math.min(0.42, 0.12 + Math.max(0, hi - 30) / 36);
 
   const payload = {
     scenario_id: "el_nino_heat_stress",
@@ -198,11 +164,6 @@ export default function ClimateScenarioSection() {
       setBusy(false);
     }
   };
-
-  const windRad = ((s.wind_direction_deg + 180) % 360) * Math.PI / 180;
-  const arrowLen = 14 + Math.min(40, s.wind_speed_ms * 12);
-  const windArrowDeg = Math.atan2(Math.sin(windRad), Math.cos(windRad)) * 180 / Math.PI;
-  const heatOpacity = Math.min(0.92, 0.45 + Math.max(0, hi - 30) / 18);
 
   return (
     <section className="mt-4">
@@ -284,110 +245,27 @@ export default function ClimateScenarioSection() {
             </span>
           </div>
 
-          <div className="relative h-[340px] w-full overflow-hidden bg-[#0e1f1c]">
+          <div className="relative h-[340px] w-full overflow-hidden bg-slate-950">
             <div
-              className="absolute inset-0 opacity-90"
+              className="absolute inset-0 bg-cover bg-center"
               style={{
-                backgroundImage:
-                  "radial-gradient(circle at 15% 20%, rgba(96,125,88,0.52), transparent 24%), radial-gradient(circle at 75% 18%, rgba(78,94,70,0.55), transparent 26%), radial-gradient(circle at 25% 82%, rgba(83,105,76,0.6), transparent 28%), linear-gradient(135deg, #1b2c25 0%, #304032 45%, #142520 100%)",
+                backgroundImage: `url(${CLIMATE_MAP_IMAGE})`,
               }}
             />
-            <div className="absolute inset-x-0 top-0 h-20 bg-gradient-to-b from-white/10 to-transparent" />
-            <div className="absolute bottom-0 left-0 right-0 h-24 bg-gradient-to-t from-black/35 to-transparent" />
-
-            <div className="absolute left-1/2 top-[52%] h-[400px] w-[620px] -translate-x-1/2 -translate-y-1/2" style={{ perspective: "900px" }}>
-              <div
-                className="absolute inset-0 overflow-hidden rounded-[28px] border border-white/10 shadow-[0_40px_90px_rgba(0,0,0,0.45)]"
-                style={{
-                  transform: "rotateX(58deg) rotateZ(-29deg) scale(1.04)",
-                  transformStyle: "preserve-3d",
-                  backgroundImage:
-                    "linear-gradient(90deg, rgba(255,255,255,0.05) 1px, transparent 1px), linear-gradient(0deg, rgba(255,255,255,0.04) 1px, transparent 1px), radial-gradient(circle at 35% 45%, #63714f 0%, #526244 34%, #2f4438 70%)",
-                  backgroundSize: "34px 34px, 34px 34px, 100% 100%",
-                }}
-              >
-                <div
-                  className="absolute left-[44%] top-[-12%] h-[124%] w-[16%] rounded-[50%] bg-[#566a54]/95 shadow-[inset_0_0_28px_rgba(174,206,208,0.28)]"
-                  style={{ transform: "rotate(13deg)" }}
-                />
-                <div
-                  className="absolute left-[47%] top-[-14%] h-[128%] w-[5%] rounded-[50%] bg-[#7d9a86]/65 blur-[1px]"
-                  style={{ transform: "rotate(13deg)" }}
-                />
-
-                {MAP_ROADS.map((road, index) => (
-                  <div
-                    key={`road-${index}`}
-                    className="absolute rounded-full bg-slate-200/70 shadow-[0_0_10px_rgba(226,232,240,0.28)]"
-                    style={{
-                      left: `${road.left}%`,
-                      top: `${road.top}%`,
-                      width: `${road.width}%`,
-                      height: `${road.size}px`,
-                      transform: `rotate(${road.rotate}deg)`,
-                    }}
-                  />
-                ))}
-
-                {MAP_BLOCKS.map((block, index) => (
-                  <div
-                    key={`block-${index}`}
-                    className="absolute rounded-[4px] border border-white/25"
-                    style={{
-                      left: `${block.left}%`,
-                      top: `${block.top}%`,
-                      width: `${block.width}%`,
-                      height: `${block.height}%`,
-                      background: block.topColor,
-                      boxShadow: `0 ${block.z}px 0 ${block.sideColor}, 0 ${block.z + 10}px 22px rgba(0,0,0,0.24)`,
-                      transform: `translateY(-${block.z}px)`,
-                    }}
-                  >
-                    <span className="absolute inset-1 rounded-[3px] border border-white/25" />
-                  </div>
-                ))}
-
-                <div
-                  className="absolute inset-0 mix-blend-screen"
-                  style={{
-                    opacity: heatOpacity,
-                    background:
-                      `radial-gradient(circle at 52% 42%, ${b.fill}d9 0 9%, ${b.fill}70 18%, transparent 36%), radial-gradient(circle at 38% 62%, ${b.fill}8f 0 8%, transparent 30%), radial-gradient(circle at 68% 58%, ${b.fill}66 0 10%, transparent 32%)`,
-                  }}
-                />
-                <div
-                  className="absolute left-[48%] top-[40%] h-5 w-5 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_8px_rgba(255,255,255,0.16),0_0_28px_rgba(255,255,255,0.45)]"
-                  style={{ background: b.color }}
-                />
-              </div>
-            </div>
-
-            {WIND_POINTS.map((point, index) => (
-              <div
-                key={`wind-${index}`}
-                className="pointer-events-none absolute h-0.5 origin-center rounded-full bg-white/75 shadow-[0_0_10px_rgba(255,255,255,0.65)]"
-                style={{
-                  left: `${point.left}%`,
-                  top: `${point.top}%`,
-                  width: `${arrowLen}px`,
-                  opacity: 0.52 + Math.min(0.42, s.wind_speed_ms / 16),
-                  transform: `rotate(${windArrowDeg}deg)`,
-                }}
-              >
-                <span className="absolute -right-0.5 -top-[3px] h-0 w-0 border-y-[4px] border-l-[7px] border-y-transparent border-l-white/80" />
-              </div>
-            ))}
-
-            <div className="pointer-events-none absolute left-[51%] top-[40%] -translate-x-1/2 -translate-y-1/2 rounded-xl bg-slate-950/72 px-3 py-2 text-white shadow-floating backdrop-blur">
-              <div className="text-[13px] font-semibold leading-tight">Hanoi Core</div>
-              <div className="text-[10px] text-white/70">21.03N, 105.85E</div>
-            </div>
-            <div className="pointer-events-none absolute left-[59%] top-[53%] rounded-full bg-white/90 px-2.5 py-1 text-[10px] font-semibold text-teal shadow-floating">
-              GreenFlow building
-            </div>
-            <div className="pointer-events-none absolute right-4 top-[90px] grid h-12 w-12 place-items-center rounded-full border border-white/25 bg-slate-950/45 text-[10px] font-semibold text-white shadow-floating backdrop-blur">
-              N
-              <span className="absolute top-1 h-2 w-0.5 rounded-full bg-white" />
+            <div className="absolute inset-0 bg-gradient-to-b from-black/10 via-transparent to-black/35" />
+            <div
+              className="absolute inset-0 mix-blend-multiply"
+              style={{
+                opacity: heatOpacity,
+                background:
+                  `radial-gradient(circle at 55% 48%, ${b.fill} 0 12%, transparent 42%), radial-gradient(circle at 36% 66%, ${b.fill} 0 9%, transparent 33%)`,
+              }}
+            />
+            <div className="absolute left-[49%] top-[47%] h-4 w-4 -translate-x-1/2 -translate-y-1/2 rounded-full border-2 border-white shadow-[0_0_0_8px_rgba(255,255,255,0.2),0_0_28px_rgba(255,255,255,0.5)]"
+              style={{ background: b.color }} />
+            <div className="pointer-events-none absolute left-[51%] top-[41%] -translate-x-1/2 rounded-xl bg-slate-950/70 px-3 py-2 text-white shadow-floating backdrop-blur">
+              <div className="text-[13px] font-semibold leading-tight">Hanoi / VinUniversity Area</div>
+              <div className="text-[10px] text-white/70">Satellite 3D climate overlay</div>
             </div>
 
             <div className="pointer-events-none absolute left-3 top-3 grid w-[150px] gap-1.5">

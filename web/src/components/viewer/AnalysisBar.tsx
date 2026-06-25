@@ -17,18 +17,19 @@ function HeatmapChip({ layer, label, ramp }: {
   const on = useAppStore((s) => s.techHeatmap[layer]);
   const setTech = useAppStore((s) => s.setTechHeatmap);
   return (
-    <div className="rounded-xl border border-border bg-white/95 px-2.5 py-1.5 shadow-card backdrop-blur">
+    <div className="w-[286px] rounded-xl border border-border bg-white/95 px-2.5 py-1.5 shadow-card backdrop-blur">
       <button onClick={() => setTech(layer, !on)}
-        className={`flex items-center gap-1.5 text-[12px] font-medium ${on ? "text-teal" : "text-text-secondary"}`}>
-        <Flame size={12} /> {label} heatmap
-        <span className={`ml-1 rounded px-1.5 text-[10px] ${on ? "bg-teal text-white" : "bg-surface-muted text-text-muted"}`}>
+        className={`flex w-full items-center gap-1.5 text-[12px] font-medium ${on ? "text-teal" : "text-text-secondary"}`}>
+        <Flame size={12} />
+        <span className="min-w-0 flex-1 truncate text-left">{label} heatmap</span>
+        <span className={`rounded px-1.5 text-[10px] ${on ? "bg-teal text-white" : "bg-surface-muted text-text-muted"}`}>
           {on ? "ON" : "OFF"}
         </span>
       </button>
       {on && (
-        <div className="mt-1 flex items-center gap-1 text-[9px] text-text-muted">
+        <div className="mt-1 grid grid-cols-[auto_1fr_auto] items-center gap-1 text-[9px] text-text-muted">
           <span>Low</span>
-          <span className="h-1.5 w-24 rounded" style={{ background: `linear-gradient(90deg, ${ramp.join(",")})` }} />
+          <span className="h-1.5 rounded" style={{ background: `linear-gradient(90deg, ${ramp.join(",")})` }} />
           <span>High</span>
         </div>
       )}

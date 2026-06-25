@@ -34,7 +34,6 @@ export default function LayerPanel() {
         <LayerRow layer="structural" />
         <LayerRow layer="electrical" />
         <LayerRow layer="hvac" />
-        <p className="mt-0.5 px-1.5 text-[10px] text-text-muted">Heatmaps appear bottom-right when on.</p>
       </div>
 
       {/* Group 2 — Spatial / Zone Analytics */}
@@ -44,7 +43,6 @@ export default function LayerPanel() {
         </div>
         <LayerRow layer="architecture" />
         <LayerRow layer="spaces" />
-        <p className="mt-0.5 px-1.5 text-[10px] text-text-muted">Analysis mode bar appears bottom-right when on.</p>
       </div>
     </div>
   );
