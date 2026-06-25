@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import {
-  AlertTriangle, Bot, ClipboardCheck, Loader2, Play, Plus, TrendingUp,
+  AlertTriangle, Bot, ClipboardCheck, Loader2, Play, Plus, Trash2, TrendingUp,
 } from "lucide-react";
 import PageHeader from "@/components/shell/PageHeader";
 import AgentRunTimeline from "@/components/agent/AgentRunTimeline";
@@ -84,6 +84,12 @@ export default function AgentActionsPage() {
   };
 
   const onSessionId = (id: string) => { setSessionId(id); loadSessions(); };
+  const removeSession = async (id: string) => {
+    setSessions((prev) => prev.filter((s) => s.id !== id)); // optimistic
+    if (sessionId === id) setSessionId(null);
+    await api.deleteSession(id).catch(() => null);
+    loadSessions();
+  };
   const activeSession = sessions.find((s) => s.id === sessionId) || null;
   const pending = approvals.length;
 
@@ -132,14 +138,20 @@ export default function AgentActionsPage() {
               </p>
             )}
             {sessions.map((s) => (
-              <button key={s.id} onClick={() => setSessionId(s.id)}
-                      className={`block w-full rounded-lg px-2.5 py-2 text-left transition hover:bg-surface-muted
-                        ${s.id === sessionId ? "bg-teal-soft" : ""}`}>
-                <p className={`truncate text-[12.5px] ${s.id === sessionId ? "font-medium text-teal" : "text-text-secondary"}`}>
-                  {s.first_message || "New conversation"}
-                </p>
-                <p className="mt-0.5 text-[11px] text-text-muted">{s.n_messages} messages</p>
-              </button>
+              <div key={s.id} className="group relative">
+                <button onClick={() => setSessionId(s.id)}
+                        className={`block w-full rounded-lg px-2.5 py-2 pr-8 text-left transition hover:bg-surface-muted
+                          ${s.id === sessionId ? "bg-teal-soft" : ""}`}>
+                  <p className={`truncate text-[12.5px] ${s.id === sessionId ? "font-medium text-teal" : "text-text-secondary"}`}>
+                    {s.first_message || "New conversation"}
+                  </p>
+                  <p className="mt-0.5 text-[11px] text-text-muted">{s.n_messages} messages</p>
+                </button>
+                <button onClick={() => removeSession(s.id)} title="Delete conversation"
+                        className="absolute right-1.5 top-1.5 hidden rounded-md p-1.5 text-text-muted transition hover:bg-white hover:text-danger group-hover:block">
+                  <Trash2 size={13} />
+                </button>
+              </div>
             ))}
           </div>
         </aside>

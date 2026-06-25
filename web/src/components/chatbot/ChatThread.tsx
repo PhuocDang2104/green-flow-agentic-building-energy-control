@@ -159,7 +159,7 @@ export default function ChatThread({
   };
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex min-h-0 flex-1 flex-col">
       <div className="flex-1 space-y-3 overflow-y-auto px-4 py-3">
         {loadingHistory && (
           <div className="flex items-center gap-2 text-[13px] text-text-muted">

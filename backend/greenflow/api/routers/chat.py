@@ -49,6 +49,17 @@ def session_messages(session_id: str):
             WHERE session_id = :s ORDER BY created_at""", s=session_id)
 
 
+@router.delete("/chat/sessions/{session_id}")
+def delete_session(session_id: str):
+    """Delete a conversation (its messages cascade via the FK)."""
+    with db_conn() as conn:
+        row = fetch_one(conn, "DELETE FROM chat_sessions WHERE id = :s RETURNING id",
+                        s=session_id)
+    if not row:
+        raise HTTPException(404, "session not found")
+    return {"deleted": session_id}
+
+
 # ---- provider management (select provider + nhập key + lưu, đã mã hoá) ----
 class ProviderConfig(BaseModel):
     provider: str                 # groq | openai | openrouter | together | ollama | <custom>

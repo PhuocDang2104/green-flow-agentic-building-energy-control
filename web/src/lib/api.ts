@@ -76,6 +76,10 @@ export const api = {
   chatQuery: (message: string, session_id?: string | null) =>
     post<ChatQueryResponse>("/chat", { message, session_id: session_id || undefined }),
   chatSessions: () => get<ChatSessionSummary[]>("/chat/sessions"),
+  deleteSession: async (id: string): Promise<void> => {
+    const res = await fetch(`${BASE}/chat/sessions/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error(`delete session -> ${res.status}`);
+  },
   chatSessionMessages: (sessionId: string) =>
     get<ChatMessageRow[]>(`/chat/sessions/${sessionId}/messages`),
 
