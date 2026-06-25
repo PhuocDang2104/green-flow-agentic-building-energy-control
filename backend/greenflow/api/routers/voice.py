@@ -81,11 +81,13 @@ def _ensure_piper_voice() -> None:
                     (PIPER_JSON, PIPER_URL + "en_US-lessac-medium.onnx.json")):
         if fn.exists() and fn.stat().st_size > 0:
             continue
-        with httpx.stream("GET", url, follow_redirects=True, timeout=180) as r:
+        tmp = fn.with_suffix(fn.suffix + ".part")
+        with httpx.stream("GET", url, follow_redirects=True, timeout=300) as r:
             r.raise_for_status()
-            with open(fn, "wb") as out:
+            with open(tmp, "wb") as out:
                 for chunk in r.iter_bytes():
                     out.write(chunk)
+        tmp.rename(fn)  # atomic: a cancelled download leaves only .part, never a corrupt voice
 
 
 # strip markdown so TTS doesn't read "asterisk asterisk"; collapse to one line
