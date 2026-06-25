@@ -34,10 +34,12 @@ def _storage_root() -> Path:
 MODELS = _storage_root() / "models"
 WHISPER_DIR = MODELS / "whisper"
 PIPER_DIR = MODELS / "piper"
-PIPER_ONNX = PIPER_DIR / "en_US-lessac-medium.onnx"
-PIPER_JSON = PIPER_DIR / "en_US-lessac-medium.onnx.json"
+PIPER_ONNX = PIPER_DIR / "en_US-amy-medium.onnx"
+PIPER_JSON = PIPER_DIR / "en_US-amy-medium.onnx.json"
 PIPER_URL = ("https://huggingface.co/rhasspy/piper-voices/resolve/main/"
-             "en/en_US/lessac/medium/")
+             "en/en_US/amy/medium/")
+# Piper speech rate: length_scale < 1.0 speaks faster (1.0 = default). Tune here.
+PIPER_LENGTH_SCALE = "0.9"
 
 _whisper = None
 
@@ -114,7 +116,8 @@ def speak(req: SpeakRequest):
         out_path = f.name
     try:
         proc = subprocess.run(
-            ["piper", "--model", str(PIPER_ONNX), "--output_file", out_path],
+            ["piper", "--model", str(PIPER_ONNX), "--length-scale", PIPER_LENGTH_SCALE,
+             "--output_file", out_path],
             input=text.encode("utf-8"), capture_output=True, timeout=60)
         if proc.returncode != 0:
             raise HTTPException(500, f"tts failed: {proc.stderr.decode()[:200]}")
