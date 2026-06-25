@@ -137,6 +137,30 @@ def list_zones(conn, building_id) -> dict:
     return {"zones": [dict(r) for r in rows]}
 
 
+def search_system_docs(conn, building_id, query: str, limit: int = 5) -> dict:
+    """Search GreenFlow's own documentation — architecture and how each metric /
+    index is computed, capabilities, anomaly rules, the agent loop. Lexical
+    full-text over the knowledge base (the always-on RAG adds dense matches on
+    top); use for 'how does the system work / how is X computed' questions."""
+    try:
+        n = max(1, min(8, int(limit)))
+    except (TypeError, ValueError):
+        n = 5
+    rows = fetch_all(conn, """
+        SELECT title, content FROM kb_chunks
+        WHERE to_tsvector('simple', coalesce(title,'') || ' ' || content)
+              @@ websearch_to_tsquery('simple', :q)
+        ORDER BY ts_rank(
+            to_tsvector('simple', coalesce(title,'') || ' ' || content),
+            websearch_to_tsquery('simple', :q)) DESC
+        LIMIT :n""", q=query, n=n)
+    if not rows:  # no lexical hit → fall back to the system overview so the model has grounding
+        rows = fetch_all(conn, """
+            SELECT title, content FROM kb_chunks WHERE doc_type = 'system'
+            ORDER BY id LIMIT :n""", n=n)
+    return {"query": query, "docs": [dict(r) for r in rows]}
+
+
 ACTION_BUTTONS = {"run_optimization", "peak_strategy", "run_prediction"}
 
 
@@ -192,6 +216,17 @@ TOOL_SPECS = [
         "description": "List zones with name, room type, area.",
         "parameters": {"type": "object", "properties": {}}}},
     {"type": "function", "function": {
+        "name": "search_system_docs",
+        "description": (
+            "Search GreenFlow's OWN documentation: how the system is built and how a metric or "
+            "index is computed (e.g. how the Air Quality score, Building Health score, comfort, "
+            "EUI, or cost is calculated), what the product can do, the anomaly rules, the agent "
+            "loop, and the policy gate. Use this for questions about how the SYSTEM works or how "
+            "a number is derived. For the live building's actual values use the data tools "
+            "(get_building_kpi, get_alerts, etc.) instead."),
+        "parameters": {"type": "object", "properties": {
+            "query": {"type": "string"}}, "required": ["query"]}}},
+    {"type": "function", "function": {
         "name": "trigger_agent_action",
         "description": (
             "Start a REAL agentic workflow run in the background — only call this when the "
@@ -208,7 +243,8 @@ TOOL_SPECS = [
 
 _DISPATCH = {"get_building_kpi": get_building_kpi, "get_zone_timeseries": get_zone_timeseries,
              "get_top_consumers": get_top_consumers, "get_alerts": get_alerts,
-             "list_zones": list_zones, "trigger_agent_action": trigger_agent_action}
+             "list_zones": list_zones, "trigger_agent_action": trigger_agent_action,
+             "search_system_docs": search_system_docs}
 
 
 def dispatch(name: str, args: dict, conn, building_id) -> dict:
