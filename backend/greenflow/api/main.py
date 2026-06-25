@@ -12,7 +12,7 @@ from fastapi.staticfiles import StaticFiles
 from ..config import get_settings
 from .routers import (actions, agent, alerts, buildings, chat, climate, electrical,
                       entities, forecast, media, replay, reports, simulations, states,
-                      viewer)
+                      viewer, voice)
 from .ws import manager, monitor_ticker, replay_ticker
 
 
@@ -44,7 +44,7 @@ app.add_middleware(
 for router in (buildings.router, entities.router, states.router, viewer.router,
                agent.router, actions.router, simulations.router, reports.router,
                chat.router, forecast.router, media.router, alerts.router,
-               electrical.router, climate.router, replay.router):
+               electrical.router, climate.router, replay.router, voice.router):
     app.include_router(router, prefix="/api")
 
 settings.storage_path.mkdir(parents=True, exist_ok=True)

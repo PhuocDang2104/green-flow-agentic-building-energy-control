@@ -23,6 +23,12 @@ RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/wh
     && mkdir -p backend/greenflow && touch backend/greenflow/__init__.py \
     && pip install --no-cache-dir -e ".[ml,embeddings]"
 
+# ---- Voice deps in their OWN layer (self-hosted STT/TTS) ----
+# Kept separate from and below the heavy torch/ml/embeddings layer so adding
+# voice does NOT re-trigger the flaky torch download; faster-whisper bundles
+# PyAV for audio decode (no system ffmpeg), piper-tts is the CPU neural TTS.
+RUN pip install --no-cache-dir faster-whisper piper-tts python-multipart
+
 # ---- App source (changes here don't invalidate the deps layer above) ----
 COPY backend/greenflow ./backend/greenflow
 COPY scripts ./scripts

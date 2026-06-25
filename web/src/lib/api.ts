@@ -26,6 +26,24 @@ async function post<T>(path: string, body: unknown = {}): Promise<T> {
 }
 
 export const api = {
+  // self-hosted voice (faster-whisper STT + Piper TTS)
+  transcribe: async (blob: Blob): Promise<{ text: string }> => {
+    const fd = new FormData();
+    fd.append("file", blob, "audio.webm");
+    const res = await fetch(`${BASE}/voice/transcribe`, { method: "POST", body: fd });
+    if (!res.ok) throw new Error(`transcribe -> ${res.status}`);
+    return res.json();
+  },
+  speak: async (text: string): Promise<Blob> => {
+    const res = await fetch(`${BASE}/voice/speak`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+    if (!res.ok) throw new Error(`speak -> ${res.status}`);
+    return res.blob();
+  },
+
   buildings: () => get<Building[]>("/buildings"),
   kpis: () => get<Kpis>("/kpi/current"),
   healthScore: () => get<HealthScore>("/kpi/health-score"),

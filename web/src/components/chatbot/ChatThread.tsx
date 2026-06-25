@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
-import { BookOpen, Loader2, Send } from "lucide-react";
+import { BookOpen, Loader2, Mic, Send, Square, Volume2, VolumeX } from "lucide-react";
 import { api } from "@/lib/api";
 import { SUGGESTED_PROMPTS } from "@/lib/constants";
 import type { ChatMessageRow, ChatQueryResponse } from "@/lib/types";
@@ -47,8 +47,15 @@ export default function ChatThread({
   const [input, setInput] = useState("");
   const [busy, setBusy] = useState(false);
   const [loadingHistory, setLoadingHistory] = useState(false);
+  const [recording, setRecording] = useState(false);
+  const [transcribing, setTranscribing] = useState(false);
+  const [speakOn, setSpeakOn] = useState(false);
   const bottomRef = useRef<HTMLDivElement | null>(null);
   const loadedRef = useRef<string | null>(null);
+  const recRef = useRef<MediaRecorder | null>(null);
+  const chunksRef = useRef<Blob[]>([]);
+  const speakOnRef = useRef(false);
+  const audioRef = useRef<HTMLAudioElement | null>(null);
 
   useEffect(() => {
     bottomRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -78,6 +85,7 @@ export default function ChatThread({
     try {
       const res = await api.chatQuery(message, sessionId);
       setMessages((m) => [...m, { role: "assistant", text: res.answer, meta: res }]);
+      if (speakOnRef.current && res.answer) speakText(res.answer);
       if (res.session_id && res.session_id !== sessionId) {
         loadedRef.current = res.session_id; // keep these messages; don't reload over them
         onSessionId(res.session_id);
@@ -92,6 +100,61 @@ export default function ChatThread({
       ]);
     } finally {
       setBusy(false);
+    }
+  };
+
+  // --- voice: TTS (read replies aloud) + STT (push-to-talk) -----------------
+  const speakText = async (text: string) => {
+    try {
+      const blob = await api.speak(text);
+      audioRef.current?.pause();
+      const url = URL.createObjectURL(blob);
+      const a = new Audio(url);
+      audioRef.current = a;
+      a.onended = () => URL.revokeObjectURL(url);
+      await a.play();
+    } catch {
+      /* TTS unavailable — ignore */
+    }
+  };
+
+  const toggleSpeak = () => {
+    const next = !speakOn;
+    setSpeakOn(next);
+    speakOnRef.current = next;
+    if (!next) audioRef.current?.pause();
+  };
+
+  const toggleRecord = async () => {
+    if (recording) {
+      recRef.current?.stop();
+      return;
+    }
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      const rec = new MediaRecorder(stream);
+      chunksRef.current = [];
+      rec.ondataavailable = (e) => { if (e.data.size) chunksRef.current.push(e.data); };
+      rec.onstop = async () => {
+        stream.getTracks().forEach((t) => t.stop());
+        setRecording(false);
+        const blob = new Blob(chunksRef.current, { type: rec.mimeType || "audio/webm" });
+        if (!blob.size) return;
+        setTranscribing(true);
+        try {
+          const { text } = await api.transcribe(blob);
+          if (text.trim()) await send(text);
+        } catch {
+          /* STT failed — ignore */
+        } finally {
+          setTranscribing(false);
+        }
+      };
+      recRef.current = rec;
+      rec.start();
+      setRecording(true);
+    } catch {
+      /* mic denied / unsupported */
     }
   };
 
@@ -181,12 +244,32 @@ export default function ChatThread({
         }}
         className="flex items-center gap-2 border-t border-border px-3 py-3"
       >
+        <button
+          type="button"
+          onClick={toggleSpeak}
+          title={speakOn ? "Mute spoken replies" : "Read replies aloud"}
+          className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border transition hover:bg-surface-muted
+            ${speakOn ? "border-teal text-teal" : "border-border text-text-muted"}`}
+        >
+          {speakOn ? <Volume2 size={16} /> : <VolumeX size={16} />}
+        </button>
         <input
           value={input}
           onChange={(e) => setInput(e.target.value)}
           placeholder="Ask about zones, energy, actions…"
           className="flex-1 rounded-xl border border-border bg-surface-muted/50 px-3 py-2 text-[13px] outline-none focus:border-teal"
         />
+        <button
+          type="button"
+          onClick={toggleRecord}
+          disabled={transcribing}
+          title={recording ? "Stop & transcribe" : "Speak"}
+          className={`grid h-9 w-9 shrink-0 place-items-center rounded-xl border transition hover:bg-surface-muted
+            ${recording ? "border-danger text-danger animate-pulse" : "border-border text-text-muted"}`}
+        >
+          {transcribing ? <Loader2 size={16} className="animate-spin" />
+            : recording ? <Square size={14} /> : <Mic size={16} />}
+        </button>
         <button type="submit" disabled={busy || !input.trim()} className="btn-primary !px-3 !py-2">
           <Send size={15} />
         </button>
