@@ -64,7 +64,7 @@ export default function DashboardPage() {
   const occupancy = buildingLive.occupancy ?? kpis?.occupancy;
 
   return (
-    <div className="pb-4">
+    <div className="pb-4 elevate-surface">
       <PageHeader
         title="Dashboard & 3D View"
         subtitle="Real-time digital twin overview for zone, energy, comfort and device state."

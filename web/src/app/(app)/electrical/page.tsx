@@ -132,7 +132,7 @@ export default function ElectricalPage() {
   }
 
   return (
-    <div className="space-y-8 pb-10">
+    <div className="space-y-8 pb-10 elevate-surface">
       <PageHeader
         title="Electrical Distribution Twin"
         subtitle="3D digital twin of the LV distribution — boards, supply topology and EnergyPlus-simulated demand, every value provenance-tagged."
