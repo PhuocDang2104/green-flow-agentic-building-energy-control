@@ -7,6 +7,7 @@ import {
 import { motion, useReducedMotion } from "motion/react";
 import PageHeader from "@/components/shell/PageHeader";
 import AgentRunTimeline from "@/components/agent/AgentRunTimeline";
+import AgentRunTrace from "@/components/agent/AgentRunTrace";
 import ActionQueue from "@/components/agent/ActionQueue";
 import PredictionPanel from "@/components/agent/PredictionPanel";
 import PolicySummaryCard from "@/components/agent/PolicySummaryCard";
@@ -59,6 +60,7 @@ export default function AgentActionsPage() {
 
   const [sessions, setSessions] = useState<ChatSessionSummary[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
+  const [view, setView] = useState<"trace" | "chat">("trace");
   const loadSessions = useCallback(() => {
     api.chatSessions().then(setSessions).catch(() => null);
   }, []);
@@ -120,11 +122,11 @@ export default function AgentActionsPage() {
         actions={
           <>
             <button className="btn-secondary" disabled={running}
-                    onClick={() => start(() => api.runPrediction(scenario, sessionId))}>
+                    onClick={() => { setView("trace"); start(() => api.runPrediction(scenario, sessionId)); }}>
               <TrendingUp size={15} /> Run Prediction
             </button>
             <button className="btn-primary" disabled={running}
-                    onClick={() => start(() => api.runOptimization(scenario, sessionId))}>
+                    onClick={() => { setView("trace"); start(() => api.runOptimization(scenario, sessionId)); }}>
               {running ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />}
               Run Optimization
             </button>
@@ -175,23 +177,39 @@ export default function AgentActionsPage() {
           </div>
         </aside>
 
-        {/* conversation (hero) */}
+        {/* conversation (hero): CLI run trace + chat, toggleable */}
         <section className="card-elevated flex h-[560px] flex-col p-0 lg:h-[640px]">
-          <div className="flex items-center gap-2.5 border-b border-border/70 px-4 py-3.5">
+          <div className="flex items-center gap-2.5 border-b border-border/70 px-4 py-3">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-teal text-white shadow-[0_4px_12px_-4px_rgba(13,148,136,0.5)]">
               <Bot size={16} />
             </span>
-            <div className="min-w-0">
+            <div className="min-w-0 flex-1">
               <p className="truncate text-[13.5px] font-semibold tracking-tight">
-                {activeSession?.first_message || "Building agent"}
+                {view === "trace" ? "Agent run trace" : activeSession?.first_message || "Building agent"}
               </p>
               <p className="text-[11px] text-text-muted">
-                {activeSession ? `${activeSession.n_messages} messages`
-                  : "Reports notable findings here after each run"}
+                {view === "trace"
+                  ? running ? "reasoning live…" : "step-by-step reasoning"
+                  : activeSession ? `${activeSession.n_messages} messages` : "Ask the agent about the building"}
               </p>
             </div>
+            <div className="flex rounded-lg border border-border p-0.5 text-[11.5px]">
+              <button onClick={() => setView("trace")}
+                      className={`rounded-md px-2.5 py-1 font-medium transition ${view === "trace" ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"}`}>
+                Run trace
+              </button>
+              <button onClick={() => setView("chat")}
+                      className={`rounded-md px-2.5 py-1 font-medium transition ${view === "chat" ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"}`}>
+                Chat
+              </button>
+            </div>
           </div>
-          <ChatThread sessionId={sessionId} onSessionId={onSessionId} />
+          {view === "trace" ? (
+            <AgentRunTrace run={run} logs={logs} running={running} approvals={approvals}
+              onApprove={(id) => decide(id, true)} onReject={(id) => decide(id, false)} busyId={busyApproval} />
+          ) : (
+            <ChatThread sessionId={sessionId} onSessionId={onSessionId} />
+          )}
         </section>
 
         {/* actions */}
