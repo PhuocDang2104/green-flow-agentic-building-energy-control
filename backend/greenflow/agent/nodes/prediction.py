@@ -52,6 +52,48 @@ def _day_ahead_demand(building_id: str) -> dict:
         return {}
 
 
+def _ml_building_forecast(building_id: str, now) -> dict:
+    """Lag-based ML forecast of the building's next-step total (sum of per-zone
+    t+1 predictions). Best-effort: returns {} if the model / lightgbm / telemetry
+    history is missing, so the caller keeps the schedule-persistence forecast."""
+    try:
+        from ...ml import forecast_lag
+        if not forecast_lag.available():
+            return {}
+        from ...db import db_conn, fetch_all
+        with db_conn() as conn:
+            rows = fetch_all(conn, """
+                SELECT z.entity_key AS k, t.timestamp AS ts,
+                       t.total_power_kw AS p, t.occupancy_count AS occ
+                FROM telemetry_zone_15m t JOIN zones z ON z.id = t.zone_id
+                WHERE t.building_id = :b AND t.timestamp <= :now
+                ORDER BY t.timestamp""", b=building_id, now=now)
+            wx = fetch_all(conn, "SELECT outdoor_temp_c AS o FROM weather_15m "
+                           "WHERE timestamp <= :now ORDER BY timestamp DESC LIMIT 1", now=now)
+        if not rows:
+            return {}
+        otemp = float(wx[0]["o"]) if wx and wx[0]["o"] is not None else 30.0
+        nxt = now + timedelta(minutes=30)
+        by_zone: dict[str, list] = {}
+        for r in rows:
+            by_zone.setdefault(r["k"], []).append((float(r["p"] or 0), float(r["occ"] or 0)))
+        total_next = 0.0
+        ok = 0
+        for seq in by_zone.values():
+            hist = [p for p, _ in seq][-forecast_lag.STEPS_PER_DAY:]
+            if len(hist) < 2:
+                continue
+            p = forecast_lag.predict_next(hist, seq[-1][1], otemp, nxt)
+            if p is not None:
+                total_next += max(0.0, p)
+                ok += 1
+        if ok == 0:
+            return {}
+        return {"model": "lgbm_lag_total_v1", "building_next_kw": round(total_next, 2)}
+    except Exception:
+        return {}
+
+
 def run(state: GreenFlowState) -> dict:
     horizon = state.get("forecast_horizon_minutes", 60)
     zones = state.get("zones", [])
@@ -107,24 +149,38 @@ def run(state: GreenFlowState) -> dict:
         total_next += load_next
         conf_inputs.append(st.get("occupancy_confidence") or 0.8)
 
+    # ML lag forecaster for the building headline + peak (best-effort; falls back
+    # to the schedule-persistence sum above when the model/history is unavailable).
+    ml = _ml_building_forecast(state["building_id"], now)
+    building_next = ml.get("building_next_kw", round(total_next, 2))
+    model_name = ml.get("model", "schedule_aware_persistence_v0")
+
     # Peak risk: forecast building load vs contracted demand, ramped above 45%
     in_peak_window = 13 <= hour_next < 16 or 9.5 <= hour_next < 11.5
-    utilization = (total_next / CAPACITY_KW) * (1.3 if in_peak_window else 1.0)
+    utilization = (building_next / CAPACITY_KW) * (1.3 if in_peak_window else 1.0)
     peak_risk_value = peak_risk_from_utilization(utilization)
 
     confidence = round(min(0.92, (sum(conf_inputs) / len(conf_inputs) if conf_inputs else 0.7)
                            * (0.95 if not is_weekend else 0.85)), 2)
 
     high_risk_zones = [k for k, v in comfort_risk.items() if v >= 0.5]
+    is_ml = bool(ml)
     explanation = {
-        "model": "schedule_aware_persistence_v0",
+        "model": model_name,
         "horizon_minutes": horizon,
-        "top_features": [
+        "top_features": ([
+            {"feature": "current_load (lag0)", "weight": 0.30},
+            {"feature": "outdoor_temp", "weight": 0.25},
+            {"feature": "load_momentum (delta)", "weight": 0.20},
+            {"feature": "same_time_yesterday (lag_day)", "weight": 0.15},
+            {"feature": "occupancy", "weight": 0.10},
+        ] if is_ml else [
             {"feature": "occupancy_schedule_ratio", "weight": 0.45},
             {"feature": "current_load_persistence", "weight": 0.35},
             {"feature": "afternoon_temperature_ramp", "weight": 0.20},
-        ],
-        "notes": "P0 deterministic forecast; LightGBM surrogate planned for P1.",
+        ]),
+        "notes": ("LightGBM lag-based forecaster (beats persistence)." if is_ml
+                  else "Schedule-aware persistence (ML model unavailable; fallback)."),
     }
 
     demand_forecast = _day_ahead_demand(state["building_id"])
@@ -134,7 +190,7 @@ def run(state: GreenFlowState) -> dict:
             "zone_load_forecast": zone_load_forecast,
             "zone_temperature_forecast": zone_temp_forecast,
             "building_load_now_kw": round(total_now, 2),
-            "building_load_forecast_kw": round(total_next, 2),
+            "building_load_forecast_kw": building_next,
             "high_comfort_risk_zones": high_risk_zones,
         },
         "comfort_risk": comfort_risk,

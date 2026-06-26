@@ -36,10 +36,39 @@ from greenflow.db import db_conn, fetch_all  # noqa: E402
 
 BUILDING_ID = uuid.UUID("b0000000-0000-0000-0000-000000000001")
 TZ = timezone(timedelta(hours=7))  # Hà Nội; timestamp trong data là local naive
-DUCKDB_PATH = os.environ.get(
-    "DUCKDB_PATH",
-    "/data/Dat_data/greenflow_final_mode_b_plus_openmeteo_2025_30min_patched-001.duckdb")
-SCENARIO_ID = "openmeteo_2025_30min_baseline"
+DATASET_SCHEMA = os.environ.get("DATASET_SCHEMA", "v2025")  # v2025 | elnino2024
+
+# Crosswalk cột theo schema dataset. Gói El Niño Mar-Apr 2024 đổi tên cột và có
+# occupancy THẬT (zone_people_occupant_count) thay vì ước lượng. ts dùng cột
+# TIMESTAMP `datetime` (cột `timestamp` ở gói mới là VARCHAR).
+COLMAPS = {
+    "v2025": {
+        "ts": "timestamp", "occ": None,
+        "temp": "zone_air_temp_c", "rh": "zone_rh_pct", "sp": "cooling_setpoint_c",
+        "hvac": "final_hvac_electricity_kw", "light": "lights_electricity_kw",
+        "equip": "equipment_electricity_kw",
+        "total": "final_total_zone_electricity_kw",
+        "kwh": "final_total_zone_electricity_kwh_interval",
+        "default_path": "/data/Dat_data/greenflow_final_mode_b_plus_openmeteo_2025_30min_patched-001.duckdb",
+        "scenario_id": "openmeteo_2025_30min_baseline",
+    },
+    "elnino2024": {
+        "ts": "datetime", "occ": "zone_people_occupant_count",
+        "temp": "zone_air_temperature_c", "rh": "zone_air_relative_humidity_pct",
+        "sp": "cooling_setpoint_c",
+        "hvac": "hvac_power_kw", "light": "lights_electricity_kw",
+        "equip": "equipment_electricity_kw",
+        # zone_total_electricity_kw = lights+equip CHỈ (không HVAC). Tổng ĐÚNG gồm
+        # HVAC là target_total_zone_power_kw; kwh suy ra = tổng × 0.5h (mốc 30').
+        "total": "target_total_zone_power_kw",
+        "kwh": "target_total_zone_power_kw * 0.5",
+        "default_path": "/data/elnino_2024/greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_SELF_CONTAINED.duckdb",
+        "scenario_id": "elnino_2024_mar_apr_baseline",
+    },
+}
+CM = COLMAPS[DATASET_SCHEMA]
+DUCKDB_PATH = os.environ.get("DUCKDB_PATH", CM["default_path"])
+SCENARIO_ID = CM["scenario_id"]
 COMFORT_LIMIT_C = 26.5  # khớp synthetic_baseline
 
 # người/m2 theo room_type (ước lượng để suy occupancy — E+ không xuất số người)
@@ -96,13 +125,14 @@ def main() -> None:
     print(f"reading DuckDB: {DUCKDB_PATH}")
     con = duckdb.connect(DUCKDB_PATH, read_only=True)
     ph = ",".join(["?"] * len(tz_ids))
+    sel = ", ".join([CM["ts"], "zone_id", CM["temp"], CM["rh"], CM["sp"],
+                     CM["hvac"], CM["light"], CM["equip"], CM["total"], CM["kwh"]]
+                    + ([CM["occ"]] if CM["occ"] else []))
     rows = con.execute(f"""
-        SELECT timestamp, zone_id, zone_air_temp_c, zone_rh_pct, cooling_setpoint_c,
-               final_hvac_electricity_kw, lights_electricity_kw, equipment_electricity_kw,
-               final_total_zone_electricity_kw, final_total_zone_electricity_kwh_interval
+        SELECT {sel}
         FROM final_ai_training_timeseries
         WHERE zone_id IN ({ph})
-        ORDER BY timestamp""", tz_ids).fetchall()
+        ORDER BY {CM['ts']}""", tz_ids).fetchall()
     print(f"pulled {len(rows):,} rows ({len(tz_ids)} zones)")
 
     # 3) tải toà nhà theo timestamp -> ngưỡng peak_risk (so với đỉnh năm)
@@ -114,14 +144,18 @@ def main() -> None:
 
     # 4) transform -> tuples
     records = []
-    for (ts, zid, temp, rh, sp, hvac, light, equip, total, kwh) in rows:
+    for r in rows:
+        ts, zid, temp, rh, sp, hvac, light, equip, total, kwh = r[:10]
+        real_occ = r[10] if CM["occ"] else None
         key = tz_to_key[zid]
         z = zmap[key]
         dt = ts.replace(tzinfo=TZ)
         room = z["room_type"]
         dens = DENSITY.get(room, DEFAULT_DENSITY)
         cap = max(1.0, float(z["area_m2"] or 0) * dens)
-        occ = round(float(z["area_m2"] or 0) * dens * occ_fraction(dt))
+        # occupancy: số THẬT nếu dataset có (elnino2024), else ước lượng theo lịch
+        occ = (round(float(real_occ or 0)) if real_occ is not None
+               else round(float(z["area_m2"] or 0) * dens * occ_fraction(dt)))
         ratio = min(1.0, occ / cap)
         state = ("empty" if occ == 0 else "low" if ratio < 0.25
                  else "medium" if ratio < 0.7 else "high")
@@ -168,13 +202,12 @@ def main() -> None:
                        "FROM telemetry_zone_15m WHERE building_id=:b", b=BUILDING_ID)[0]
     print(f"replaced telemetry: {n0:,} -> {n1['c']:,} rows; range {n1['lo']} .. {n1['hi']}")
 
-    # scan anomalies over the replay window so the alerts feature has real data
+    # scan anomalies over the last 24h of LOADED data (no replay dependency)
     from greenflow.agent.anomaly import scan_anomalies
-    from greenflow.replayclock import anchor
+    hi = n1["hi"]
     with db_conn() as conn:
-        now = anchor(conn, BUILDING_ID)
-        n_alerts = scan_anomalies(conn, BUILDING_ID, now - timedelta(hours=24), now)
-    print(f"anomaly scan: {n_alerts} alerts written (window end {now})")
+        n_alerts = scan_anomalies(conn, BUILDING_ID, hi - timedelta(hours=24), hi)
+    print(f"anomaly scan: {n_alerts} alerts written (window end {hi})")
 
 
 if __name__ == "__main__":

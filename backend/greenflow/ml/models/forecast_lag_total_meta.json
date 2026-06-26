@@ -1,0 +1,89 @@
+{
+  "kind": "autoregressive_forecast",
+  "horizon": "t+1 (30min)",
+  "target": "total_power_kw",
+  "features": [
+    "cur",
+    "lag1",
+    "lag2",
+    "lag3",
+    "lag_day",
+    "roll_mean",
+    "roll_std",
+    "delta",
+    "hour_sin",
+    "hour_cos",
+    "dow",
+    "is_weekend",
+    "occ",
+    "otemp"
+  ],
+  "step_minutes": 30,
+  "source": "greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_SELF_CONTAINED.duckdb",
+  "test_metrics": {
+    "zone": {
+      "model": {
+        "mae_kw": 0.043,
+        "r2": 0.9937
+      },
+      "persistence": {
+        "mae_kw": 0.104,
+        "r2": 0.9499
+      }
+    },
+    "building": {
+      "model": {
+        "mae_kw": 8.239,
+        "r2": 0.9964
+      },
+      "persistence": {
+        "mae_kw": 31.56,
+        "r2": 0.9227
+      }
+    }
+  },
+  "beats_persistence": true,
+  "top_features": [
+    {
+      "feature": "otemp",
+      "gain": 4595
+    },
+    {
+      "feature": "lag_day",
+      "gain": 3968
+    },
+    {
+      "feature": "delta",
+      "gain": 3871
+    },
+    {
+      "feature": "hour_sin",
+      "gain": 3674
+    },
+    {
+      "feature": "cur",
+      "gain": 3483
+    },
+    {
+      "feature": "occ",
+      "gain": 3202
+    },
+    {
+      "feature": "roll_mean",
+      "gain": 2867
+    },
+    {
+      "feature": "hour_cos",
+      "gain": 2557
+    },
+    {
+      "feature": "lag1",
+      "gain": 2048
+    },
+    {
+      "feature": "lag2",
+      "gain": 1929
+    }
+  ],
+  "note": "Lag-based forecast; complements (does NOT replace) the no-lag what-if surrogate. Day-ahead = recursive rollout at serving."
+}
