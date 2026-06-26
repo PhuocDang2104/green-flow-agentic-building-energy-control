@@ -149,3 +149,60 @@ def simulate_recommended(req: SimulateRequest, background: BackgroundTasks):
                         button_action="peak_strategy",
                         scenario_config=req.scenario_config)
     return {"run_id": run_id, "status": "running"}
+
+
+class CampaignRequest(BaseModel):
+    building_id: str | None = None
+    setpoint_delta: float = 1.0           # AI policy: raise cooling setpoint by N°C
+    peak_start: int = 13
+    peak_end: int = 16
+    date_from: str | None = None          # ISO; default = full telemetry range
+    date_to: str | None = None
+
+
+@router.post("/simulations/campaign")
+def run_campaign(req: CampaignRequest):
+    """Period (campaign) what-if: building WITHOUT AI vs WITH a fixed setpoint
+    policy over the whole date range. baseline = measured; with-AI = measured
+    minus the structural surrogate's predicted reduction. Not the in-loop
+    approve sim — one fixed policy rolled across every step (Phase 3)."""
+    import pandas as pd
+
+    from ...ml import campaign_whatif
+    b = req.building_id or default_building_id()
+    with db_conn() as conn:
+        rows = fetch_all(conn, """
+            SELECT t.timestamp, t.total_power_kw, t.temperature_c, t.occupancy_count,
+                   COALESCE(t.setpoint_c, 24) AS cooling_setpoint_c,
+                   COALESCE(z.area_m2, 50) AS area_m2,
+                   COALESCE(z.volume_m3, COALESCE(z.area_m2, 50) * 3) AS volume_m3,
+                   3.0 AS ceiling_height_m,
+                   COALESCE(w.outdoor_temp_c, 30) AS outdoor_temp_c,
+                   COALESCE(w.humidity_pct, 70) AS outdoor_rh_pct,
+                   COALESCE(w.solar_w_m2, 0) AS ghi,
+                   COALESCE(w.wind_speed_mps, 2) AS wind,
+                   COALESCE(w.cloud_cover_pct, 40) AS cloud
+            FROM telemetry_zone_15m t
+            JOIN zones z ON z.id = t.zone_id
+            LEFT JOIN (SELECT DISTINCT ON (timestamp) timestamp, outdoor_temp_c,
+                              humidity_pct, solar_w_m2, wind_speed_mps, cloud_cover_pct
+                       FROM weather_15m ORDER BY timestamp) w ON w.timestamp = t.timestamp
+            WHERE t.building_id = :b
+              AND (CAST(:df AS timestamptz) IS NULL OR t.timestamp >= CAST(:df AS timestamptz))
+              AND (CAST(:dt AS timestamptz) IS NULL OR t.timestamp < CAST(:dt AS timestamptz))
+            ORDER BY t.timestamp
+        """, b=b, df=req.date_from, dt=req.date_to)
+    if not rows:
+        raise HTTPException(404, "no telemetry for the period")
+    df = pd.DataFrame([dict(r) for r in rows])
+    ts = pd.to_datetime(df["timestamp"])
+    df["hour"] = ts.dt.hour
+    df["dow"] = ts.dt.dayofweek
+    df["month"] = ts.dt.month
+    df["office_hours_flag"] = ((df.hour >= 7) & (df.hour < 19) & (df.dow < 5)).astype(int)
+    result = campaign_whatif.compute_campaign(
+        df, setpoint_delta=req.setpoint_delta,
+        peak_start=req.peak_start, peak_end=req.peak_end)
+    if result is None:
+        raise HTTPException(503, "surrogate model unavailable")
+    return result

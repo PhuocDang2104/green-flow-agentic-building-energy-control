@@ -19,6 +19,7 @@ SCP="sshpass -p $VM_PASS scp -o StrictHostKeyChecking=no -o ConnectTimeout=25"
 # Backend files -> copied into the api container; scripts -> /app/scripts.
 FILES=(
   "backend/greenflow/agent/nodes/prediction.py"
+  "backend/greenflow/api/routers/simulations.py"
   "backend/greenflow/ml/forecast_lag.py"
   "backend/greenflow/ml/campaign_whatif.py"
   "backend/greenflow/ml/models/forecast_lag_total.txt"
