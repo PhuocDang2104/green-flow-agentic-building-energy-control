@@ -11,6 +11,7 @@ from __future__ import annotations
 from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query
+from pydantic import BaseModel
 
 from ...db import db_conn, fetch_all
 from ...replayclock import anchor
@@ -48,6 +49,28 @@ def model_info():
             "temperature_c": "DoE thermal surrogate (no real target in the training set)",
         },
     }
+
+
+class ZoneStateRequest(BaseModel):
+    area_m2: float
+    cooling_setpoint_c: float
+    hour: int = 14
+    month: int = 7
+    is_workday: bool = True
+    occupied: bool = True
+    ceiling_height_m: float = 3.0
+    volume_m3: float | None = None
+    outdoor_temp_c: float | None = None
+
+
+@router.post("/ml/predict-zone")
+def predict_zone(req: ZoneStateRequest):
+    """Predict a zone's full operational state (total/HVAC power, temperature,
+    comfort & peak risk) from setup parameters. Every field has a fallback so the
+    system always returns a usable state — the operability contract for the
+    parameter/data-input setup flow."""
+    from ...ml import realforecast
+    return realforecast.predict_zone_state(**req.model_dump())
 
 
 @router.get("/forecast/demand")
