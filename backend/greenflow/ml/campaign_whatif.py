@@ -59,6 +59,14 @@ def compute_campaign(df, *, setpoint_delta: float = 1.0, peak_start: int = 13,
     booster, feats = m
     step_h = step_min / 60.0
 
+    # Postgres NUMERIC -> Decimal -> pandas 'object'; LightGBM needs float. Coerce.
+    import pandas as pd
+    df = df.copy()
+    for c in ("total_power_kw", "temperature_c", "occupancy_count", "cooling_setpoint_c",
+              "area_m2", "volume_m3", "ceiling_height_m", "outdoor_temp_c", "outdoor_rh_pct",
+              "ghi", "wind", "cloud", "hour", "dow", "month", "office_hours_flag"):
+        df[c] = pd.to_numeric(df[c], errors="coerce").astype(float)
+
     active = ((df["hour"] >= peak_start) & (df["hour"] < peak_end)
               & (df["dow"] < 5)).to_numpy()
     base_sp = df["cooling_setpoint_c"].to_numpy(dtype=float)

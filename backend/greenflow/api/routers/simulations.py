@@ -195,7 +195,9 @@ def run_campaign(req: CampaignRequest):
     if not rows:
         raise HTTPException(404, "no telemetry for the period")
     df = pd.DataFrame([dict(r) for r in rows])
-    ts = pd.to_datetime(df["timestamp"])
+    # telemetry is timestamptz (UTC); the peak window is LOCAL — convert to Hanoi
+    # before extracting hour, else 13-16h lands on the wrong (UTC) hours.
+    ts = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert("Asia/Ho_Chi_Minh")
     df["hour"] = ts.dt.hour
     df["dow"] = ts.dt.dayofweek
     df["month"] = ts.dt.month
