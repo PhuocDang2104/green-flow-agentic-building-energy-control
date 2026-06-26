@@ -112,6 +112,9 @@ export const api = {
   comparisonSeries: (metric = "total_power_kw") =>
     get<{ metric: string; kpi: ComparisonKpi; series: any[] }>(
       `/simulations/compare/series?metric=${metric}`),
+  runSeries: (runId: string, metric = "total_power_kw") =>
+    get<{ timestamp: string; value: number }[]>(
+      `/simulations/${runId}/series?metric=${metric}`),
   simulateRecommended: () =>
     post<{ run_id: string }>("/simulation/simulate-recommended-actions"),
   validateBaseline: (isWeekend?: boolean) =>

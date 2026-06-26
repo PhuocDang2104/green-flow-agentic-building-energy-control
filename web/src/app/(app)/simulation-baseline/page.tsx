@@ -4,8 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Boxes, ChevronRight, FlaskConical, GitCompareArrows, Loader2 } from "lucide-react";
 import { animate, motion, useReducedMotion } from "motion/react";
 import PageHeader from "@/components/shell/PageHeader";
-import BaselineOptimizedChart from "@/components/simulation/BaselineOptimizedChart";
-import ScenarioComparisonTable from "@/components/simulation/ScenarioComparisonTable";
+import ScenarioWorkbench from "@/components/simulation/ScenarioWorkbench";
 import ActionTraceTimeline from "@/components/simulation/ActionTraceTimeline";
 import ValidationPanel from "@/components/simulation/ValidationPanel";
 import { useAgentRun } from "@/hooks/useAgentRun";
@@ -183,9 +182,13 @@ export default function SimulationBaselinePage() {
 
       <ModelRegistryCard />
 
-      {/* proof: 24h profile + how it's simulated */}
-      <Reveal className="mt-4 grid gap-4 xl:grid-cols-[1fr_380px]">
-        <BaselineOptimizedChart refreshKey={refreshKey} />
+      {/* interactive scenario comparison workbench */}
+      <Reveal>
+        <ScenarioWorkbench />
+      </Reveal>
+
+      {/* methodology + the action trace that produced the optimized scenario */}
+      <Reveal className="mt-4 grid gap-4 lg:grid-cols-[1fr_420px]">
         <div className="card-elevated px-5 py-4">
           <h3 className="text-sm font-semibold tracking-tight">How this is simulated</h3>
           <ul className="mt-3 space-y-2 text-[13px] text-text-secondary">
@@ -203,11 +206,6 @@ export default function SimulationBaselinePage() {
             A what-if counterfactual simulation, not direct real-time control of the building.
           </p>
         </div>
-      </Reveal>
-
-      {/* scenarios + the action trace that produced them */}
-      <Reveal className="mt-4 grid gap-4 lg:grid-cols-[1fr_420px]">
-        <ScenarioComparisonTable runs={runs} />
         <ActionTraceTimeline actions={actions} />
       </Reveal>
 
