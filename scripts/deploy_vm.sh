@@ -25,6 +25,7 @@ FILES=(
   "backend/greenflow/ml/models/forecast_lag_total.txt"
   "backend/greenflow/ml/models/forecast_lag_total_meta.json"
   "scripts/load_real_data.py"
+  "scripts/load_weather.py"
   "scripts/train_forecast_lag.py"
 )
 
@@ -86,12 +87,16 @@ if [ "${1:-}" = "seed" ]; then
   $SSH "docker exec $API mkdir -p /data/elnino_2024"
   $SCP "$DUCK_LOCAL" "$VM_HOST:/tmp/elnino.duckdb" \
     && $SSH "docker cp /tmp/elnino.duckdb $API:/data/elnino_2024/greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_SELF_CONTAINED.duckdb && rm -f /tmp/elnino.duckdb"
-  say "run ingest (DATASET_SCHEMA=elnino2024)"
+  say "run ingest: telemetry (DATASET_SCHEMA=elnino2024) + weather"
   $SSH "docker exec -e DATASET_SCHEMA=elnino2024 $API python /app/scripts/load_real_data.py"
+  $SSH "docker exec $API python /app/scripts/load_weather.py"   # real weather -> campaign what-if
   echo
-  echo ">> Data loaded. FINAL manual step (no replay): point the dashboard 'now' at the 2024 window."
-  echo "   On the VM, in the greenflow compose dir, set REPLAY_NOW='' (or '2024-04-30T15:00:00')"
-  echo "   in .env then: docker compose up -d api    (anchor() then uses max(timestamp))."
+  echo ">> Data loaded. FINAL steps to show it on the dashboard (no replay):"
+  echo "   1) cd /opt/green-flow-agentic-building-energy-control"
+  echo "      sed -i \"s/^REPLAY_NOW=.*/REPLAY_NOW=2024-04-17T15:00:00/\" .env   # a hot WEEKDAY (avoid 30/4 holiday)"
+  echo "      docker compose up -d api      # recreate to load env"
+  echo "   2) RE-RUN this script (code path) afterwards: 'compose up' rebuilds the"
+  echo "      container from the IMAGE and WIPES docker-cp'd code -> re-deploy to restore."
 fi
 
 say "done"
