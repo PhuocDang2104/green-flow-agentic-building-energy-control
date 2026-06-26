@@ -20,6 +20,7 @@ SCP="sshpass -p $VM_PASS scp -o StrictHostKeyChecking=no -o ConnectTimeout=25"
 FILES=(
   "backend/greenflow/agent/nodes/prediction.py"
   "backend/greenflow/ml/forecast_lag.py"
+  "backend/greenflow/ml/campaign_whatif.py"
   "backend/greenflow/ml/models/forecast_lag_total.txt"
   "backend/greenflow/ml/models/forecast_lag_total_meta.json"
   "scripts/load_real_data.py"
