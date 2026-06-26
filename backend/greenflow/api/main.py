@@ -5,8 +5,10 @@ from __future__ import annotations
 import asyncio
 from contextlib import asynccontextmanager
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+import httpx
+from fastapi import FastAPI, Request, Response, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import RedirectResponse
 from fastapi.staticfiles import StaticFiles
 
 from ..config import get_settings
@@ -69,6 +71,35 @@ app.mount("/storage", StaticFiles(directory=str(settings.storage_path)), name="s
 @app.get("/api/health")
 def health():
     return {"status": "ok", "service": "greenflow-api"}
+
+
+# --- MLflow UI reverse-proxy -------------------------------------------------
+# The MLflow server (port 5000) is only reachable inside the docker network (the
+# VM's cloud firewall blocks 5000). It runs with --static-prefix /mlflow, so its
+# UI + ajax all live under /mlflow; we forward /mlflow/* to it so judges can
+# browse the experiment + model registry at greenflow-api.duckdns.org/mlflow.
+# (MLflow's REST API stays at the server root and is untouched.)
+_MLFLOW = "http://mlflow:5000"
+_HOP = {"content-encoding", "transfer-encoding", "content-length", "connection", "host"}
+
+
+@app.get("/mlflow")
+def mlflow_root():
+    return RedirectResponse("/mlflow/")
+
+
+@app.api_route("/mlflow/{path:path}",
+               methods=["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS", "HEAD"])
+async def mlflow_proxy(path: str, request: Request):
+    body = await request.body()
+    async with httpx.AsyncClient(timeout=120) as client:
+        up = await client.request(
+            request.method, f"{_MLFLOW}/mlflow/{path}",
+            params=request.query_params, content=body,
+            headers={k: v for k, v in request.headers.items() if k.lower() not in _HOP})
+    return Response(content=up.content, status_code=up.status_code,
+                    headers={k: v for k, v in up.headers.items() if k.lower() not in _HOP},
+                    media_type=up.headers.get("content-type"))
 
 
 @app.websocket("/ws/building/{building_id}/state")

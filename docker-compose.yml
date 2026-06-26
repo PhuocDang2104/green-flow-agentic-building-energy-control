@@ -106,7 +106,7 @@ services:
       - -c
       - >
         pip install --no-cache-dir 'mlflow==2.17.2' psycopg2-binary boto3 &&
-        mlflow server --host 0.0.0.0 --port 5000
+        mlflow server --host 0.0.0.0 --port 5000 --static-prefix /mlflow
         --backend-store-uri postgresql+psycopg2://greenflow:${POSTGRES_PASSWORD:-greenflow}@db:5432/mlflow
         --serve-artifacts --artifacts-destination s3://${S3_BUCKET:-greenflow}/mlflow
     environment:
