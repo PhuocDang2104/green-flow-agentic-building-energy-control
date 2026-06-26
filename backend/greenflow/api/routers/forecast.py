@@ -21,6 +21,35 @@ router = APIRouter()
 TZ = timezone(timedelta(hours=7))
 
 
+@router.get("/ml/model-info")
+def model_info():
+    """Forecast models + held-out metrics, mirrored from the MLflow registry
+    (greenflow_surrogate_*). Reads the committed model meta so it never depends on
+    MLflow being reachable at request time."""
+    from ...ml import realforecast
+    models = realforecast.test_metrics() or {}
+    out = []
+    for key, m in models.items():
+        out.append({
+            "registry_name": f"greenflow_surrogate_{key}",
+            "target": m.get("target"),
+            "metrics": m.get("test_metrics", {}),
+            "n_features": len(m.get("features", [])),
+            "split": m.get("split", "seasonal holdout (cool months)"),
+            "top_features": [t["f"] for t in (m.get("top_features") or [])[:5]],
+        })
+    return {
+        "registry": "MLflow · experiment greenflow-surrogate",
+        "engine": "LightGBM surrogate (EnergyPlus + Open-Meteo 2025, 30-min)",
+        "models": out,
+        "derived": {
+            "comfort_risk": "rule: zone temp > 26.5°C while occupied",
+            "peak_risk": "rule: zone power vs peak threshold",
+            "temperature_c": "DoE thermal surrogate (no real target in the training set)",
+        },
+    }
+
+
 @router.get("/forecast/demand")
 def demand_forecast(building_id: str = Query(default=None),
                     horizon_h: int = Query(default=24, ge=1, le=72),

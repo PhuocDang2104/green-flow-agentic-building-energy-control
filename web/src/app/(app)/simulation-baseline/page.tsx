@@ -1,7 +1,7 @@
 "use client";
 
 import { useCallback, useEffect, useRef, useState } from "react";
-import { ChevronRight, FlaskConical, GitCompareArrows, Loader2 } from "lucide-react";
+import { Boxes, ChevronRight, FlaskConical, GitCompareArrows, Loader2 } from "lucide-react";
 import { animate, motion, useReducedMotion } from "motion/react";
 import PageHeader from "@/components/shell/PageHeader";
 import BaselineOptimizedChart from "@/components/simulation/BaselineOptimizedChart";
@@ -54,6 +54,48 @@ function SavingsStat({ label, value, format, delta, tone = "teal", index }: {
       </span>
       {delta && <span className="text-[11.5px] text-text-muted">{delta}</span>}
     </motion.div>
+  );
+}
+
+const TARGET_LABEL: Record<string, string> = {
+  building_total_kw: "Building demand", zone_total_kw: "Zone power",
+  hvac_power_kw: "Zone HVAC power",
+};
+
+/** The forecast models behind the simulation, mirrored from the MLflow registry. */
+function ModelRegistryCard() {
+  const [info, setInfo] = useState<any>(null);
+  useEffect(() => { api.modelInfo().then(setInfo).catch(() => null); }, []);
+  if (!info?.models?.length) return null;
+  return (
+    <div className="card-elevated mt-4 px-5 py-4">
+      <div className="flex flex-wrap items-center gap-2">
+        <Boxes size={16} className="text-teal" />
+        <h3 className="text-sm font-semibold tracking-tight">Forecast models</h3>
+        <span className="rounded-full bg-teal-soft px-2 py-0.5 text-[11px] font-medium text-teal">
+          MLflow registry
+        </span>
+        <span className="ml-auto truncate text-[11px] text-text-muted">{info.engine}</span>
+      </div>
+      <div className="mt-3 grid gap-2.5 sm:grid-cols-3">
+        {info.models.map((m: any) => (
+          <div key={m.registry_name} className="rounded-xl border border-border/55 bg-surface px-3.5 py-3">
+            <p className="text-[12.5px] font-semibold">{TARGET_LABEL[m.target] || m.target}</p>
+            <div className="mt-1.5 flex items-baseline gap-2">
+              <span className="text-[22px] font-semibold leading-none tracking-tight text-success tabular-nums">
+                {(m.metrics?.r2 ?? 0).toFixed(2)}
+              </span>
+              <span className="text-[11px] text-text-muted">R² · MAE {m.metrics?.mae_kw} kW</span>
+            </div>
+            <p className="mt-1.5 truncate text-[10.5px] text-text-muted">{m.registry_name}</p>
+            <p className="text-[10.5px] text-text-muted">test: {m.split}</p>
+          </div>
+        ))}
+      </div>
+      <p className="mt-3 text-[11px] leading-relaxed text-text-muted">
+        Derived signals: comfort risk and peak risk (deterministic rules), temperature (thermal surrogate).
+      </p>
+    </div>
   );
 }
 
@@ -138,6 +180,8 @@ export default function SimulationBaselinePage() {
         <SavingsStat index={4} label="CO₂ avoided" value={kpi?.co2_avoided_kg}
                      format={(v) => `${Math.round(v)} kg`} delta="grid factor 0.6766 kg/kWh" tone="info" />
       </div>
+
+      <ModelRegistryCard />
 
       {/* proof: 24h profile + how it's simulated */}
       <Reveal className="mt-4 grid gap-4 xl:grid-cols-[1fr_380px]">

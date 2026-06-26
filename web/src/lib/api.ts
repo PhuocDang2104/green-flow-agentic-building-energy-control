@@ -75,6 +75,7 @@ export const api = {
   // data-query chatbot (RAG + SQL function-calling, persisted conversation)
   chatQuery: (message: string, session_id?: string | null) =>
     post<ChatQueryResponse>("/chat", { message, session_id: session_id || undefined }),
+  modelInfo: () => get<any>("/ml/model-info"),
   chatSessions: () => get<ChatSessionSummary[]>("/chat/sessions"),
   deleteSession: async (id: string): Promise<void> => {
     const res = await fetch(`${BASE}/chat/sessions/${id}`, { method: "DELETE" });
