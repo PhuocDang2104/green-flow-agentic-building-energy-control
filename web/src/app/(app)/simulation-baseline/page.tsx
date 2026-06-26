@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Boxes, ChevronRight, FlaskConical, GitCompareArrows, Loader2 } from "lucide-react";
 import { animate, motion, useReducedMotion } from "motion/react";
 import PageHeader from "@/components/shell/PageHeader";
+import CampaignWhatIf from "@/components/simulation/CampaignWhatIf";
 import ScenarioWorkbench from "@/components/simulation/ScenarioWorkbench";
 import ActionTraceTimeline from "@/components/simulation/ActionTraceTimeline";
 import ValidationPanel from "@/components/simulation/ValidationPanel";
@@ -164,7 +165,12 @@ export default function SimulationBaselinePage() {
         }
       />
 
-      {/* savings headline: elevated tiles with count-up numbers */}
+      {/* PERIOD what-if A/B - the headline of this tab: building with AI vs without */}
+      <div className="mb-4">
+        <CampaignWhatIf />
+      </div>
+
+      {/* per-simulated-day comparison (one-shot agent run), secondary detail */}
       <div className="grid grid-cols-2 gap-3 md:grid-cols-3 xl:grid-cols-5">
         <SavingsStat index={0} label="Energy saved" value={kpi?.saving_kwh}
                      format={(v) => `${Math.round(v)} kWh`}

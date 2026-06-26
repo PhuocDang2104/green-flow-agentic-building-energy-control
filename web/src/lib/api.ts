@@ -122,6 +122,20 @@ export const api = {
     const res = await fetch(`${BASE}/simulations/${id}`, { method: "DELETE" });
     if (!res.ok) throw new Error(`delete simulation -> ${res.status}`);
   },
+  // period (campaign) what-if: building WITHOUT AI vs WITH a fixed policy
+  campaign: (payload: {
+    setpoint_delta: number; peak_start?: number; peak_end?: number;
+    date_from?: string; date_to?: string;
+  }) => post<{
+    policy: { setpoint_delta_c: number; peak_window: string; engine: string };
+    kpi: {
+      baseline_kwh: number; optimized_kwh: number; saving_kwh: number;
+      saving_percent: number; cost_saving_vnd: number; peak_reduction_kw: number;
+      comfort_violation_delta_min: number; co2_avoided_kg: number; days: number;
+    };
+    daily: { date: string; baseline_kwh: number; optimized_kwh: number;
+             peak_baseline_kw: number; peak_optimized_kw: number }[];
+  }>("/simulations/campaign", payload),
   simulateRecommended: () =>
     post<{ run_id: string }>("/simulation/simulate-recommended-actions"),
   validateBaseline: (isWeekend?: boolean) =>
