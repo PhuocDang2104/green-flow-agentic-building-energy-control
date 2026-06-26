@@ -115,6 +115,13 @@ export const api = {
   runSeries: (runId: string, metric = "total_power_kw") =>
     get<{ timestamp: string; value: number }[]>(
       `/simulations/${runId}/series?metric=${metric}`),
+  createScenario: (payload: {
+    apply_ai: boolean; strategy?: string; horizon_minutes?: number; label?: string;
+  }) => post<{ run_id: string; status: string; mode: string }>("/simulations/scenario", payload),
+  deleteSimulation: async (id: string): Promise<void> => {
+    const res = await fetch(`${BASE}/simulations/${id}`, { method: "DELETE" });
+    if (!res.ok) throw new Error(`delete simulation -> ${res.status}`);
+  },
   simulateRecommended: () =>
     post<{ run_id: string }>("/simulation/simulate-recommended-actions"),
   validateBaseline: (isWeekend?: boolean) =>

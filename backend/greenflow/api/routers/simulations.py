@@ -94,6 +94,45 @@ def run_series(run_id: str, metric: str = "total_power_kw"):
     return simulation_tool.get_run_series(run_id, metric)
 
 
+@router.delete("/simulations/{run_id}")
+def delete_run(run_id: str):
+    """Delete a scenario run. sim_zone_15m rows cascade; scenario_kpi refs null."""
+    with db_conn() as conn:
+        row = fetch_one(conn, "DELETE FROM simulation_runs WHERE id = :r RETURNING id",
+                        r=run_id)
+    if not row:
+        raise HTTPException(404, "simulation run not found")
+    return {"deleted": run_id}
+
+
+class ScenarioRequest(BaseModel):
+    building_id: str | None = None
+    apply_ai: bool = True
+    strategy: str = "optimization"   # optimization | peak
+    horizon_minutes: int = 60
+    label: str | None = None
+
+
+@router.post("/simulations/scenario")
+def create_scenario(req: ScenarioRequest, background: BackgroundTasks):
+    """Create a scenario. apply_ai=false -> a baseline (no-action) run, persisted
+    immediately. apply_ai=true -> the agent optimizes (or peak-shaves) with the
+    given parameters and simulates the result in the background."""
+    b = req.building_id or default_building_id()
+    if not req.apply_ai:
+        rid = simulation_tool.persist_baseline_only(b, req.label)
+        return {"run_id": rid, "status": "completed", "mode": "baseline"}
+    sc: dict = {"horizon_minutes": req.horizon_minutes}
+    action = "run_optimization"
+    if req.strategy == "peak":
+        action = "peak_strategy"
+        sc["peak_strategy"] = True
+    run_id = service.start_run(b, "button", button_action=action, scenario_config=sc)
+    background.add_task(service.execute_run, run_id, b, "button",
+                        button_action=action, scenario_config=sc)
+    return {"run_id": run_id, "status": "running", "mode": "ai"}
+
+
 class SimulateRequest(BaseModel):
     building_id: str | None = None
     scenario_config: dict = {}

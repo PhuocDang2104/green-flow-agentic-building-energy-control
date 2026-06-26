@@ -1,10 +1,10 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import {
   CartesianGrid, Line, LineChart, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { Layers, Loader2, Target } from "lucide-react";
+import { Layers, Loader2, Plus, Sparkles, Target, Trash2, X } from "lucide-react";
 import { api } from "@/lib/api";
 import type { SimulationRun } from "@/lib/types";
 
@@ -62,17 +62,56 @@ export default function ScenarioWorkbench() {
   const [windowId, setWindowId] = useState<string>("day");
   const [series, setSeries] = useState<Record<string, { timestamp: string; value: number }[]>>({});
   const [loading, setLoading] = useState(false);
+  const [creating, setCreating] = useState(false);
+  const [busy, setBusy] = useState(false);
+  const [form, setForm] = useState({ apply_ai: true, strategy: "optimization", horizon_minutes: 60 });
+  const didDefault = useRef(false);
 
-  useEffect(() => {
+  const loadRuns = useCallback(() =>
     api.simulations().then((rs) => {
       setRuns(rs);
-      const base = rs.find((r) => r.run_kind === "baseline");
-      const opt = rs.find((r) => r.run_kind !== "baseline");
-      const sel = [base?.id, opt?.id].filter(Boolean) as string[];
-      setSelected(sel);
-      setRefId(base?.id ?? sel[0] ?? null);
-    }).catch(() => null);
-  }, []);
+      if (!didDefault.current && rs.length) {
+        didDefault.current = true;
+        const base = rs.find((r) => r.run_kind === "baseline");
+        const opt = rs.find((r) => r.run_kind !== "baseline");
+        const sel = [base?.id, opt?.id].filter(Boolean) as string[];
+        setSelected(sel);
+        setRefId(base?.id ?? sel[0] ?? null);
+      }
+      return rs;
+    }).catch(() => [] as SimulationRun[]), []);
+
+  useEffect(() => { loadRuns(); }, [loadRuns]);
+
+  const submitScenario = async () => {
+    setBusy(true);
+    try {
+      const res = await api.createScenario(form);
+      if (res.mode === "baseline") {
+        await loadRuns();
+        setSelected((s) => [...s, res.run_id].slice(-6));
+      } else {
+        // the optimized run finishes in the background; poll to pick it up
+        for (let i = 0; i < 6; i++) {
+          await new Promise((r) => setTimeout(r, 2500));
+          await loadRuns();
+        }
+      }
+      setCreating(false);
+    } catch {
+      /* ignore */
+    } finally {
+      setBusy(false);
+    }
+  };
+
+  const removeScenario = async (id: string) => {
+    setRuns((rs) => rs.filter((r) => r.id !== id)); // optimistic
+    setSelected((s) => s.filter((x) => x !== id));
+    if (refId === id) setRefId(null);
+    await api.deleteSimulation(id).catch(() => null);
+    loadRuns();
+  };
 
   useEffect(() => {
     if (!selected.length) { setSeries({}); return; }
@@ -122,7 +161,11 @@ export default function ScenarioWorkbench() {
         <Layers size={16} className="text-teal" />
         <h3 className="text-sm font-semibold tracking-tight">Scenario comparison</h3>
         {loading && <Loader2 size={13} className="animate-spin text-text-muted" />}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-2">
+          <button onClick={() => setCreating((v) => !v)}
+                  className="flex items-center gap-1 rounded-lg bg-teal px-2.5 py-1 text-[12px] font-medium text-white transition hover:bg-teal/90">
+            <Plus size={13} /> New
+          </button>
           <select value={metric} onChange={(e) => setMetric(e.target.value)}
                   className="rounded-lg border border-border px-2 py-1 text-[12px]">
             {METRICS.map((m) => <option key={m.id} value={m.id}>{m.label}</option>)}
@@ -137,6 +180,55 @@ export default function ScenarioWorkbench() {
           </div>
         </div>
       </div>
+
+      {creating && (
+        <div className="mt-3 rounded-xl border border-border/60 bg-surface-muted/40 px-4 py-3">
+          <div className="flex items-center justify-between">
+            <p className="text-[12.5px] font-semibold">New scenario</p>
+            <button onClick={() => setCreating(false)} className="text-text-muted hover:text-text-primary">
+              <X size={14} />
+            </button>
+          </div>
+          <div className="mt-2.5 flex flex-wrap items-center gap-x-5 gap-y-2.5 text-[12.5px]">
+            <label className="flex cursor-pointer items-center gap-2">
+              <input type="checkbox" checked={form.apply_ai}
+                     onChange={(e) => setForm((f) => ({ ...f, apply_ai: e.target.checked }))}
+                     className="h-3.5 w-3.5 accent-teal" />
+              <span className="flex items-center gap-1 font-medium">
+                <Sparkles size={13} className="text-teal" /> Apply AI actions
+              </span>
+            </label>
+            {form.apply_ai && (
+              <label className="flex items-center gap-2">
+                <span className="text-text-secondary">Strategy</span>
+                <select value={form.strategy} onChange={(e) => setForm((f) => ({ ...f, strategy: e.target.value }))}
+                        className="rounded-lg border border-border px-2 py-1">
+                  <option value="optimization">Optimization</option>
+                  <option value="peak">Peak shaving</option>
+                </select>
+              </label>
+            )}
+            <label className="flex items-center gap-2">
+              <span className="text-text-secondary">Forecast horizon</span>
+              <select value={form.horizon_minutes}
+                      onChange={(e) => setForm((f) => ({ ...f, horizon_minutes: Number(e.target.value) }))}
+                      className="rounded-lg border border-border px-2 py-1">
+                {[15, 30, 60].map((h) => <option key={h} value={h}>{h} min</option>)}
+              </select>
+            </label>
+            <button onClick={submitScenario} disabled={busy}
+                    className="ml-auto flex items-center gap-1.5 rounded-lg bg-teal px-3 py-1.5 font-medium text-white transition hover:bg-teal/90 disabled:opacity-50">
+              {busy ? <Loader2 size={13} className="animate-spin" /> : <Plus size={13} />}
+              {busy ? "Simulating…" : "Create scenario"}
+            </button>
+          </div>
+          <p className="mt-2 text-[11px] leading-relaxed text-text-muted">
+            {form.apply_ai
+              ? "The agent optimizes with these parameters and simulates the outcome (runs in the background, appears in a few seconds)."
+              : "Creates a baseline scenario with no AI action, i.e. the building as-is."}
+          </p>
+        </div>
+      )}
 
       <div className="mt-3 grid gap-4 lg:grid-cols-[220px_1fr]">
         {/* scenario picker */}
@@ -161,6 +253,10 @@ export default function ScenarioWorkbench() {
                 <button onClick={() => setRefId(r.id)} title="Set as reference"
                         className={`shrink-0 rounded p-0.5 ${refId === r.id ? "text-teal" : "text-text-muted hover:text-teal"}`}>
                   <Target size={13} />
+                </button>
+                <button onClick={() => removeScenario(r.id)} title="Delete scenario"
+                        className="shrink-0 rounded p-0.5 text-text-muted hover:text-danger">
+                  <Trash2 size={12} />
                 </button>
               </div>
             );

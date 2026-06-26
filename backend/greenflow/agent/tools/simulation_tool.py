@@ -277,3 +277,17 @@ def _persist_run(conn, building_id: str, label: str, kind: str,
         conn, "SELECT id, entity_key FROM zones WHERE building_id = :b", b=building_id)}
     write_run_rows(conn, run_id, result, zone_ids, day_start)
     return run_id
+
+
+def persist_baseline_only(building_id: str, label: str | None = None) -> str:
+    """Persist a single baseline scenario (no AI action) for the workbench.
+    The 'AI actions OFF' case of scenario creation — the building as-is."""
+    day = anchor(building_id=building_id).astimezone(TZ).replace(
+        hour=0, minute=0, second=0, microsecond=0)
+    baseline = _result_from_telemetry(building_id, day)
+    if baseline is None:
+        baseline = run_simulation(load_normalized(), [])
+    with db_conn() as conn:
+        rid = _persist_run(conn, building_id, label or "baseline_scenario",
+                           "baseline", [], baseline, day)
+    return str(rid)
