@@ -4,7 +4,7 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { CalendarDays, Loader2, Sparkles, TrendingDown, Wind } from "lucide-react";
+import { CalendarDays, Info, Loader2, Sparkles, TrendingDown, Wind } from "lucide-react";
 import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
@@ -47,20 +47,169 @@ const nextMonth = (monthValue: string) => {
 
 const apiDate = (date: string) => `${date}T00:00:00+07:00`;
 
-/** One KPI tile in the campaign hero. */
-function Stat({ label, value, sub, tone = "#0F766E", index }: {
-  label: string; value: string; sub?: string; tone?: string; index: number;
+const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
+
+function MetricHelp({ text }: { text: string }) {
+  return (
+    <button
+      type="button"
+      aria-label="Explain metric"
+      className="group/help relative inline-flex rounded-full outline-none focus-visible:ring-2 focus-visible:ring-teal/30"
+    >
+      <Info size={12} className="text-text-muted transition group-hover/help:text-teal" />
+      <span
+        role="tooltip"
+        className="pointer-events-none absolute bottom-full left-1/2 z-20 mb-2 w-56 -translate-x-1/2 rounded-lg border border-border/70 bg-slate-950 px-2.5 py-2 text-[11px] font-normal leading-snug text-white opacity-0 shadow-lg transition group-hover/help:opacity-100 group-focus-within/help:opacity-100"
+      >
+        {text}
+      </span>
+    </button>
+  );
+}
+
+function MetricReadout({ label, value, sub, tone = "text-text-primary", help }: {
+  label: string; value: string; sub?: string; tone?: string; help: string;
 }) {
+  return (
+    <div className="group/readout rounded-lg px-2 py-1.5 transition hover:bg-white/70">
+      <div className="flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">
+        <span>{label}</span>
+        <MetricHelp text={help} />
+      </div>
+      <p className={`mt-0.5 text-[21px] font-semibold leading-tight tracking-tight tabular-nums ${tone}`}>
+        {value}
+      </p>
+      {sub && <p className="mt-0.5 text-[10.5px] leading-snug text-text-muted">{sub}</p>}
+    </div>
+  );
+}
+
+function EnergyComparisonCard({ baseline, optimized, saving, savingPercent, period, index }: {
+  baseline?: number; optimized?: number; saving?: number; savingPercent?: number; period: string; index: number;
+}) {
+  const baselineValue = baseline ?? 0;
+  const optimizedValue = optimized ?? 0;
+  const optimizedWidth = baselineValue > 0 ? clamp((optimizedValue / baselineValue) * 100, 8, 100) : 100;
+  const savingWidth = baselineValue > 0 ? clamp(((saving ?? 0) / baselineValue) * 100, 0, 100) : 0;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 26, delay: index * 0.05 }}
-      className="rounded-xl border border-border/55 bg-surface px-3.5 py-3"
+      className="rounded-2xl border border-emerald-900/10 bg-gradient-to-br from-emerald-50/70 via-white to-white px-4 py-3.5 shadow-[0_18px_40px_-30px_rgba(15,118,110,0.55)]"
     >
-      <p className="text-[11.5px] font-medium text-text-secondary">{label}</p>
-      <p className="mt-0.5 text-[21px] font-semibold leading-tight tracking-tight tabular-nums"
-         style={{ color: tone }}>{value}</p>
-      {sub && <p className="text-[10.5px] text-text-muted">{sub}</p>}
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700/80">Energy use comparison</p>
+          <p className="mt-1 text-[12px] text-text-muted">{period}</p>
+        </div>
+        <div className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 tabular-nums">
+          -{savingPercent ?? "·"}% vs no AI
+        </div>
+      </div>
+
+      <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_1fr]">
+        <MetricReadout
+          label="Without AI"
+          value={baseline != null ? `${Math.round(baseline).toLocaleString()} kWh` : "·"}
+          sub="Measured building demand"
+          tone="text-slate-700"
+          help="Baseline consumption from recorded data. This is the no-AI reference used for comparison."
+        />
+        <MetricReadout
+          label="With AI"
+          value={optimized != null ? `${Math.round(optimized).toLocaleString()} kWh` : "·"}
+          sub="Same period, AI setpoint policy"
+          tone="text-teal"
+          help="Estimated consumption after applying the selected AI setpoint policy to the same days."
+        />
+        <MetricReadout
+          label="Energy saved"
+          value={saving != null ? `${Math.round(saving).toLocaleString()} kWh` : "·"}
+          sub="Gap between the two runs"
+          tone="text-success"
+          help="Difference between Without AI and With AI. Positive value means lower energy use with AI."
+        />
+      </div>
+
+      <div className="mt-3 space-y-2 rounded-xl bg-white/75 p-3">
+        <div>
+          <div className="mb-1 flex justify-between text-[10.5px] font-medium text-text-muted">
+            <span>Without AI</span>
+            <span>{baseline != null ? `${Math.round(baseline).toLocaleString()} kWh` : "·"}</span>
+          </div>
+          <div className="h-2.5 rounded-full bg-slate-200">
+            <div className="h-full rounded-full bg-slate-400" style={{ width: "100%" }} />
+          </div>
+        </div>
+        <div>
+          <div className="mb-1 flex justify-between text-[10.5px] font-medium text-text-muted">
+            <span>With AI</span>
+            <span>{optimized != null ? `${Math.round(optimized).toLocaleString()} kWh` : "·"}</span>
+          </div>
+          <div className="relative h-2.5 rounded-full bg-emerald-100">
+            <div className="h-full rounded-full bg-teal" style={{ width: `${optimizedWidth}%` }} />
+            {savingWidth > 0 && (
+              <div className="absolute inset-y-0 right-0 rounded-r-full bg-emerald-300/45" style={{ width: `${savingWidth}%` }} />
+            )}
+          </div>
+        </div>
+      </div>
+    </motion.div>
+  );
+}
+
+function ImpactCard({ costSaving, co2Avoided, comfortDelta, days, period, index }: {
+  costSaving?: number; co2Avoided?: number; comfortDelta?: number; days?: number; period: string; index: number;
+}) {
+  const comfortTone = (comfortDelta ?? 0) > 0 ? "text-amber-700" : "text-success";
+  const comfortLabel = `${comfortDelta != null && comfortDelta > 0 ? "+" : ""}${Math.round(comfortDelta ?? 0).toLocaleString()} min`;
+
+  return (
+    <motion.div
+      initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
+      transition={{ type: "spring", stiffness: 260, damping: 26, delay: index * 0.05 }}
+      className="rounded-2xl border border-border/55 bg-surface px-4 py-3.5"
+    >
+      <div className="flex flex-wrap items-start justify-between gap-2">
+        <div>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">Operational impact</p>
+          <p className="mt-1 text-[12px] text-text-muted">{days ?? "·"} recorded day{days === 1 ? "" : "s"}</p>
+        </div>
+        <p className="rounded-full border border-border/70 px-2.5 py-1 text-[11px] font-medium text-text-secondary">
+          same period
+        </p>
+      </div>
+
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+        <MetricReadout
+          label="Cost saved"
+          value={costSaving != null ? fmtVnd(Math.round(costSaving)) : "·"}
+          sub={period}
+          tone="text-success"
+          help="Estimated electricity cost reduction from the energy saved over the selected period."
+        />
+        <MetricReadout
+          label="CO₂ avoided"
+          value={co2Avoided != null ? `${Math.round(co2Avoided).toLocaleString()} kg` : "·"}
+          sub="Emissions proxy from saved kWh"
+          tone="text-blue-600"
+          help="Estimated emissions avoided by consuming less electricity. This is derived from saved energy."
+        />
+      </div>
+
+      <div className="mt-3 rounded-xl border border-border/55 bg-surface-muted/45 px-3 py-2">
+        <div className="flex items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">
+            <span>Comfort change</span>
+            <MetricHelp text="Change in comfort-violation minutes after applying the AI policy. Positive values mean more minutes outside the comfort rule, so savings should be weighed against occupant comfort." />
+          </div>
+          <p className={`text-[13px] font-semibold tabular-nums ${comfortTone}`}>{comfortLabel}</p>
+        </div>
+        <p className="mt-1 text-[10.5px] leading-snug text-text-muted">
+          Use this as the trade-off check, not as a saving metric.
+        </p>
+      </div>
     </motion.div>
   );
 }
@@ -222,23 +371,23 @@ export default function CampaignWhatIf() {
       ) : (
         <>
           {/* KPI hero */}
-          <div className="mt-3 grid grid-cols-2 gap-2.5 md:grid-cols-4 xl:grid-cols-5">
-            <Stat index={0} label="Energy saved" tone="#16A34A"
-                  value={k ? `${Math.round(k.saving_kwh).toLocaleString()} kWh` : "·"}
-                  sub={k ? `-${k.saving_percent}% vs no AI · ${visiblePeriod}` : undefined} />
-            <Stat index={1} label="Cost saved" tone="#16A34A"
-                  value={k ? fmtVnd(Math.round(k.cost_saving_vnd)) : "·"}
-                  sub={k ? visiblePeriod : undefined} />
-            <Stat index={2} label="Without AI"
-                  value={k ? `${Math.round(k.baseline_kwh).toLocaleString()} kWh` : "·"}
-                  sub={k ? `${k.days} recorded day${k.days === 1 ? "" : "s"} · through ${recordedThrough}` : undefined}
-                  tone="#334155" />
-            <Stat index={3} label="With AI"
-                  value={k ? `${Math.round(k.optimized_kwh).toLocaleString()} kWh` : "·"}
-                  sub={k ? visiblePeriod : undefined} tone="#0F766E" />
-            <Stat index={4} label="CO2 avoided" tone="#2563EB"
-                  value={k ? `${Math.round(k.co2_avoided_kg).toLocaleString()} kg` : "·"}
-                  sub={k ? `comfort +${Math.round(k.comfort_violation_delta_min)} min · through ${recordedThrough}` : undefined} />
+          <div className="mt-3 grid gap-3 xl:grid-cols-[1.45fr_1fr]">
+            <EnergyComparisonCard
+              index={0}
+              baseline={k?.baseline_kwh}
+              optimized={k?.optimized_kwh}
+              saving={k?.saving_kwh}
+              savingPercent={k?.saving_percent}
+              period={visiblePeriod}
+            />
+            <ImpactCard
+              index={1}
+              costSaving={k?.cost_saving_vnd}
+              co2Avoided={k?.co2_avoided_kg}
+              comfortDelta={k?.comfort_violation_delta_min}
+              days={k?.days}
+              period={recordedThrough ? `through ${recordedThrough}` : visiblePeriod}
+            />
           </div>
 
           {/* daily A/B chart */}

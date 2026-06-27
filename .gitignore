@@ -48,6 +48,10 @@ Thumbs.db
 .idea/
 .vscode/
 
+# Local analysis / generated documentation
+.understand-anything/
+docs/GREENFLOW_DATABASE_ERD.md
+
 # Caddy data volume (if run locally)
 caddy_data/
 caddy_config/
@@ -70,4 +74,3 @@ data/enriched_IFC/
 # CSV/graph outputs capture the results the app actually serves. Kept local only.
 data/final/
 *.duckdb
-
