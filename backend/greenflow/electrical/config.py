@@ -12,9 +12,13 @@ from __future__ import annotations
 import math
 from pathlib import Path
 
+from ..datasets import active_dataset
+
 # repo root: backend/greenflow/electrical/config.py -> parents[3]
 ROOT = Path(__file__).resolve().parents[3]
 DATA = ROOT / "data"
+ACTIVE_DATASET = active_dataset()
+DATASET_KEY = ACTIVE_DATASET.key
 
 # ----- inputs -----
 ENRICHED = DATA / "enriched_IFC"
@@ -24,15 +28,33 @@ HVAC_IFC = ENRICHED / "HVAC_enriched.ifc"
 STRUCT_IFC = ENRICHED / "STRUCTURAL_enriched.ifc"
 IDF_FILE = DATA / "IDF_FILE.idf"
 
-FINAL = DATA / "final"
-PARQUET_ROOT = FINAL / "03. Data_parquet"
-ZONE_TS = PARQUET_ROOT / "final_zone_device_power_timeseries"
-METER_TS = PARQUET_ROOT / "final_building_meter_timeseries"
-DATA_DICTIONARY = FINAL / "04. docs" / "final_data_dictionary_patched.csv"
-DUCKDB_FILE = next(iter(FINAL.glob("*.duckdb")), FINAL / "greenflow_final.duckdb")
+FINAL = ACTIVE_DATASET.parquet_root.parent
+PARQUET_ROOT = ACTIVE_DATASET.parquet_root
+
+
+def _parquet_entry(name: str) -> Path:
+    folder = PARQUET_ROOT / name
+    if folder.exists():
+        return folder
+    file = PARQUET_ROOT / f"{name}.parquet"
+    return file if file.exists() else folder
+
+
+def parquet_scan(path: Path) -> str:
+    return (path / "**" / "*.parquet").as_posix() if path.is_dir() else path.as_posix()
+
+
+ZONE_TS = _parquet_entry("final_zone_device_power_timeseries")
+METER_TS = _parquet_entry("final_building_meter_timeseries")
+if DATASET_KEY == "elnino_2024_mar_apr":
+    DATA_DICTIONARY = next(iter((DATA / "final_elnino" / "docs").glob("final_data_dictionary*.csv")),
+                           FINAL / "04. docs" / "final_data_dictionary_patched.csv")
+else:
+    DATA_DICTIONARY = FINAL / "04. docs" / "final_data_dictionary_patched.csv"
+DUCKDB_FILE = ACTIVE_DATASET.duckdb_path
 
 # ----- outputs -----
-OUT_ELEC = DATA / "electrical_distribution"
+OUT_ELEC = ACTIVE_DATASET.electrical_out
 OUT_KG = DATA / "knowledge_graph_build"
 OUT_AUDIT = OUT_KG / "audit"
 OUT_MAPPING = OUT_KG / "mapping"
@@ -40,7 +62,7 @@ OUT_ENERGY = OUT_KG / "energy"
 
 BUILDING_KEY = "greenflow_archetype"
 BUILDING_NAME = "Nordic LCA Office"
-SCENARIO_ID = "openmeteo_2025_30min_baseline"   # the single baseline scenario in the gold table
+SCENARIO_ID = ACTIVE_DATASET.scenario_id
 TIMESTEP_HOURS = 0.5                             # 30-minute intervals
 
 # ----- electrical engineering constants -----

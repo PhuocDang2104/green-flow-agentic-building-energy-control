@@ -20,13 +20,12 @@ sys.path.insert(0, str(ROOT / "backend"))
 import duckdb  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
+from greenflow.datasets import active_dataset  # noqa: E402
 from greenflow.db import db_conn  # noqa: E402
 
 TZ = timezone(timedelta(hours=7))
 LOC = os.environ.get("WEATHER_LOCATION", "Hanoi")
-DUCKDB_PATH = os.environ.get(
-    "DUCKDB_PATH",
-    "/data/elnino_2024/greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_SELF_CONTAINED.duckdb")
+DUCKDB_PATH = os.environ.get("DUCKDB_PATH") or str(active_dataset().duckdb_path)
 
 
 def main() -> None:

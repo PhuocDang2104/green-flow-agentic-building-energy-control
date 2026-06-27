@@ -39,9 +39,29 @@ def _f(v):
         return None
 
 
+def _zone_timeseries_projection() -> str:
+    source = cfg.parquet_scan(cfg.ZONE_TS)
+    if cfg.DATASET_KEY == "elnino_2024_mar_apr":
+        return f"""
+          SELECT timestep_index,
+                 datetime AS timestamp_local,
+                 year, month, day, hour, minute,
+                 '{cfg.SCENARIO_ID}' AS scenario_id,
+                 zone_id,
+                 lights_electricity_kw,
+                 equipment_electricity_kw,
+                 hvac_power_kw AS final_hvac_electricity_kw,
+                 lights_electricity_kwh AS lights_electricity_kwh_interval,
+                 equipment_electricity_kwh AS equipment_electricity_kwh_interval,
+                 hvac_electricity_kwh AS final_hvac_electricity_kwh_interval,
+                 target_total_zone_power_kw * {cfg.TIMESTEP_HOURS} AS final_total_zone_electricity_kwh_interval
+          FROM read_parquet('{source}', hive_partitioning=true)
+        """
+    return f"SELECT * FROM read_parquet('{source}', hive_partitioning=true)"
+
+
 def run() -> dict[str, int]:
     cfg.ensure_dirs()
-    zone_glob = (cfg.ZONE_TS.as_posix() + "/**/*.parquet")
     con = gold.duckdb_con()
     con.execute("PRAGMA memory_limit='4GB'")
     con.execute(f"SET temp_directory='{(cfg.OUT_ELEC).as_posix()}/_duck_tmp'")
@@ -56,7 +76,7 @@ def run() -> dict[str, int]:
              z.lights_electricity_kwh_interval * a.w_lights AS lkwh,
              z.equipment_electricity_kwh_interval * a.w_equip AS ekwh,
              z.final_hvac_electricity_kwh_interval * a.w_hvac AS hkwh
-      FROM read_parquet('{zone_glob}', hive_partitioning=true) z
+      FROM ({_zone_timeseries_projection()}) z
       JOIN alloc_wide a ON z.zone_id = a.zone_id
       WHERE z.scenario_id = '{cfg.SCENARIO_ID}'
     """

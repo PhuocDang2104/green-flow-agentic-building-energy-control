@@ -23,7 +23,10 @@ def _ele_counts() -> dict:
 def run() -> dict[str, int]:
     cfg.ensure_dirs()
     ele = _ele_counts()
-    parquet_grains = sorted(p.name for p in cfg.PARQUET_ROOT.iterdir() if p.is_dir())
+    parquet_grains = sorted(
+        p.name for p in cfg.PARQUET_ROOT.iterdir()
+        if p.is_dir() or p.suffix.lower() == ".parquet"
+    )
     meters = gold.meter_names()
     zones = len(gold.zone_eplus_map())
     xeokit_map = (cfg.ROOT / "web" / "public" / "assets" / "buildings" / cfg.BUILDING_KEY

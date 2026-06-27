@@ -13,7 +13,7 @@ from collections import Counter
 from . import canonical as C
 from . import config as cfg
 from . import gold
-from .board_timeseries import BOARD_TS
+from .board_timeseries import BOARD_TS, _zone_timeseries_projection
 from .provenance import Confidence, ManualReviewItem
 
 TOL_PCT = 0.5    # board-vs-zone energy must match within this %
@@ -37,22 +37,36 @@ def run() -> dict[str, int]:
 
     # ---- energy reconciliation (DuckDB) ----
     con = gold.duckdb_con()
-    zglob = cfg.ZONE_TS.as_posix() + "/**/*.parquet"
     zt = con.execute(f"""
         SELECT sum(lights_electricity_kwh_interval) l, sum(equipment_electricity_kwh_interval) e,
                sum(final_hvac_electricity_kwh_interval) h, sum(final_total_zone_electricity_kwh_interval) t
-        FROM read_parquet('{zglob}', hive_partitioning=true) WHERE scenario_id='{cfg.SCENARIO_ID}'
+        FROM ({_zone_timeseries_projection()}) WHERE scenario_id='{cfg.SCENARIO_ID}'
     """).fetchone()
     bt = con.execute(f"""
         SELECT sum(board_lights_kwh_interval), sum(board_equipment_kwh_interval),
                sum(board_hvac_kwh_interval), sum(board_total_kwh_interval)
         FROM read_parquet('{BOARD_TS.as_posix()}')
     """).fetchone()
-    mglob = cfg.METER_TS.as_posix() + "/**/*.parquet"
-    meters = dict(con.execute(f"""
-        SELECT meter_name, sum(value_kwh_interval_if_energy)
-        FROM read_parquet('{mglob}', hive_partitioning=true) GROUP BY meter_name
-    """).fetchall())
+    mglob = cfg.parquet_scan(cfg.METER_TS)
+    if cfg.DATASET_KEY == "elnino_2024_mar_apr":
+        m = con.execute(f"""
+            SELECT sum(electricity_facility_kwh),
+                   sum(electricity_hvac_kwh),
+                   sum(interiorlights_electricity_kwh),
+                   sum(interiorequipment_electricity_kwh)
+            FROM read_parquet('{mglob}', hive_partitioning=true)
+        """).fetchone()
+        meters = {
+            cfg.METER_TOTAL: m[0],
+            cfg.METER_FOR_CATEGORY[cfg.CAT_HVAC]: m[1],
+            cfg.METER_FOR_CATEGORY[cfg.CAT_LIGHTS]: m[2],
+            cfg.METER_FOR_CATEGORY[cfg.CAT_EQUIPMENT]: m[3],
+        }
+    else:
+        meters = dict(con.execute(f"""
+            SELECT meter_name, sum(value_kwh_interval_if_energy)
+            FROM read_parquet('{mglob}', hive_partitioning=true) GROUP BY meter_name
+        """).fetchall())
     con.close()
 
     zone_cat = {cfg.CAT_LIGHTS: zt[0] or 0, cfg.CAT_EQUIPMENT: zt[1] or 0, cfg.CAT_HVAC: zt[2] or 0}

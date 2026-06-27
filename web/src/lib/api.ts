@@ -126,7 +126,7 @@ export const api = {
   // period (campaign) what-if: building WITHOUT AI vs WITH a fixed policy
   campaign: (payload: {
     setpoint_delta: number; peak_start?: number; peak_end?: number;
-    date_from?: string; date_to?: string;
+    date_from?: string; date_to?: string; scenario_id?: string;
   }) => post<{
     policy: { setpoint_delta_c: number; peak_window: string; engine: string };
     kpi: {
@@ -137,6 +137,14 @@ export const api = {
     daily: { date: string; baseline_kwh: number; optimized_kwh: number;
              peak_baseline_kw: number; peak_optimized_kw: number }[];
   }>("/simulations/campaign", payload),
+  predictiveControl: (payload: {
+    building_id?: string; timestamp?: string; scenario_id?: string;
+    horizon_steps?: number; top_k?: number;
+  }) => post<any>("/simulations/predictive-control", payload),
+  predictiveReplay: (payload: {
+    building_id?: string; date_from?: string; date_to?: string; max_steps?: number;
+    scenario_id?: string; horizon_steps?: number; top_k?: number;
+  }) => post<any>("/simulations/predictive-replay", payload),
   simulateRecommended: () =>
     post<{ run_id: string }>("/simulation/simulate-recommended-actions"),
   validateBaseline: (isWeekend?: boolean) =>

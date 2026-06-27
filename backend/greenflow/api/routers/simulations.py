@@ -158,6 +158,7 @@ class CampaignRequest(BaseModel):
     peak_end: int = 16
     date_from: str | None = None          # ISO; default = full telemetry range
     date_to: str | None = None
+    scenario_id: str | None = None
 
 
 @router.post("/simulations/campaign")
@@ -188,10 +189,13 @@ def run_campaign(req: CampaignRequest):
                               humidity_pct, solar_w_m2, wind_speed_mps, cloud_cover_pct
                        FROM weather_15m ORDER BY timestamp) w ON w.timestamp = t.timestamp
             WHERE t.building_id = :b
+              AND (CAST(:scn AS text) IS NULL
+                   OR t.scenario_id = CAST(:scn AS text)
+                   OR t.scenario_id IS NULL)
               AND (CAST(:df AS timestamptz) IS NULL OR t.timestamp >= CAST(:df AS timestamptz))
               AND (CAST(:dt AS timestamptz) IS NULL OR t.timestamp < CAST(:dt AS timestamptz))
             ORDER BY t.timestamp
-        """, b=b, df=req.date_from, dt=req.date_to)
+        """, b=b, scn=req.scenario_id, df=req.date_from, dt=req.date_to)
     if not rows:
         raise HTTPException(404, "no telemetry for the period")
     df = pd.DataFrame([dict(r) for r in rows])
@@ -211,4 +215,62 @@ def run_campaign(req: CampaignRequest):
         peak_start=req.peak_start, peak_end=req.peak_end)
     if result is None:
         raise HTTPException(503, "surrogate model unavailable")
+    from ...datasets import active_dataset
+    result.setdefault("metadata", {})
+    result["metadata"].update({
+        "dataset": active_dataset().to_metadata(),
+        "scenario_id": req.scenario_id,
+        "control_mode": "fixed_policy_campaign",
+    })
     return result
+
+
+class PredictiveControlRequest(BaseModel):
+    building_id: str | None = None
+    timestamp: str | None = None
+    scenario_id: str | None = None
+    horizon_steps: int | None = None
+    top_k: int | None = None
+
+
+@router.post("/simulations/predictive-control")
+def predictive_control(req: PredictiveControlRequest):
+    """Run one receding-horizon control decision."""
+    from ...control.predictive import run_predictive_control
+
+    try:
+        return run_predictive_control(
+            req.building_id or default_building_id(),
+            timestamp=req.timestamp,
+            scenario_id=req.scenario_id,
+            horizon_steps=req.horizon_steps,
+            top_k=req.top_k,
+        )
+    except ValueError as exc:
+        raise HTTPException(404, str(exc))
+
+
+class PredictiveReplayRequest(BaseModel):
+    building_id: str | None = None
+    date_from: str | None = None
+    date_to: str | None = None
+    max_steps: int = 96
+    scenario_id: str | None = None
+    horizon_steps: int | None = None
+    top_k: int | None = None
+
+
+@router.post("/simulations/predictive-replay")
+def predictive_replay(req: PredictiveReplayRequest):
+    """Validate E+ baseline against AI receding-horizon surrogate control."""
+    from ...control.replay import run_predictive_replay
+
+    return run_predictive_replay(
+        req.building_id or default_building_id(),
+        date_from=req.date_from,
+        date_to=req.date_to,
+        max_steps=req.max_steps,
+        scenario_id=req.scenario_id,
+        horizon_steps=req.horizon_steps,
+        top_k=req.top_k,
+    )

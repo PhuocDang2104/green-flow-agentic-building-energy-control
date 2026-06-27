@@ -64,6 +64,32 @@ class Settings(BaseSettings):
     # empty = max(telemetry timestamp). See greenflow/replayclock.py.
     replay_now: str = ""
 
+    # Dataset spine. The current production demo target is the El Nino
+    # Mar-Apr 2024 EnergyPlus/postprocessed package under data/final_elnino.
+    greenflow_dataset: str = "elnino_2024_mar_apr"
+    greenflow_scenario_id: str = "elnino_2024_mar_apr_baseline"
+    greenflow_timezone: str = "Asia/Ho_Chi_Minh"
+    greenflow_timestep_minutes: int = 30
+    greenflow_expected_zones: int = 308
+    greenflow_expected_timesteps: int = 2928
+    greenflow_expected_zone_rows: int = 901824
+    greenflow_duckdb_path: str = ""
+    greenflow_parquet_root: str = ""
+    greenflow_electrical_out: str = "./data/electrical_distribution_elnino"
+
+    # Model registry. MLflow is primary for runtime inference; committed local
+    # LightGBM model files remain the offline fallback.
+    mlflow_tracking_uri: str = "http://mlflow:5000"
+    greenflow_model_source: str = "mlflow"  # mlflow | local
+    greenflow_model_building: str = "models:/greenflow_surrogate_building/1"
+    greenflow_model_zone: str = "models:/greenflow_surrogate_zone/1"
+    greenflow_model_hvac: str = "models:/greenflow_surrogate_hvac/1"
+
+    # Predictive / receding-horizon control defaults.
+    greenflow_control_horizon_steps: int = 8
+    greenflow_control_step_minutes: int = 30
+    greenflow_control_top_k: int = 4
+
     # comma-separated list of allowed frontend origins for CORS
     cors_origins: str = "http://localhost:3000"
 

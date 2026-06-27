@@ -106,11 +106,13 @@ def run() -> dict[str, int]:
     # ---- audit ----
     meters = gold.meter_names()
     top = "\n".join(f"- `{c}`: {n}" for c, n in class_counts.most_common(20))
+    period_note = ("Mar-Apr 2024 El Nino package" if cfg.DATASET_KEY == "elnino_2024_mar_apr"
+                   else "full-year 2025 package")
     audit = f"""# Energy Source Audit
 
-**Energy source of truth:** the existing patched dataset under `data/final`
+**Energy source of truth:** the active dataset `{cfg.DATASET_KEY}`
 (`final_zone_device_power_timeseries`), scenario `{cfg.SCENARIO_ID}`,
-30-minute timestep ({cfg.TIMESTEP_HOURS} h), full-year 2025. EnergyPlus is **not**
+30-minute timestep ({cfg.TIMESTEP_HOURS} h), {period_note}. EnergyPlus is **not**
 re-run; the IDF (`{cfg.IDF_FILE.name}`) is parsed for object names + provenance only
 and is left byte-stable. No `eplusout.sql` is present.
 

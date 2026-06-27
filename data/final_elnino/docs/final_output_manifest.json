@@ -1,0 +1,48 @@
+{
+  "created_at": "2026-06-26T09:51:00",
+  "package_root": "D:\\VIN_HACKATHON_DATA\\MAR_APR_2024_LPD_EPD_POSTPROCESS\\greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_dataset_20260626_093107",
+  "duckdb_path": "D:\\VIN_HACKATHON_DATA\\MAR_APR_2024_LPD_EPD_POSTPROCESS\\greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_dataset_20260626_093107\\duckdb\\greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd.duckdb",
+  "preview_workbook": "D:\\VIN_HACKATHON_DATA\\MAR_APR_2024_LPD_EPD_POSTPROCESS\\greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_dataset_20260626_093107\\preview\\greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_preview.xlsx",
+  "period_start": "2024-03-01",
+  "period_end": "2024-04-30",
+  "year": 2024,
+  "records_per_hour": 2,
+  "expected_timesteps": 2928,
+  "expected_zones": 308,
+  "source_sql": "D:\\VIN_HACKATHON_DATA\\PHASE3_LPD_EPD_FINAL_RUNS\\greenflow_phase3_lpd_epd_final_20260626_062904\\energyplus_final_run\\phase3_lpd_epd_mar_apr_2024out.sql",
+  "source_epw": "D:\\VIN_HACKATHON_DATA\\PHASE3_LPD_EPD_FINAL_RUNS\\greenflow_phase3_lpd_epd_final_20260626_062904\\data\\weather_greenflow_hanoi_openmeteo_20240301_20240430_30min.epw",
+  "source_zone_lpd_epd": "D:\\VIN_HACKATHON_DATA\\PHASE3_LPD_EPD_FINAL_RUNS\\greenflow_phase3_lpd_epd_final_20260626_062904\\data\\load_assumptions\\zone_lpd_epd_final.csv",
+  "err_summary": {
+    "err_path": "D:\\VIN_HACKATHON_DATA\\PHASE3_LPD_EPD_FINAL_RUNS\\greenflow_phase3_lpd_epd_final_20260626_062904\\energyplus_final_run\\phase3_lpd_epd_mar_apr_2024out.err",
+    "completed_successfully": true,
+    "severe_errors": 0,
+    "fatal_errors": 0,
+    "warning_count": 554,
+    "zone_volume_warnings": 0,
+    "zero_cooling_load_warnings": 0,
+    "zero_heating_load_warnings": 0
+  },
+  "tables": {
+    "final_weather_timeseries": 2928,
+    "final_ai_training_timeseries": 901824,
+    "final_zone_device_power_timeseries": 901824,
+    "final_device_power_timeseries": 5410944,
+    "final_building_meter_timeseries": 2928,
+    "final_zone_metadata": 308,
+    "raw_energyplus_report_data_dictionary": 10434
+  },
+  "preview_sheets": [
+    "README",
+    "validation",
+    "key_counts",
+    "weather_summary",
+    "sample_weather",
+    "sample_ai",
+    "sample_zone",
+    "sample_device_full",
+    "sample_device_elec",
+    "sample_meter",
+    "energy_balance",
+    "data_dictionary"
+  ]
+}

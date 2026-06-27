@@ -32,11 +32,12 @@ sys.path.insert(0, str(ROOT / "backend"))
 import duckdb  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
+from greenflow.datasets import active_dataset  # noqa: E402
 from greenflow.db import db_conn, fetch_all  # noqa: E402
 
 BUILDING_ID = uuid.UUID("b0000000-0000-0000-0000-000000000001")
 TZ = timezone(timedelta(hours=7))  # Hà Nội; timestamp trong data là local naive
-DATASET_SCHEMA = os.environ.get("DATASET_SCHEMA", "v2025")  # v2025 | elnino2024
+DATASET_SCHEMA = os.environ.get("DATASET_SCHEMA", "elnino2024")  # v2025 | elnino2024
 
 # Crosswalk cột theo schema dataset. Gói El Niño Mar-Apr 2024 đổi tên cột và có
 # occupancy THẬT (zone_people_occupant_count) thay vì ước lượng. ts dùng cột
@@ -67,8 +68,14 @@ COLMAPS = {
     },
 }
 CM = COLMAPS[DATASET_SCHEMA]
-DUCKDB_PATH = os.environ.get("DUCKDB_PATH", CM["default_path"])
+DUCKDB_PATH = (os.environ.get("DUCKDB_PATH") or
+               (str(active_dataset().duckdb_path) if DATASET_SCHEMA == "elnino2024"
+                else CM["default_path"]))
 SCENARIO_ID = CM["scenario_id"]
+LOAD_ALL_ZONES = os.environ.get(
+    "GREENFLOW_LOAD_ALL_ZONES",
+    "1" if DATASET_SCHEMA == "elnino2024" else "0",
+).lower() in {"1", "true", "yes", "on"}
 COMFORT_LIMIT_C = 26.5  # khớp synthetic_baseline
 
 # người/m2 theo room_type (ước lượng để suy occupancy — E+ không xuất số người)
@@ -115,15 +122,34 @@ def main() -> None:
             SELECT entity_key, id, floor_id, room_type, area_m2
             FROM zones WHERE building_id = :b""", b=BUILDING_ID)
     zmap = {r["entity_key"]: r for r in zrows}
-    missing = [k for k in REPO_ENTITY_KEYS if k not in zmap]
-    if missing:
-        raise SystemExit(f"zones chưa seed: {missing} (chạy seed_demo trước)")
-    tz_to_key = {"tz_" + k[len("zone_"):]: k for k in REPO_ENTITY_KEYS}
-    tz_ids = list(tz_to_key)
 
     # 2) kéo timeseries thật cho 14 zone từ DuckDB
     print(f"reading DuckDB: {DUCKDB_PATH}")
     con = duckdb.connect(DUCKDB_PATH, read_only=True)
+    if LOAD_ALL_ZONES:
+        tz_ids = [r[0] for r in con.execute("""
+            SELECT DISTINCT zone_id
+            FROM final_ai_training_timeseries
+            ORDER BY zone_id
+        """).fetchall()]
+        tz_to_key = {
+            zid: ("zone_" + zid[len("tz_"):]) if str(zid).startswith("tz_") else str(zid)
+            for zid in tz_ids
+        }
+        mode = "all-zones"
+    else:
+        tz_to_key = {"tz_" + k[len("zone_"):]: k for k in REPO_ENTITY_KEYS}
+        tz_ids = list(tz_to_key)
+        mode = "repo-14"
+    target_keys = list(tz_to_key.values())
+    missing = [k for k in target_keys if k not in zmap]
+    if missing:
+        sample = ", ".join(missing[:8])
+        suffix = "..." if len(missing) > 8 else ""
+        raise SystemExit(
+            f"zones missing in Postgres: {len(missing)} ({sample}{suffix}). "
+            "Run scripts/sync_true_building_zones.py before true-building load."
+        )
     ph = ",".join(["?"] * len(tz_ids))
     sel = ", ".join([CM["ts"], "zone_id", CM["temp"], CM["rh"], CM["sp"],
                      CM["hvac"], CM["light"], CM["equip"], CM["total"], CM["kwh"]]
@@ -133,14 +159,14 @@ def main() -> None:
         FROM final_ai_training_timeseries
         WHERE zone_id IN ({ph})
         ORDER BY {CM['ts']}""", tz_ids).fetchall()
-    print(f"pulled {len(rows):,} rows ({len(tz_ids)} zones)")
+    print(f"pulled {len(rows):,} rows ({len(tz_ids)} zones, mode={mode})")
 
     # 3) tải toà nhà theo timestamp -> ngưỡng peak_risk (so với đỉnh năm)
     bt: dict = {}
     for r in rows:
         bt[r[0]] = bt.get(r[0], 0.0) + (r[8] or 0.0)
     bpeak = max(bt.values()) if bt else 1.0
-    print(f"building peak (14-zone): {bpeak:.1f} kW")
+    print(f"building peak ({len(tz_ids)} zones): {bpeak:.1f} kW")
 
     # 4) transform -> tuples
     records = []

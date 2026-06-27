@@ -15,7 +15,7 @@ from __future__ import annotations
 
 import numpy as np
 
-from .realforecast import _load_zone
+from .model_registry import load_model
 
 GRID_CO2_KG_PER_KWH = 0.6766
 COMFORT_LIMIT_C = 26.5
@@ -53,10 +53,10 @@ def compute_campaign(df, *, setpoint_delta: float = 1.0, peak_start: int = 13,
     total_power_kw, temperature_c, occupancy_count, cooling_setpoint_c, area_m2,
     volume_m3, ceiling_height_m, outdoor_temp_c, outdoor_rh_pct, ghi, wind, cloud,
     office_hours_flag. Returns {policy, kpi, daily:[...]} or None if no model."""
-    m = _load_zone()
-    if m is None:
+    loaded = load_model("zone")
+    if loaded is None or loaded.model is None:
         return None
-    booster, feats = m
+    booster, feats = loaded.model, loaded.features
     step_h = step_min / 60.0
 
     # Postgres NUMERIC -> Decimal -> pandas 'object'; LightGBM needs float. Coerce.
@@ -125,4 +125,5 @@ def compute_campaign(df, *, setpoint_delta: float = 1.0, peak_start: int = 13,
     return {"policy": {"setpoint_delta_c": setpoint_delta,
                        "peak_window": f"{peak_start:02d}:00-{peak_end:02d}:00",
                        "engine": "zone_surrogate_r2_0.92"},
+            "metadata": {"model": loaded.metadata()},
             "kpi": kpi, "daily": daily_list}

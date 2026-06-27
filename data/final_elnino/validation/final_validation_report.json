@@ -1,0 +1,64 @@
+{
+  "validation_status": "passed",
+  "checks": {
+    "weather_rows_2928": true,
+    "zone_count_308": true,
+    "ai_rows_901824": true,
+    "zone_device_rows_901824": true,
+    "records_per_hour_2": true,
+    "year_2024_retained": true,
+    "concrete_year_retained": true,
+    "period_mar_apr_2024": true,
+    "weather_columns_at_least_72": true,
+    "ai_columns_at_least_119": true,
+    "all_zones_have_lpd": true,
+    "all_zones_have_epd": true,
+    "all_zone_area_positive": true,
+    "sql_completed_successfully": true,
+    "sql_zero_severe": true,
+    "sql_zero_fatal": true,
+    "duckdb_exists": true,
+    "preview_exists": true
+  },
+  "row_counts": {
+    "weather": 2928,
+    "final_ai_training_timeseries": 901824,
+    "final_zone_device_power_timeseries": 901824,
+    "final_building_meter_timeseries": 2928,
+    "zones": 308
+  },
+  "period": {
+    "year": 2024,
+    "start": "2024-03-01",
+    "end": "2024-04-30",
+    "records_per_hour": 2,
+    "expected_timesteps": 2928
+  },
+  "energyplus_err_summary": {
+    "err_path": "D:\\VIN_HACKATHON_DATA\\PHASE3_LPD_EPD_FINAL_RUNS\\greenflow_phase3_lpd_epd_final_20260626_062904\\energyplus_final_run\\phase3_lpd_epd_mar_apr_2024out.err",
+    "completed_successfully": true,
+    "severe_errors": 0,
+    "fatal_errors": 0,
+    "warning_count": 554,
+    "zone_volume_warnings": 0,
+    "zero_cooling_load_warnings": 0,
+    "zero_heating_load_warnings": 0
+  },
+  "manual_review_zone_count": 146,
+  "lpd_source_counts": {
+    "room_type_benchmark": 146,
+    "ifc_fixture_family_imputed": 116,
+    "ifc_light_fixture_power_sum": 46
+  },
+  "epd_source_counts": {
+    "room_type_equipment_model": 266,
+    "workstation_model": 36,
+    "room_type_model_outlet_density_adjusted": 6
+  },
+  "area_m2_final_source_counts": {
+    "phase3_zone_lpd_epd_final": 200,
+    "energyplus_sql_zone_floor_area": 108
+  },
+  "weather_column_count": 72,
+  "ai_column_count": 173
+}

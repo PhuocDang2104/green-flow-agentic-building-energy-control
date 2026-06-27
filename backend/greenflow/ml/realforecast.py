@@ -10,12 +10,13 @@ Thiếu model/lightgbm -> trả None (caller fallback surrogate cũ / rule).
 """
 from __future__ import annotations
 
-import json
 from datetime import datetime, timedelta
 from functools import lru_cache
 from pathlib import Path
 
 import numpy as np
+
+from .model_registry import load_model, model_metrics
 
 MODEL_DIR = Path(__file__).resolve().parent / "models"
 REF_DAY = datetime(2025, 7, 15)  # ngày hè điển hình cho what-if
@@ -24,21 +25,15 @@ STEP_MIN = 30
 
 @lru_cache(maxsize=1)
 def _load_zone():
-    try:
-        import lightgbm as lgb
-        meta = json.loads((MODEL_DIR / "surrogate_real_meta.json").read_text())
-        feats = meta["models"]["zone"]["features"]
-        return (lgb.Booster(model_file=str(MODEL_DIR / "surrogate_real_zone.txt")), feats)
-    except Exception:  # noqa: BLE001 — thiếu model/lib
+    loaded = load_model("zone")
+    if loaded is None or loaded.model is None:
         return None
+    return (loaded.model, loaded.features)
 
 
 def test_metrics() -> dict | None:
     """Metrics test giữ riêng (cho pitch / Impact tab)."""
-    try:
-        return json.loads((MODEL_DIR / "surrogate_real_meta.json").read_text())["models"]
-    except Exception:  # noqa: BLE001
-        return None
+    return model_metrics() or None
 
 
 def _weather(index, shift: float = 0.0) -> dict:
@@ -94,13 +89,10 @@ def what_if_setpoint(area_m2: float, setpoint_base: float, setpoint_delta: float
 
 @lru_cache(maxsize=1)
 def _load_hvac():
-    try:
-        import lightgbm as lgb
-        meta = json.loads((MODEL_DIR / "surrogate_real_meta.json").read_text())
-        feats = meta["models"]["hvac"]["features"]
-        return (lgb.Booster(model_file=str(MODEL_DIR / "surrogate_real_hvac.txt")), feats)
-    except Exception:  # noqa: BLE001 — thiếu model/lib
+    loaded = load_model("hvac")
+    if loaded is None or loaded.model is None:
         return None
+    return (loaded.model, loaded.features)
 
 
 def _scalar_weather(hour: float, outdoor_temp_c=None) -> dict:
