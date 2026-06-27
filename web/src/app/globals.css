@@ -58,6 +58,12 @@ body {
     inset 0 1px 0 rgba(255, 255, 255, 0.65);
 }
 
+/* Opt-in full-width app pages. The default shell stays capped for dense pages;
+   screens marked with data-wide-page can use the full content column. */
+.app-main:has([data-wide-page]) {
+  max-width: none;
+}
+
 /* xeokit canvas fills its wrapper */
 .viewer-canvas {
   width: 100%;

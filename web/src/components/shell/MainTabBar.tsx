@@ -8,7 +8,7 @@ const TABS = [
   { href: "/dashboard", label: "Dashboard & 3D View", icon: Boxes },
   { href: "/electrical", label: "Electrical Graph", icon: Zap },
   { href: "/agent-actions", label: "Agents & Actions", icon: Bot },
-  { href: "/simulation-baseline", label: "Control & Simulation", icon: FlaskConical },
+  { href: "/simulation-baseline", label: "What-if Analysis", icon: FlaskConical },
 ];
 
 // Mobile/tablet only — on desktop (lg+) the SideBar replaces this. Floating,

@@ -47,8 +47,6 @@ const nextMonth = (monthValue: string) => {
 
 const apiDate = (date: string) => `${date}T00:00:00+07:00`;
 
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
-
 function MetricHelp({ text }: { text: string }) {
   return (
     <button
@@ -84,14 +82,9 @@ function MetricReadout({ label, value, sub, tone = "text-text-primary", help }: 
   );
 }
 
-function EnergyComparisonCard({ baseline, optimized, saving, savingPercent, period, index }: {
-  baseline?: number; optimized?: number; saving?: number; savingPercent?: number; period: string; index: number;
+function EnergyComparisonCard({ baseline, optimized, savingPercent, period, index }: {
+  baseline?: number; optimized?: number; savingPercent?: number; period: string; index: number;
 }) {
-  const baselineValue = baseline ?? 0;
-  const optimizedValue = optimized ?? 0;
-  const optimizedWidth = baselineValue > 0 ? clamp((optimizedValue / baselineValue) * 100, 8, 100) : 100;
-  const savingWidth = baselineValue > 0 ? clamp(((saving ?? 0) / baselineValue) * 100, 0, 100) : 0;
-
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
@@ -108,59 +101,26 @@ function EnergyComparisonCard({ baseline, optimized, saving, savingPercent, peri
         </div>
       </div>
 
-      <div className="mt-3 grid gap-2 md:grid-cols-[1fr_1fr_1fr]">
+      <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <MetricReadout
           label="Without AI"
           value={baseline != null ? `${Math.round(baseline).toLocaleString()} kWh` : "·"}
-          sub="Measured building demand"
           tone="text-slate-700"
           help="Baseline consumption from recorded data. This is the no-AI reference used for comparison."
         />
         <MetricReadout
           label="With AI"
           value={optimized != null ? `${Math.round(optimized).toLocaleString()} kWh` : "·"}
-          sub="Same period, AI setpoint policy"
           tone="text-teal"
           help="Estimated consumption after applying the selected AI setpoint policy to the same days."
         />
-        <MetricReadout
-          label="Energy saved"
-          value={saving != null ? `${Math.round(saving).toLocaleString()} kWh` : "·"}
-          sub="Gap between the two runs"
-          tone="text-success"
-          help="Difference between Without AI and With AI. Positive value means lower energy use with AI."
-        />
-      </div>
-
-      <div className="mt-3 space-y-2 rounded-xl bg-white/75 p-3">
-        <div>
-          <div className="mb-1 flex justify-between text-[10.5px] font-medium text-text-muted">
-            <span>Without AI</span>
-            <span>{baseline != null ? `${Math.round(baseline).toLocaleString()} kWh` : "·"}</span>
-          </div>
-          <div className="h-2.5 rounded-full bg-slate-200">
-            <div className="h-full rounded-full bg-slate-400" style={{ width: "100%" }} />
-          </div>
-        </div>
-        <div>
-          <div className="mb-1 flex justify-between text-[10.5px] font-medium text-text-muted">
-            <span>With AI</span>
-            <span>{optimized != null ? `${Math.round(optimized).toLocaleString()} kWh` : "·"}</span>
-          </div>
-          <div className="relative h-2.5 rounded-full bg-emerald-100">
-            <div className="h-full rounded-full bg-teal" style={{ width: `${optimizedWidth}%` }} />
-            {savingWidth > 0 && (
-              <div className="absolute inset-y-0 right-0 rounded-r-full bg-emerald-300/45" style={{ width: `${savingWidth}%` }} />
-            )}
-          </div>
-        </div>
       </div>
     </motion.div>
   );
 }
 
-function ImpactCard({ costSaving, co2Avoided, comfortDelta, days, period, index }: {
-  costSaving?: number; co2Avoided?: number; comfortDelta?: number; days?: number; period: string; index: number;
+function ImpactCard({ energySaved, costSaving, co2Avoided, comfortDelta, days, period, index }: {
+  energySaved?: number; costSaving?: number; co2Avoided?: number; comfortDelta?: number; days?: number; period: string; index: number;
 }) {
   const comfortTone = (comfortDelta ?? 0) > 0 ? "text-amber-700" : "text-success";
   const comfortLabel = `${comfortDelta != null && comfortDelta > 0 ? "+" : ""}${Math.round(comfortDelta ?? 0).toLocaleString()} min`;
@@ -181,7 +141,13 @@ function ImpactCard({ costSaving, co2Avoided, comfortDelta, days, period, index 
         </p>
       </div>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
+      <div className="mt-3 grid gap-2 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
+        <MetricReadout
+          label="Energy saved"
+          value={energySaved != null ? `${Math.round(energySaved).toLocaleString()} kWh` : "·"}
+          tone="text-success"
+          help="Difference between Without AI and With AI. Positive value means lower energy use with AI."
+        />
         <MetricReadout
           label="Cost saved"
           value={costSaving != null ? fmtVnd(Math.round(costSaving)) : "·"}
@@ -192,7 +158,6 @@ function ImpactCard({ costSaving, co2Avoided, comfortDelta, days, period, index 
         <MetricReadout
           label="CO₂ avoided"
           value={co2Avoided != null ? `${Math.round(co2Avoided).toLocaleString()} kg` : "·"}
-          sub="Emissions proxy from saved kWh"
           tone="text-blue-600"
           help="Estimated emissions avoided by consuming less electricity. This is derived from saved energy."
         />
@@ -206,9 +171,6 @@ function ImpactCard({ costSaving, co2Avoided, comfortDelta, days, period, index 
           </div>
           <p className={`text-[13px] font-semibold tabular-nums ${comfortTone}`}>{comfortLabel}</p>
         </div>
-        <p className="mt-1 text-[10.5px] leading-snug text-text-muted">
-          Use this as the trade-off check, not as a saving metric.
-        </p>
       </div>
     </motion.div>
   );
@@ -376,12 +338,12 @@ export default function CampaignWhatIf() {
               index={0}
               baseline={k?.baseline_kwh}
               optimized={k?.optimized_kwh}
-              saving={k?.saving_kwh}
               savingPercent={k?.saving_percent}
               period={visiblePeriod}
             />
             <ImpactCard
               index={1}
+              energySaved={k?.saving_kwh}
               costSaving={k?.cost_saving_vnd}
               co2Avoided={k?.co2_avoided_kg}
               comfortDelta={k?.comfort_violation_delta_min}
