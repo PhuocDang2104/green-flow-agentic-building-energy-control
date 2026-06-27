@@ -40,15 +40,34 @@ def zone_annual_energy() -> dict[str, dict]:
         return {r["zone_id"]: r for r in C.read_rows_csv(ZONE_ENERGY_CSV)}
     from .gold import ZONE_GLOB, duckdb_con
     con = duckdb_con()
-    rows = con.execute(
-        f"""SELECT zone_id,
-                   sum(final_total_zone_electricity_kwh_interval) AS total_kwh,
-                   sum(lights_electricity_kwh_interval)           AS lights_kwh,
-                   sum(equipment_electricity_kwh_interval)        AS equipment_kwh,
-                   sum(final_hvac_electricity_kwh_interval)       AS hvac_kwh,
-                   max(final_total_zone_electricity_kw)           AS peak_kw
-            FROM read_parquet('{ZONE_GLOB}') GROUP BY 1"""
-    ).fetch_arrow_table().to_pylist()
+    if cfg.DATASET_KEY == "elnino_2024_mar_apr":
+        from .board_timeseries import _zone_timeseries_projection
+
+        source_sql = _zone_timeseries_projection()
+        rows = con.execute(
+            f"""SELECT zone_id,
+                       sum(final_total_zone_electricity_kwh_interval) AS total_kwh,
+                       sum(lights_electricity_kwh_interval)           AS lights_kwh,
+                       sum(equipment_electricity_kwh_interval)        AS equipment_kwh,
+                       sum(final_hvac_electricity_kwh_interval)       AS hvac_kwh,
+                       max(lights_electricity_kw
+                           + equipment_electricity_kw
+                           + final_hvac_electricity_kw)              AS peak_kw
+                FROM ({source_sql})
+                WHERE scenario_id = '{cfg.SCENARIO_ID}'
+                GROUP BY 1"""
+        ).fetch_arrow_table().to_pylist()
+    else:
+        rows = con.execute(
+            f"""SELECT zone_id,
+                       sum(final_total_zone_electricity_kwh_interval) AS total_kwh,
+                       sum(lights_electricity_kwh_interval)           AS lights_kwh,
+                       sum(equipment_electricity_kwh_interval)        AS equipment_kwh,
+                       sum(final_hvac_electricity_kwh_interval)       AS hvac_kwh,
+                       max(final_total_zone_electricity_kw)           AS peak_kw
+                FROM read_parquet('{ZONE_GLOB}', hive_partitioning=true)
+                GROUP BY 1"""
+        ).fetch_arrow_table().to_pylist()
     con.close()
     out = []
     for r in rows:

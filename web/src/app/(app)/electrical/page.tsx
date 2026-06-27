@@ -80,7 +80,7 @@ export default function ElectricalPage() {
   useEffect(() => {
     api.elecOverview().catch((e) => setErr(String(e)));
     api.elecBoards().then((r) => setBoards(r.boards)).catch(() => null);
-    api.elecScene(true, 700).then(setScene).catch(() => null);
+    api.elecScene(true, 700).then(setScene).catch((e) => setErr(String(e)));
     api.elecCircuits().then((r) => setCircuits(r.circuits)).catch(() => null);
     api.elecPhaseBalance().then((r) => setPhase(r.phase_balance)).catch(() => null);
   }, []);
