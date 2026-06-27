@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+from datetime import datetime, timedelta, timezone
 
 from fastapi import APIRouter, BackgroundTasks, HTTPException, Query
 from pydantic import BaseModel
@@ -14,6 +15,22 @@ from ...db import db_conn, fetch_all, fetch_one
 from ..deps import default_building_id
 
 router = APIRouter()
+TZ = timezone(timedelta(hours=7))
+
+
+def _local_bound(value: str | None) -> datetime | None:
+    """Interpret date-only API filters as Hanoi local dates.
+
+    PostgreSQL casts bare `2024-03-01` as UTC in this stack, which shifts the
+    campaign/replay window by seven hours and creates partial extra local days.
+    """
+    if not value:
+        return None
+    s = value.strip()
+    dt = datetime.fromisoformat(s.replace("Z", "+00:00"))
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=TZ)
+    return dt.astimezone(TZ)
 
 
 @router.get("/simulations")
@@ -171,6 +188,8 @@ def run_campaign(req: CampaignRequest):
 
     from ...ml import campaign_whatif
     b = req.building_id or default_building_id()
+    date_from = _local_bound(req.date_from)
+    date_to = _local_bound(req.date_to)
     with db_conn() as conn:
         rows = fetch_all(conn, """
             SELECT t.timestamp, t.total_power_kw, t.temperature_c, t.occupancy_count,
@@ -195,7 +214,7 @@ def run_campaign(req: CampaignRequest):
               AND (CAST(:df AS timestamptz) IS NULL OR t.timestamp >= CAST(:df AS timestamptz))
               AND (CAST(:dt AS timestamptz) IS NULL OR t.timestamp < CAST(:dt AS timestamptz))
             ORDER BY t.timestamp
-        """, b=b, scn=req.scenario_id, df=req.date_from, dt=req.date_to)
+        """, b=b, scn=req.scenario_id, df=date_from, dt=date_to)
     if not rows:
         raise HTTPException(404, "no telemetry for the period")
     df = pd.DataFrame([dict(r) for r in rows])

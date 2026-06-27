@@ -32,9 +32,20 @@ def _iso(value: Any) -> str | None:
     return str(value)
 
 
+def _local_bound(value: str | None) -> datetime | None:
+    if not value:
+        return None
+    dt = datetime.fromisoformat(value.strip().replace("Z", "+00:00"))
+    if dt.tzinfo is None:
+        dt = dt.replace(tzinfo=TZ)
+    return dt.astimezone(TZ)
+
+
 def _timestamps(building_id: str, *, scenario_id: str | None,
                 date_from: str | None, date_to: str | None,
                 max_steps: int) -> list[datetime]:
+    df = _local_bound(date_from)
+    dt = _local_bound(date_to)
     with db_conn() as conn:
         rows = fetch_all(conn, """
             SELECT DISTINCT timestamp
@@ -47,7 +58,7 @@ def _timestamps(building_id: str, *, scenario_id: str | None,
               AND (CAST(:dt AS timestamptz) IS NULL OR timestamp < CAST(:dt AS timestamptz))
             ORDER BY timestamp
             LIMIT :lim
-        """, b=building_id, scn=scenario_id, df=date_from, dt=date_to,
+        """, b=building_id, scn=scenario_id, df=df, dt=dt,
                       lim=max(1, int(max_steps)))
     return [_local(r["timestamp"]) for r in rows]
 
@@ -114,7 +125,7 @@ def run_predictive_replay(building_id: str, *, date_from: str | None = None,
                 "ai_kwh": round(ai_kw * step_h, 4),
                 "saving_kwh": round((baseline_kw - ai_kw) * step_h, 4),
                 "comfort_violation_min": round(comfort_min, 2),
-                "selected_trajectory": selected.get("id"),
+                "selected_trajectory": selected.get("trajectory_id") or selected.get("id"),
                 "objective_score": selected.get("objective", {}).get("score"),
             })
             action = res.get("execute_action")
