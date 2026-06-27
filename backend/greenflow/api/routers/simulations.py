@@ -198,6 +198,10 @@ def run_campaign(req: CampaignRequest):
     # telemetry is timestamptz (UTC); the peak window is LOCAL — convert to Hanoi
     # before extracting hour, else 13-16h lands on the wrong (UTC) hours.
     ts = pd.to_datetime(df["timestamp"], utc=True).dt.tz_convert("Asia/Ho_Chi_Minh")
+    # Keep the localized timestamp for downstream daily aggregation as well.
+    # Otherwise a local 00:00-07:00 sample is grouped under the previous UTC
+    # date, which makes month/day filters appear one day early in the chart.
+    df["timestamp"] = ts
     df["hour"] = ts.dt.hour
     df["dow"] = ts.dt.dayofweek
     df["month"] = ts.dt.month
