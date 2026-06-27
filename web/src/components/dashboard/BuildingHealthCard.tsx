@@ -1,10 +1,6 @@
-"use client";
-
-import { useEffect, useState } from "react";
 import { Activity } from "lucide-react";
-import { api } from "@/lib/api";
 import Skeleton from "@/components/shared/Skeleton";
-import { usePollMs } from "@/hooks/usePollMs";
+import { healthBand } from "@/lib/healthBands";
 import type { HealthScore } from "@/lib/types";
 
 // theme color hexes (mirror tailwind.config) for SVG/inline styling
@@ -12,30 +8,12 @@ const STROKE: Record<string, string> = {
   success: "#16A34A", teal: "#0F766E", warning: "#F59E0B", danger: "#DC2626",
 };
 
-// per-dimension bar color from its own score, same bands as the overall grade
-function bandColor(score: number): string {
-  if (score >= 85) return "success";
-  if (score >= 70) return "teal";
-  if (score >= 50) return "warning";
-  return "danger";
-}
-
 /**
  * Building Health Score — an OpenBlue-style composite (0-100) gauge that also
  * pinpoints which dimension is dragging the building down. Self-contained
  * polling; data from GET /api/kpi/health-score.
  */
-export default function BuildingHealthCard() {
-  const [h, setH] = useState<HealthScore | null>(null);
-
-  const pollMs = usePollMs(30000);
-  useEffect(() => {
-    const load = () => api.healthScore().then(setH).catch(() => null);
-    load();
-    const t = setInterval(load, pollMs);
-    return () => clearInterval(t);
-  }, [pollMs]);
-
+export default function BuildingHealthCard({ health: h }: { health: HealthScore | null }) {
   const R = 54;
   const C = 2 * Math.PI * R;
   const score = h?.score ?? 0;
@@ -91,12 +69,18 @@ export default function BuildingHealthCard() {
           </div>
         ))}
         {(h?.dimensions ?? []).map((d) => {
-          const c = STROKE[bandColor(d.score)];
+          const band = healthBand(d.score);
+          const c = band.color;
           return (
-            <div key={d.key} className="animate-fade-in">
+            <div key={d.key} className="animate-fade-in"
+                 title={`${band.label}: ${d.detail}. Good 70-100, Average 50-69, Warning below 50.`}>
               <div className="flex items-baseline justify-between text-[13px]">
                 <span className="font-medium text-text-secondary">{d.label}</span>
-                <span className="font-semibold" style={{ color: c }}>{d.score}</span>
+                <span className="flex items-center gap-1.5">
+                  <span className="rounded-full px-1.5 py-0.5 text-[9px] font-semibold"
+                        style={{ color: c, background: band.softColor }}>{band.label}</span>
+                  <span className="font-semibold" style={{ color: c }}>{d.score}</span>
+                </span>
               </div>
               <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-surface-muted">
                 <div

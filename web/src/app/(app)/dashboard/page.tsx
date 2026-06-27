@@ -11,10 +11,11 @@ import Skeleton from "@/components/shared/Skeleton";
 import EntityInsightPanel from "@/components/dashboard/EntityInsightPanel";
 import ZoneStateTable from "@/components/dashboard/ZoneStateTable";
 import { api, mediaUrl } from "@/lib/api";
-import { fmtKw, fmtPct } from "@/lib/format";
+import { fmtKw, fmtPct, fmtTime } from "@/lib/format";
+import { healthBand, occupancyConfidenceBand } from "@/lib/healthBands";
 import { useAppStore } from "@/stores/appStore";
 import { usePollMs } from "@/hooks/usePollMs";
-import type { Kpis, Zone } from "@/lib/types";
+import type { HealthScore, Kpis, Zone } from "@/lib/types";
 
 const GreenFlowViewer = dynamic(
   () => import("@/components/viewer/GreenFlowViewer"),
@@ -23,6 +24,7 @@ const GreenFlowViewer = dynamic(
 
 export default function DashboardPage() {
   const [kpis, setKpis] = useState<Kpis | null>(null);
+  const [health, setHealth] = useState<HealthScore | null>(null);
   const [zones, setZones] = useState<Zone[]>([]);
   const [reportBusy, setReportBusy] = useState(false);
   const [reportUrl, setReportUrl] = useState<string | null>(null);
@@ -30,6 +32,7 @@ export default function DashboardPage() {
 
   const load = useCallback(() => {
     api.kpis().then(setKpis).catch(() => null);
+    api.healthScore().then(setHealth).catch(() => null);
     api.zones().then(setZones).catch(() => null);
   }, []);
 
@@ -62,6 +65,13 @@ export default function DashboardPage() {
 
   const totalKw = buildingLive.total_power_kw ?? kpis?.total_kw;
   const occupancy = buildingLive.occupancy ?? kpis?.occupancy;
+  const energyHealth = health?.dimensions.find((dimension) => dimension.key === "energy");
+  const comfortHealth = health?.dimensions.find((dimension) => dimension.key === "comfort");
+  const energyBand = healthBand(energyHealth?.score);
+  const comfortBand = healthBand(comfortHealth?.score);
+  const occupancyBand = occupancyConfidenceBand(kpis?.occ_conf);
+  const updatedAt = kpis?.timestamp ? fmtTime(kpis.timestamp) : undefined;
+  const zoneCount = health?.zones ?? 0;
 
   return (
     <div className="pb-4 elevate-surface">
@@ -84,23 +94,55 @@ export default function DashboardPage() {
       />
 
       <div className="mb-3">
-        <BuildingHealthCard />
+        <BuildingHealthCard health={health} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard title="Total Load" value={fmtKw(totalKw)} loading={!kpis}
                  delta={kpis?.kwh != null ? `${Number(kpis.kwh).toFixed(0)} kWh today` : undefined}
-                 status="normal" />
+                 status={energyBand.tone} statusLabel={health ? energyBand.label : undefined}
+                 help={{
+                   summary: "The sum of current power across all zones. The secondary value is calendar-day energy consumed so far.",
+                   statusReason: energyHealth
+                     ? `${energyBand.label}: Energy / demand score ${energyHealth.score}/100. ${energyHealth.detail}. The color follows demand risk, not the absolute kW alone.`
+                     : "Demand-risk status is unavailable until the health score loads.",
+                   thresholds: "Good: score 70-100. Average: 50-69. Warning: below 50. Demand score = 100 × (1 - 0.6 × peak-risk zone share).",
+                   timestamp: updatedAt,
+                 }} />
         <KpiCard title="Peak Risk" value={kpis?.peak_high ? "High" : "Normal"} loading={!kpis}
-                 delta={`${kpis?.peak_high ?? 0} zones in peak watch`}
-                 status={kpis?.peak_high ? "warning" : "success"} />
+                 delta={`${kpis?.peak_high ?? 0} of ${zoneCount || "–"} zones at high risk`}
+                 status={energyBand.tone} statusLabel={health ? energyBand.label : undefined}
+                 help={{
+                   summary: "Shows how many zones are currently classified as high peak-demand risk.",
+                   statusReason: energyHealth
+                     ? `${energyBand.label}: ${energyHealth.detail}, producing the same ${energyHealth.score}/100 Energy / demand score shown above.`
+                     : "Peak-risk status is unavailable until the health score loads.",
+                   thresholds: "Good: score 70-100. Average: 50-69. Warning: below 50. Each high-risk zone reduces the softened demand score.",
+                   timestamp: updatedAt,
+                 }} />
         <KpiCard title="Comfort" value={`${kpis?.comfort_high ?? 0} high risk`}
                  loading={!kpis}
                  delta={`${kpis?.comfort_watch ?? 0} watch`}
-                 status={kpis?.comfort_high ? "danger" : (kpis?.comfort_watch ? "warning" : "success")} />
+                 status={comfortBand.tone} statusLabel={health ? comfortBand.label : undefined}
+                 help={{
+                   summary: "Counts zones outside the thermal-comfort target. High-risk zones carry twice the penalty of watch zones.",
+                   statusReason: comfortHealth
+                     ? `${comfortBand.label}: Thermal comfort score ${comfortHealth.score}/100. ${comfortHealth.detail}. This matches the score shown above.`
+                     : "Comfort status is unavailable until the health score loads.",
+                   thresholds: "Good: score 70-100. Average: 50-69. Warning: below 50. Score penalty = (high + 0.5 × watch) / total zones.",
+                   timestamp: updatedAt,
+                 }} />
         <KpiCard title="Occupancy" value={`${occupancy ?? "–"} people`} loading={!kpis}
                  delta={kpis?.occ_conf != null ? `${fmtPct(kpis.occ_conf)} confidence` : undefined}
-                 status="info" />
+                 status={occupancyBand.tone} statusLabel={kpis?.occ_conf != null ? occupancyBand.label : undefined}
+                 help={{
+                   summary: "Estimated people currently present across the building. Count quality is expressed by occupancy confidence.",
+                   statusReason: kpis?.occ_conf != null
+                     ? `${occupancyBand.label}: current occupancy confidence is ${fmtPct(kpis.occ_conf)}.`
+                     : "Occupancy confidence is not available.",
+                   thresholds: "Good: confidence 85% or higher. Average: 70-84%. Warning: below 70%.",
+                   timestamp: updatedAt,
+                 }} />
       </div>
 
       {/* fixed-height row: the inspector matches the 3D card height and scrolls inside */}
