@@ -2,7 +2,7 @@
 // and Caddy in production both route them to the FastAPI backend.
 
 import type {
-  ActionItem, AgentLog, AgentRun, Alert, Approval, Building, ChatMessageRow,
+  ActionItem, AgentLog, AgentRun, AgentRunStart, Alert, Approval, Building, ChatMessageRow,
   ChatQueryResponse, ChatSessionSummary, ComparisonKpi, Device,
   HealthScore, Kpis, ReplayStatus, Report, SimulationRun, ValidationResult, Zone,
 } from "./types";
@@ -59,9 +59,9 @@ export const api = {
 
   // agent
   runOptimization: (scenario_config = {}, session_id?: string | null) =>
-    post<{ run_id: string }>("/agent/run-optimization", { scenario_config, session_id }),
+    post<AgentRunStart>("/agent/run-optimization", { scenario_config, session_id }),
   runPrediction: (scenario_config = {}, session_id?: string | null) =>
-    post<{ run_id: string }>("/agent/predict", { scenario_config, session_id }),
+    post<AgentRunStart>("/agent/predict", { scenario_config, session_id }),
   peakStrategy: (scenario_config = {}) =>
     post<{ run_id: string }>("/agent/peak-strategy", { scenario_config }),
   compareBaseline: () => post<{ run_id: string }>("/agent/compare-baseline-optimized"),
@@ -92,7 +92,8 @@ export const api = {
   // actions / approvals
   actions: (status?: string) =>
     get<ActionItem[]>(`/actions${status ? `?status=${status}` : ""}`),
-  approvals: (status = "pending") => get<Approval[]>(`/approvals?status=${status}`),
+  approvals: (status = "pending", runId?: string) =>
+    get<Approval[]>(`/approvals?status=${status}${runId ? `&run_id=${encodeURIComponent(runId)}` : ""}`),
   approve: (id: string, note = "") =>
     post<any>(`/approvals/${id}/approve`, { decided_by: "demo_user", note }),
   rejectApproval: (id: string, note = "") =>

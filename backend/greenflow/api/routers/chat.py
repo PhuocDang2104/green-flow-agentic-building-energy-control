@@ -34,8 +34,13 @@ def list_sessions(building_id: str = Query(default=None)):
     with db_conn() as conn:
         return fetch_all(conn, """
             SELECT s.id, s.created_at,
-                   (SELECT content FROM chat_messages m WHERE m.session_id = s.id
-                    AND m.role = 'user' ORDER BY m.created_at LIMIT 1) AS first_message,
+                   coalesce(
+                     (SELECT content FROM chat_messages m WHERE m.session_id = s.id
+                      AND m.role = 'user' ORDER BY m.created_at LIMIT 1),
+                     s.title,
+                     (SELECT content FROM chat_messages m WHERE m.session_id = s.id
+                      AND m.role = 'assistant' ORDER BY m.created_at LIMIT 1)
+                   ) AS first_message,
                    (SELECT count(*) FROM chat_messages m WHERE m.session_id = s.id) AS n_messages
             FROM chat_sessions s WHERE s.building_id = :b
             ORDER BY s.created_at DESC LIMIT 50""", b=b)

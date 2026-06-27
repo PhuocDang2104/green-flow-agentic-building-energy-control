@@ -8,7 +8,6 @@ import uuid
 from sqlalchemy import text
 
 from ..db import db_conn, fetch_all, fetch_one
-from .graph import get_graph
 from .state import new_state
 from .tools.db_tool import _clean
 
@@ -28,6 +27,25 @@ def start_run(building_id: str, entrypoint: str, *,
             VALUES (:id, :b, :e, :ba, :q, 'running', cast(:sc as jsonb))
         """), {"id": run_id, "b": building_id, "e": entrypoint, "ba": button_action,
                "q": user_query, "sc": json.dumps(scenario_config or {})})
+        if session_id:
+            # Persist the run as a chat event in the same transaction as the
+            # run row. The frontend can therefore restore every inline trace
+            # from chat history after a reload.
+            action = button_action or "agent_run"
+            label = action.replace("_", " ").title()
+            tool_call = {
+                "name": "trigger_agent_action",
+                "args": {"action": action},
+                "result": {"run_id": run_id, "status": "running", "action": action},
+            }
+            conn.execute(text("""
+                INSERT INTO chat_messages (session_id, role, content, tool_calls)
+                VALUES (:session, 'assistant', :content, cast(:tools as jsonb))
+            """), {
+                "session": session_id,
+                "content": f"Started **{label}**.",
+                "tools": json.dumps([tool_call]),
+            })
     return run_id
 
 
@@ -43,12 +61,10 @@ def execute_run(run_id: str, building_id: str, entrypoint: str, *,
         user_id="demo",
     )
     try:
+        from .graph import get_graph
         final = get_graph().invoke(state)
         status = "awaiting_approval" if final.get("approval_required") else "completed"
         _finish_run(run_id, status, final)
-        if session_id:  # real chat session → narrate the run there
-            from .reporting import post_run_report
-            post_run_report(building_id, session_id, final)
         return final
     except Exception as exc:
         _finish_run(run_id, "failed", {"final_answer": f"Run failed: {exc}"})

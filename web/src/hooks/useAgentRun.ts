@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useRef, useState } from "react";
 import { api } from "@/lib/api";
-import type { AgentLog, AgentRun } from "@/lib/types";
+import type { AgentLog, AgentRun, AgentRunStart } from "@/lib/types";
 import { useAppStore } from "@/stores/appStore";
 
 /** Start agent runs and poll logs/status until completion. */
@@ -44,11 +44,11 @@ export function useAgentRun() {
   }, [setActiveAgentRunId, setViewerUpdates, stopPolling]);
 
   const start = useCallback(async (
-    starter: () => Promise<{ run_id: string }>,
+    starter: () => Promise<AgentRunStart>,
   ) => {
-    const { run_id } = await starter();
-    watch(run_id);
-    return run_id;
+    const result = await starter();
+    watch(result.run_id);
+    return result;
   }, [watch]);
 
   /**

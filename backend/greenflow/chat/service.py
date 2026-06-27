@@ -183,13 +183,16 @@ def _rrf_fuse(*ranked_lists: list[int], k: int = 60) -> list[int]:
 
 
 # --------------------------------------------------------------------------- DB
-def _ensure_session(conn, session_id, building_id) -> str:
+def _ensure_session(conn, session_id, building_id, title: str | None = None) -> str:
     if session_id:
-        row = fetch_one(conn, "SELECT id FROM chat_sessions WHERE id = :s", s=session_id)
+        row = fetch_one(conn, """
+            SELECT id FROM chat_sessions WHERE id = :s AND building_id = :b
+        """, s=session_id, b=building_id)
         if row:
             return str(row["id"])
-    row = fetch_one(conn, "INSERT INTO chat_sessions (building_id) VALUES (:b) RETURNING id",
-                    b=building_id)
+    row = fetch_one(conn, """
+        INSERT INTO chat_sessions (building_id, title) VALUES (:b, :title) RETURNING id
+    """, b=building_id, title=title)
     return str(row["id"])
 
 

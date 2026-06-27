@@ -116,6 +116,13 @@ export interface AgentRun {
   state_json?: Record<string, any>;
 }
 
+export interface AgentRunStart {
+  run_id: string;
+  session_id?: string;
+  status?: string;
+  button_action?: string;
+}
+
 export interface DashboardCard {
   title: string;
   value: string;
@@ -152,6 +159,7 @@ export interface ActionItem {
 export interface Approval {
   approval_id: string;
   action_id: string;
+  agent_run_id?: string;
   status: string;
   action_type: string;
   reason?: string;

@@ -7,12 +7,11 @@ import {
 import { motion, useReducedMotion } from "motion/react";
 import PageHeader from "@/components/shell/PageHeader";
 import AgentRunTimeline from "@/components/agent/AgentRunTimeline";
-import AgentRunTrace from "@/components/agent/AgentRunTrace";
 import ActionQueue from "@/components/agent/ActionQueue";
 import PredictionPanel from "@/components/agent/PredictionPanel";
 import PolicySummaryCard from "@/components/agent/PolicySummaryCard";
 import AuditTable from "@/components/agent/AuditTable";
-import ChatThread from "@/components/chatbot/ChatThread";
+import ChatThread, { type ChatRunEvent } from "@/components/chatbot/ChatThread";
 import { usePollMs } from "@/hooks/usePollMs";
 import { useAgentRun } from "@/hooks/useAgentRun";
 import { api } from "@/lib/api";
@@ -60,7 +59,23 @@ export default function AgentActionsPage() {
 
   const [sessions, setSessions] = useState<ChatSessionSummary[]>([]);
   const [sessionId, setSessionId] = useState<string | null>(null);
-  const [view, setView] = useState<"trace" | "chat">("trace");
+  const [chatRunEvent, setChatRunEvent] = useState<ChatRunEvent | null>(null);
+
+  const triggerRun = async (action: "run_optimization" | "run_prediction") => {
+    const starter = action === "run_optimization"
+      ? () => api.runOptimization(scenario, sessionId)
+      : () => api.runPrediction(scenario, sessionId);
+    try {
+      const result = await start(starter);
+      const targetSessionId = result.session_id || sessionId;
+      if (!targetSessionId) return;
+      setChatRunEvent({ runId: result.run_id, action, sessionId: targetSessionId });
+      if (targetSessionId !== sessionId) onSessionId(targetSessionId);
+      else loadSessions();
+    } catch {
+      // useAgentRun leaves the previous run intact; the next click can retry.
+    }
+  };
   const loadSessions = useCallback(() => {
     api.chatSessions().then(setSessions).catch(() => null);
   }, []);
@@ -86,7 +101,7 @@ export default function AgentActionsPage() {
     loadLatest();
   }, [loadLatest]);
 
-  // a finished run posts a report into the active session → refresh both
+  // A finished run can add actions/approvals and change the session summary.
   useEffect(() => {
     if (!running && run) { refresh(); loadSessions(); }
   }, [running, run, refresh, loadSessions]);
@@ -122,11 +137,11 @@ export default function AgentActionsPage() {
         actions={
           <>
             <button className="btn-secondary" disabled={running}
-                    onClick={() => { setView("trace"); start(() => api.runPrediction(scenario, sessionId)); }}>
+                    onClick={() => triggerRun("run_prediction")}>
               <TrendingUp size={15} /> Run Prediction
             </button>
             <button className="btn-primary" disabled={running}
-                    onClick={() => { setView("trace"); start(() => api.runOptimization(scenario, sessionId)); }}>
+                    onClick={() => triggerRun("run_optimization")}>
               {running ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />}
               Run Optimization
             </button>
@@ -177,39 +192,25 @@ export default function AgentActionsPage() {
           </div>
         </aside>
 
-        {/* conversation (hero): CLI run trace + chat, toggleable */}
+        {/* conversation (hero): chat with agent run traces streaming inline */}
         <section className="card-elevated flex h-[560px] flex-col p-0 lg:h-[640px]">
-          <div className="flex items-center gap-2.5 border-b border-border/70 px-4 py-3">
+          <div className="flex items-center gap-2.5 border-b border-border/70 px-4 py-3.5">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-teal text-white shadow-[0_4px_12px_-4px_rgba(13,148,136,0.5)]">
               <Bot size={16} />
             </span>
-            <div className="min-w-0 flex-1">
+            <div className="min-w-0">
               <p className="truncate text-[13.5px] font-semibold tracking-tight">
-                {view === "trace" ? "Agent run trace" : activeSession?.first_message || "Building agent"}
+                {activeSession?.first_message || "Building agent"}
               </p>
               <p className="text-[11px] text-text-muted">
-                {view === "trace"
-                  ? running ? "reasoning live…" : "step-by-step reasoning"
-                  : activeSession ? `${activeSession.n_messages} messages` : "Ask the agent about the building"}
+                {running ? "reasoning live…"
+                  : activeSession ? `${activeSession.n_messages} messages`
+                  : "Chat, or run a workflow - the trace streams in here"}
               </p>
             </div>
-            <div className="flex rounded-lg border border-border p-0.5 text-[11.5px]">
-              <button onClick={() => setView("trace")}
-                      className={`rounded-md px-2.5 py-1 font-medium transition ${view === "trace" ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"}`}>
-                Run trace
-              </button>
-              <button onClick={() => setView("chat")}
-                      className={`rounded-md px-2.5 py-1 font-medium transition ${view === "chat" ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"}`}>
-                Chat
-              </button>
-            </div>
           </div>
-          {view === "trace" ? (
-            <AgentRunTrace run={run} logs={logs} running={running} approvals={approvals}
-              onApprove={(id) => decide(id, true)} onReject={(id) => decide(id, false)} busyId={busyApproval} />
-          ) : (
-            <ChatThread sessionId={sessionId} onSessionId={onSessionId} />
-          )}
+          <ChatThread sessionId={sessionId} onSessionId={onSessionId}
+            runEvent={chatRunEvent} />
         </section>
 
         {/* actions */}

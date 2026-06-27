@@ -22,14 +22,23 @@ class RunRequest(BaseModel):
 def _start_button_run(button_action: str, req: RunRequest,
                       background: BackgroundTasks) -> dict:
     b = req.building_id or default_building_id()
+    # A manual run is still part of the conversation. Reuse the selected chat
+    # session, or create a titled one so a run started from the page survives a
+    # reload and can be reopened from session history.
+    from ...chat.service import _ensure_session
+    label = button_action.replace("_", " ").title()
+    with db_conn() as conn:
+        session_id = _ensure_session(conn, req.session_id, b, title=label)
+
     run_id = service.start_run(b, "button", button_action=button_action,
                                scenario_config=req.scenario_config,
-                               session_id=req.session_id)
+                               session_id=session_id)
     background.add_task(service.execute_run, run_id, b, "button",
                         button_action=button_action,
                         scenario_config=req.scenario_config,
-                        session_id=req.session_id)
-    return {"run_id": run_id, "status": "running", "button_action": button_action}
+                        session_id=session_id)
+    return {"run_id": run_id, "session_id": session_id,
+            "status": "running", "button_action": button_action}
 
 
 @router.post("/run-optimization")

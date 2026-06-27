@@ -67,19 +67,20 @@ def get_action(action_id: str):
 
 @router.get("/approvals")
 def list_approvals(building_id: str = Query(default=None),
-                   status: str = "pending"):
+                   status: str = "pending", run_id: str | None = None):
     with db_conn() as conn:
         _expire_stale_approvals(conn)
         return [_clean(r) for r in fetch_all(conn, """
             SELECT ar.id AS approval_id, ar.status, ar.requested_at, ar.decided_at,
                    ar.decided_by, ar.payload_json,
-                   a.id AS action_id, a.action_type, a.reason,
+                   a.id AS action_id, a.agent_run_id, a.action_type, a.reason,
                    a.expected_saving_kwh, a.expected_peak_reduction_kw,
                    a.comfort_risk_after, a.policy_reasons
             FROM approval_requests ar JOIN actions a ON a.id = ar.action_id
             WHERE ar.building_id = :b AND (:status = 'all' OR ar.status = :status)
+              AND (:run_id IS NULL OR a.agent_run_id = :run_id)
             ORDER BY ar.requested_at DESC
-        """, b=building_id or default_building_id(), status=status)]
+        """, b=building_id or default_building_id(), status=status, run_id=run_id)]
 
 
 class DecisionRequest(BaseModel):

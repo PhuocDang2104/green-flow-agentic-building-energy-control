@@ -16,6 +16,34 @@ interface Message {
   meta?: ChatQueryResponse;
 }
 
+export interface ChatRunEvent {
+  runId: string;
+  action: string;
+  sessionId: string;
+}
+
+function hasRun(message: Message, runId: string): boolean {
+  return message.meta?.tools_used?.some(
+    (tool) => tool.name === "trigger_agent_action" && tool.result?.run_id === runId,
+  ) ?? false;
+}
+
+function messageForRun(event: ChatRunEvent): Message {
+  return {
+    role: "assistant",
+    text: `Started **${event.action.replaceAll("_", " ")}**.`,
+    meta: {
+      session_id: event.sessionId,
+      answer: "",
+      tools_used: [{
+        name: "trigger_agent_action",
+        args: { action: event.action },
+        result: { run_id: event.runId, action: event.action, status: "running" },
+      }],
+    },
+  };
+}
+
 function rowsToMessages(rows: ChatMessageRow[]): Message[] {
   return rows
     .filter((r) => r.role === "user" || r.role === "assistant")
@@ -39,10 +67,12 @@ export default function ChatThread({
   sessionId,
   onSessionId,
   showSuggestions = true,
+  runEvent = null,
 }: {
   sessionId: string | null;
   onSessionId: (id: string) => void;
   showSuggestions?: boolean;
+  runEvent?: ChatRunEvent | null;
 }) {
   const [messages, setMessages] = useState<Message[]>([]);
   const [input, setInput] = useState("");
@@ -77,6 +107,16 @@ export default function ChatThread({
       .catch(() => setMessages([]))
       .finally(() => setLoadingHistory(false));
   }, [sessionId]);
+
+  // Header-triggered runs are persisted by the backend. Append the matching
+  // event immediately as well, so an existing open thread does not need a
+  // history reload before its trace starts streaming.
+  useEffect(() => {
+    if (!runEvent || runEvent.sessionId !== sessionId) return;
+    setMessages((current) => current.some((m) => hasRun(m, runEvent.runId))
+      ? current
+      : [...current, messageForRun(runEvent)]);
+  }, [runEvent, sessionId]);
 
   const send = async (text: string) => {
     const message = text.trim();
