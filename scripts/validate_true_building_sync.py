@@ -30,20 +30,32 @@ EXPECTED = {
 }
 
 
+def _duckdb_source(table: str) -> tuple[duckdb.DuckDBPyConnection, str, str]:
+    ds = active_dataset()
+    if ds.duckdb_path.exists():
+        return duckdb.connect(str(ds.duckdb_path), read_only=True), table, str(ds.duckdb_path)
+    parquet = ds.parquet_root / f"{table}.parquet"
+    if not parquet.exists():
+        raise SystemExit(
+            f"missing DuckDB and parquet fallback. Tried: {ds.duckdb_path} and {parquet}"
+        )
+    return duckdb.connect(), f"read_parquet('{parquet.as_posix()}')", str(parquet)
+
+
 def _ok_close(actual: float | None, expected: float, tol: float) -> bool:
     return actual is not None and abs(float(actual) - expected) <= tol
 
 
 def _duckdb_checks(duckdb_path: Path) -> dict[str, Any]:
-    con = duckdb.connect(str(duckdb_path), read_only=True)
+    con, source, source_label = _duckdb_source("final_ai_training_timeseries")
     row = con.execute("""
         SELECT count(DISTINCT zone_id) AS zones,
                count(DISTINCT datetime) AS timesteps,
                count(*) AS zone_rows,
                min(datetime) AS min_ts,
                max(datetime) AS max_ts
-        FROM final_ai_training_timeseries
-    """).fetchone()
+        FROM {source}
+    """.format(source=source)).fetchone()
     totals = con.execute("""
         SELECT
           sum(CASE WHEN datetime >= TIMESTAMP '2024-03-01'
@@ -59,10 +71,11 @@ def _duckdb_checks(duckdb_path: Path) -> dict[str, Any]:
           sum(equipment_electricity_kwh) AS equipment_kwh,
           sum(hvac_electricity_kwh) AS hvac_kwh,
           sum(target_total_zone_power_kw * 0.5) AS total_kwh
-        FROM final_ai_training_timeseries
-    """).fetchone()
+        FROM {source}
+    """.format(source=source)).fetchone()
     keys = ("zones", "timesteps", "zone_rows", "min_ts", "max_ts")
     out = dict(zip(keys, row, strict=True))
+    out["source"] = source_label
     out.update(dict(zip((
         "march_kwh", "april_kwh", "apr25_kwh", "lights_kwh",
         "equipment_kwh", "hvac_kwh", "total_kwh",
@@ -128,7 +141,12 @@ def _electrical_checks(path: Path, scenario_id: str) -> dict[str, Any]:
         ).fetchall()}
         time_col = "timestamp_local" if "timestamp_local" in cols else "timestamp"
         scenario_expr = "count(DISTINCT scenario_id)" if "scenario_id" in cols else "NULL"
-        total_expr = "sum(total_kwh)" if "total_kwh" in cols else "NULL"
+        if "total_kwh" in cols:
+            total_expr = "sum(total_kwh)"
+        elif "board_total_kwh_interval" in cols:
+            total_expr = "sum(board_total_kwh_interval)"
+        else:
+            total_expr = "NULL"
         row = con.execute(f"""
             SELECT count(*) AS rows,
                    min({time_col}) AS min_ts,

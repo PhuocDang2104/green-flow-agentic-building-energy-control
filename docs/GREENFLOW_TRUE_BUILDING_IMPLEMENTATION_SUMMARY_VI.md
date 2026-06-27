@@ -306,19 +306,168 @@ Also checked:
 
 ## 10. Cloud test order
 
-Recommended cloud/backend test order:
+Run this order on the cloud VM. The first step is mandatory because the API
+container reads `./data` from the host through this compose volume:
+
+```yaml
+./data:/app/data:ro
+```
+
+### 10.1. Preflight host data
+
+On the host, before running loaders:
 
 ```bash
-docker compose up -d --build db minio mlflow api
+pwd
+ls -lah data/final_elnino
+find data/final_elnino -maxdepth 4 -type f \( -name "*.duckdb" -o -name "final_zone_metadata.parquet" -o -name "final_weather_timeseries.parquet" \)
+```
 
+Expected files. The `.duckdb` file is preferred, but after the latest patch the
+loaders can run with parquet-only data as long as the three parquet files below
+exist:
+
+```text
+data/final_elnino/1. Dạng duckdb/greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_SELF_CONTAINED.duckdb
+data/final_elnino/3. Dạng parquet/final_zone_metadata.parquet
+data/final_elnino/3. Dạng parquet/final_zone_device_power_timeseries.parquet
+data/final_elnino/3. Dạng parquet/final_weather_timeseries.parquet
+data/final_elnino/3. Dạng parquet/final_ai_training_timeseries.parquet
+```
+
+If `.duckdb` is missing but the parquet files exist, this is OK. The loaders now
+fallback to parquet. If the parquet files are missing, copy `data/final_elnino`
+to the repo root first, then recreate the API container.
+
+### 10.2. Rebuild API image
+
+The full electrical build needs `ifcopenshell`, so rebuild after the Dockerfile
+change:
+
+```bash
+docker compose build --no-cache api
+docker compose up -d db minio api
+```
+
+If MLflow is used on this stack, create its DB once before starting `mlflow`:
+
+```bash
+docker compose exec db psql -U greenflow -d postgres -tc "SELECT 1 FROM pg_database WHERE datname='mlflow'" | grep -q 1 \
+  || docker compose exec db psql -U greenflow -d postgres -c "CREATE DATABASE mlflow OWNER greenflow;"
+
+docker compose up -d mlflow
+```
+
+### 10.3. Preflight data inside API container
+
+Run this before `sync_true_building_zones.py`:
+
+```bash
+docker compose exec api sh -lc '
+python - <<PY
+from greenflow.datasets import active_dataset
+ds = active_dataset()
+print("duckdb_path =", ds.duckdb_path, "exists =", ds.duckdb_path.exists())
+print("parquet_root =", ds.parquet_root, "exists =", ds.parquet_root.exists())
+print("duckdb files =", [str(p) for p in ds.duckdb_path.parent.rglob("*.duckdb")][:5])
+PY
+find /app/data/final_elnino -maxdepth 4 -type f \( -name "*.duckdb" -o -name "final_zone_metadata.parquet" \)
+'
+```
+
+Expected. `duckdb_path exists = False` is acceptable when parquet exists:
+
+```text
+parquet_root exists = True
+.../final_zone_metadata.parquet
+.../final_ai_training_timeseries.parquet
+.../final_weather_timeseries.parquet
+```
+
+If both `.duckdb` and required parquet files are missing, do not run the loaders
+yet. Fix the host `./data` mount or set explicit paths in `.env`:
+
+```bash
+GREENFLOW_DUCKDB_PATH=/app/data/final_elnino/1. Dạng duckdb/greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_SELF_CONTAINED.duckdb
+GREENFLOW_PARQUET_ROOT=/app/data/final_elnino/3. Dạng parquet
+GREENFLOW_ELECTRICAL_OUT=/app/data/electrical_distribution_elnino
+```
+
+Then recreate API:
+
+```bash
+docker compose up -d --force-recreate api
+```
+
+### 10.4. Load true-building data
+
+```bash
 docker compose exec api python scripts/sync_true_building_zones.py
 docker compose exec api python scripts/load_real_data.py
 docker compose exec api python scripts/load_weather.py
 docker compose exec api python scripts/validate_true_building_sync.py --require-postgres
+```
 
+Expected:
+
+```text
+synced true-building zones ... upserted=308
+pulled 901,824 rows (308 zones, mode=all-zones)
+weather_15m: upserted 2928 rows
+telemetry rows = 901824
+distinct telemetry zones = 308
+```
+
+### 10.5. Build electrical artifacts
+
+Full build:
+
+```bash
 docker compose exec api python scripts/build_electrical_kg.py --all
 docker compose exec api python scripts/validate_true_building_sync.py --require-postgres
+```
 
+If you only need to smoke-test the El Nino timeseries projection after a previous
+electrical mapping build already exists, run the lighter phases:
+
+```bash
+docker compose exec api python scripts/build_electrical_kg.py --phase timeseries --phase validate --phase dashboard
+```
+
+### 10.6. API smoke tests
+
+Use `/api/...` only when Caddy/web proxy is up. If only the API container is up
+and no port is published, run curls through the container:
+
+```bash
+docker compose exec api python - <<'PY'
+from fastapi.testclient import TestClient
+from greenflow.api.main import app
+c = TestClient(app)
+print(c.get("/api/ml/model-info").json())
+print(c.post("/api/simulations/campaign", json={
+    "date_from": "2024-03-01",
+    "date_to": "2024-04-01",
+    "setpoint_delta": 3,
+}).json()["kpi"])
+print(c.post("/api/simulations/predictive-control", json={
+    "timestamp": "2024-04-25T13:00:00+07:00",
+    "horizon_steps": 8,
+    "top_k": 4,
+}).json()["metadata"])
+print(c.post("/api/simulations/predictive-replay", json={
+    "date_from": "2024-04-25",
+    "date_to": "2024-04-26",
+    "max_steps": 48,
+    "horizon_steps": 8,
+    "top_k": 4,
+}).json()["summary"])
+PY
+```
+
+If Caddy/web is up:
+
+```bash
 curl http://localhost/api/ml/model-info
 curl -X POST http://localhost/api/simulations/campaign \
   -H "Content-Type: application/json" \

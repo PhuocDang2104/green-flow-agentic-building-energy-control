@@ -38,6 +38,7 @@ from greenflow.db import db_conn, fetch_all  # noqa: E402
 BUILDING_ID = uuid.UUID("b0000000-0000-0000-0000-000000000001")
 TZ = timezone(timedelta(hours=7))  # Hà Nội; timestamp trong data là local naive
 DATASET_SCHEMA = os.environ.get("DATASET_SCHEMA", "elnino2024")  # v2025 | elnino2024
+DATASET = active_dataset()
 
 # Crosswalk cột theo schema dataset. Gói El Niño Mar-Apr 2024 đổi tên cột và có
 # occupancy THẬT (zone_people_occupant_count) thay vì ước lượng. ts dùng cột
@@ -69,7 +70,7 @@ COLMAPS = {
 }
 CM = COLMAPS[DATASET_SCHEMA]
 DUCKDB_PATH = (os.environ.get("DUCKDB_PATH") or
-               (str(active_dataset().duckdb_path) if DATASET_SCHEMA == "elnino2024"
+               (str(DATASET.duckdb_path) if DATASET_SCHEMA == "elnino2024"
                 else CM["default_path"]))
 SCENARIO_ID = CM["scenario_id"]
 LOAD_ALL_ZONES = os.environ.get(
@@ -115,6 +116,18 @@ REPO_ENTITY_KEYS = [
 ]
 
 
+def _duckdb_source(table: str) -> tuple[duckdb.DuckDBPyConnection, str, str]:
+    path = Path(DUCKDB_PATH)
+    if path.exists():
+        return duckdb.connect(str(path), read_only=True), table, str(path)
+    parquet = DATASET.parquet_root / f"{table}.parquet"
+    if not parquet.exists():
+        raise SystemExit(
+            f"missing DuckDB and parquet fallback. Tried: {path} and {parquet}"
+        )
+    return duckdb.connect(), f"read_parquet('{parquet.as_posix()}')", str(parquet)
+
+
 def main() -> None:
     # 1) zones trong Postgres: entity_key -> (uuid, floor_id, room_type, area)
     with db_conn() as conn:
@@ -123,15 +136,15 @@ def main() -> None:
             FROM zones WHERE building_id = :b""", b=BUILDING_ID)
     zmap = {r["entity_key"]: r for r in zrows}
 
-    # 2) kéo timeseries thật cho 14 zone từ DuckDB
-    print(f"reading DuckDB: {DUCKDB_PATH}")
-    con = duckdb.connect(DUCKDB_PATH, read_only=True)
+    # 2) kéo timeseries thật từ DuckDB hoặc parquet fallback.
+    con, source, source_label = _duckdb_source("final_ai_training_timeseries")
+    print(f"reading source: {source_label}")
     if LOAD_ALL_ZONES:
         tz_ids = [r[0] for r in con.execute("""
             SELECT DISTINCT zone_id
-            FROM final_ai_training_timeseries
+            FROM {source}
             ORDER BY zone_id
-        """).fetchall()]
+        """.format(source=source)).fetchall()]
         tz_to_key = {
             zid: ("zone_" + zid[len("tz_"):]) if str(zid).startswith("tz_") else str(zid)
             for zid in tz_ids
@@ -156,7 +169,7 @@ def main() -> None:
                     + ([CM["occ"]] if CM["occ"] else []))
     rows = con.execute(f"""
         SELECT {sel}
-        FROM final_ai_training_timeseries
+        FROM {source}
         WHERE zone_id IN ({ph})
         ORDER BY {CM['ts']}""", tz_ids).fetchall()
     print(f"pulled {len(rows):,} rows ({len(tz_ids)} zones, mode={mode})")

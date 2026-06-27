@@ -25,17 +25,31 @@ from greenflow.db import db_conn  # noqa: E402
 
 TZ = timezone(timedelta(hours=7))
 LOC = os.environ.get("WEATHER_LOCATION", "Hanoi")
-DUCKDB_PATH = os.environ.get("DUCKDB_PATH") or str(active_dataset().duckdb_path)
+DATASET = active_dataset()
+DUCKDB_PATH = os.environ.get("DUCKDB_PATH") or str(DATASET.duckdb_path)
+
+
+def _duckdb_source(table: str) -> tuple[duckdb.DuckDBPyConnection, str, str]:
+    path = Path(DUCKDB_PATH)
+    if path.exists():
+        return duckdb.connect(str(path), read_only=True), table, str(path)
+    parquet = DATASET.parquet_root / f"{table}.parquet"
+    if not parquet.exists():
+        raise SystemExit(
+            f"missing DuckDB and parquet fallback. Tried: {path} and {parquet}"
+        )
+    return duckdb.connect(), f"read_parquet('{parquet.as_posix()}')", str(parquet)
 
 
 def main() -> None:
-    con = duckdb.connect(DUCKDB_PATH, read_only=True)
+    con, source, source_label = _duckdb_source("final_weather_timeseries")
+    print(f"reading weather source: {source_label}")
     rows = con.execute("""
         SELECT datetime, outdoor_temp_c, outdoor_rh_pct, wind_speed_m_s,
                COALESCE(total_sky_cover_tenths, 4) * 10 AS cloud_pct,
                COALESCE(liquid_precip_depth_mm, 0) AS precip,
                global_horizontal_radiation_w_m2 AS solar
-        FROM final_weather_timeseries ORDER BY datetime""").fetchall()
+        FROM {source} ORDER BY datetime""".format(source=source)).fetchall()
     recs = [{"ts": r[0].replace(tzinfo=TZ), "loc": LOC, "t": r[1], "h": r[2],
              "w": r[3], "c": r[4], "p": r[5], "s": r[6]} for r in rows]
     ins = text("""

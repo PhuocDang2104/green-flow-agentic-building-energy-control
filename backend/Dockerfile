@@ -18,11 +18,12 @@ RUN apt-get update && apt-get install -y --no-install-recommends libgomp1 \
 #   - CPU-only torch from PyTorch's CPU index (avoids the ~2GB CUDA build).
 #   - [ml] = lightgbm + mlflow + numpy + pandas (surrogate registry inference).
 #   - [electrical] = duckdb + pyarrow for file-backed electrical artifacts.
+#   - [ifc] = ifcopenshell for the full electrical KG rebuild from IFC.
 #   - [embeddings] = sentence-transformers (BGE-M3 + bge-reranker-v2-m3, hybrid RAG).
 COPY pyproject.toml README.md ./
 RUN pip install --no-cache-dir torch --index-url https://download.pytorch.org/whl/cpu \
     && mkdir -p backend/greenflow && touch backend/greenflow/__init__.py \
-    && pip install --no-cache-dir -e ".[ml,electrical,embeddings]"
+    && pip install --no-cache-dir -e ".[ml,electrical,ifc,embeddings]"
 
 # ---- Voice deps in their OWN layer (self-hosted STT/TTS) ----
 # Kept separate from and below the heavy torch/ml/embeddings layer so adding

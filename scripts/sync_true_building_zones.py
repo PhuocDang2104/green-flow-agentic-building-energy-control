@@ -45,13 +45,27 @@ def floor_index(floor_key: str | None) -> int:
 
 
 def read_zone_metadata(duckdb_path: Path) -> list[dict]:
-    con = duckdb.connect(str(duckdb_path), read_only=True)
+    ds = active_dataset()
+    if duckdb_path.exists():
+        con = duckdb.connect(str(duckdb_path), read_only=True)
+        source = "final_zone_metadata"
+        source_label = str(duckdb_path)
+    else:
+        parquet = ds.parquet_root / "final_zone_metadata.parquet"
+        if not parquet.exists():
+            raise SystemExit(
+                f"missing DuckDB and parquet fallback. Tried: {duckdb_path} and {parquet}"
+            )
+        con = duckdb.connect()
+        source = f"read_parquet('{parquet.as_posix()}')"
+        source_label = str(parquet)
+    print(f"reading zone metadata: {source_label}")
     rows = con.execute("""
         SELECT zone_id, eplus_zone_name, room_id, room_name, floor_id, room_type,
                area_m2_final, volume_m3_final, height_m_final
-        FROM final_zone_metadata
+        FROM {source}
         ORDER BY zone_id
-    """).fetchall()
+    """.format(source=source)).fetchall()
     cols = [
         "zone_id", "eplus_zone_name", "room_id", "room_name", "floor_id", "room_type",
         "area_m2_final", "volume_m3_final", "height_m_final",
