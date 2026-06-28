@@ -245,11 +245,11 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 26, delay: index * 0.05 }}
-      className="rounded-2xl border border-border/65 bg-white px-5 py-5 shadow-[0_18px_45px_-34px_rgba(15,23,42,0.35)]"
+      className="rounded-2xl border border-border/65 bg-white px-5 py-4 shadow-[0_18px_45px_-34px_rgba(15,23,42,0.35)]"
     >
-      <div className="flex items-start gap-4">
-        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
-          <Zap size={24} />
+      <div className="flex items-start gap-3">
+        <div className="grid h-9 w-9 shrink-0 place-items-center text-teal">
+          <Zap size={25} strokeWidth={1.9} />
         </div>
         <div className="min-w-0">
           <h4 className="text-[18px] font-semibold leading-tight tracking-tight text-text-primary">
@@ -259,9 +259,9 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
         </div>
       </div>
 
-      <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_220px]">
-        <div className="space-y-5">
-          <div className="rounded-xl border border-emerald-100 bg-emerald-50/45 px-3.5 py-3">
+      <div className="mt-4 grid gap-5 lg:grid-cols-[1fr_200px]">
+        <div className="space-y-4">
+          <div>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
                 <span className="h-2.5 w-2.5 rounded-full bg-teal shadow-[0_0_0_4px_rgba(15,118,110,0.10)]" />
@@ -275,7 +275,7 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
                 </span>
               )}
             </div>
-            <div className="h-9 overflow-hidden rounded-lg bg-white shadow-inner">
+            <div className="h-8 overflow-hidden rounded-lg bg-emerald-50 shadow-inner">
               <div
                 className="h-full rounded-lg bg-gradient-to-r from-emerald-700 via-teal to-emerald-400 shadow-[0_8px_18px_-10px_rgba(15,118,110,0.7)] transition-[width] duration-500"
                 style={{ width: optimizedWidth }}
@@ -283,7 +283,7 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
             </div>
           </div>
 
-          <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-3">
+          <div>
             <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
               <div className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
                 <span className="h-2.5 w-2.5 rounded-full bg-slate-400 shadow-[0_0_0_4px_rgba(148,163,184,0.16)]" />
@@ -292,7 +292,7 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
                 <MetricHelp text={`Baseline ${metric.shortLabel.toLowerCase()} from recorded EnergyPlus telemetry. This is the no-AI reference.`} />
               </div>
             </div>
-            <div className="h-9 overflow-hidden rounded-lg bg-white shadow-inner">
+            <div className="h-8 overflow-hidden rounded-lg bg-slate-100 shadow-inner">
               <div
                 className="h-full rounded-lg bg-gradient-to-r from-slate-300 via-slate-400 to-slate-500 transition-[width] duration-500"
                 style={{ width: baselineWidth }}
@@ -306,12 +306,12 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
             <span>{metric.summary}</span>
             <MetricHelp text={metric.meaning} />
           </div>
-          <p className={`mt-3 text-[42px] font-bold leading-none tracking-tight tabular-nums ${
+          <p className={`mt-2 text-[38px] font-bold leading-none tracking-tight tabular-nums ${
             positive ? "text-success" : "text-amber-700"
           }`}>
             {deltaText.replace(metric.unit, "")}
           </p>
-          <p className="mt-2 text-[16px] font-medium text-text-muted">{metric.unit.trim()}</p>
+          <p className="mt-1.5 text-[15px] font-medium text-text-muted">{metric.unit.trim()}</p>
           {deltaPercentText && <p className="mt-3 text-[12px] font-semibold text-emerald-700">{deltaPercentText}</p>}
         </div>
       </div>
@@ -329,12 +329,12 @@ function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, d
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 26, delay: index * 0.05 }}
-      className="rounded-2xl border border-border/65 bg-white px-5 py-5 shadow-[0_18px_45px_-34px_rgba(15,23,42,0.35)]"
+      className="rounded-2xl border border-border/65 bg-white px-5 py-4 shadow-[0_18px_45px_-34px_rgba(15,23,42,0.35)]"
     >
       <div className="flex items-start justify-between gap-3">
-        <div className="flex items-start gap-4">
-          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
-            <BarChart3 size={22} />
+        <div className="flex items-start gap-3">
+          <div className="grid h-9 w-9 shrink-0 place-items-center text-teal">
+            <BarChart3 size={24} strokeWidth={1.9} />
           </div>
           <div>
             <h4 className="text-[18px] font-semibold leading-tight tracking-tight text-text-primary">Operational Impact</h4>
@@ -346,7 +346,7 @@ function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, d
         </p>
       </div>
 
-      <div className="mt-8 grid gap-5 sm:grid-cols-2">
+      <div className="mt-5 grid gap-4 sm:grid-cols-2">
         <div className="grid justify-items-center text-center">
           <MetricReadout
             label="Cost saved"
@@ -356,7 +356,7 @@ function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, d
             help="Estimated electricity cost impact over the selected period."
           />
         </div>
-        <div className="grid justify-items-center border-t border-border/70 pt-5 text-center sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+        <div className="grid justify-items-center border-t border-border/70 pt-4 text-center sm:border-l sm:border-t-0 sm:pl-4 sm:pt-0">
           <MetricReadout
             label="CO2 avoided"
             value={co2Avoided != null ? `${formatNumber(Math.round(co2Avoided))} kg` : "."}
@@ -366,7 +366,7 @@ function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, d
         </div>
       </div>
 
-      <div className="mt-5 rounded-xl border border-border/55 bg-surface-muted/45 px-3 py-2.5">
+      <div className="mt-4 rounded-xl border border-border/55 bg-surface-muted/45 px-3 py-2.5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 text-[12px] font-medium text-text-secondary">
             <span>AI-added comfort violation</span>
@@ -510,7 +510,7 @@ export default function CampaignWhatIf() {
         </div>
       ) : (
         <>
-          <div className="mt-3 grid gap-3 xl:grid-cols-[1.45fr_1fr]">
+          <div className="mt-3 grid items-stretch gap-2.5 xl:grid-cols-[1.45fr_1fr]">
             <MetricComparisonCard
               index={0}
               metric={metric}
