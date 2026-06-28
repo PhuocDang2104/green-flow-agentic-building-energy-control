@@ -19,7 +19,19 @@ def latest_state(building_id: str = Query(default=None)):
     return {
         "zones": db_tool.get_latest_zone_state(b),
         "devices": db_tool.get_latest_device_state(b),
-        "weather": db_tool.get_latest_weather(),
+        "weather": db_tool.get_latest_weather(building_id=b),
+    }
+
+
+@router.get("/weather/current")
+def current_weather(building_id: str = Query(default=None)):
+    """Read-only weather snapshot aligned to the dashboard replay clock."""
+    b = building_id or default_building_id()
+    with db_conn() as conn:
+        replay_at = anchor(conn, b)
+    return {
+        "replay_at": replay_at.isoformat(),
+        **db_tool.get_latest_weather(at=replay_at, building_id=b),
     }
 
 

@@ -111,11 +111,23 @@ def get_latest_device_state(building_id: str) -> dict[str, dict]:
         return {r["entity_key"]: _clean(r) for r in rows}
 
 
-def get_latest_weather(location_name: str | None = None) -> dict:
+def get_latest_weather(location_name: str | None = None, *, at=None,
+                       building_id: str | None = None) -> dict:
+    """Return the latest recorded weather at or before the replay timestamp.
+
+    Weather must use the same virtual clock as zone telemetry. Reading the last
+    row in the table would show 1 May while a pinned dashboard is on 17 April.
+    """
+    from ...replayclock import anchor
+
     with db_conn() as conn:
+        replay_at = at or anchor(conn, building_id)
+        location_filter = " AND location_name = :location" if location_name else ""
         row = fetch_one(conn, """
-            SELECT * FROM weather_15m ORDER BY timestamp DESC LIMIT 1
-        """) or {}
+            SELECT * FROM weather_15m
+            WHERE timestamp <= :replay_at
+        """ + location_filter + " ORDER BY timestamp DESC LIMIT 1",
+            replay_at=replay_at, location=location_name) or {}
         return _clean(row)
 
 

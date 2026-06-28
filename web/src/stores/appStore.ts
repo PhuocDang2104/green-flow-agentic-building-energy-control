@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { ViewerUpdate, ZoneState } from "@/lib/types";
+import type { ViewerUpdate, WeatherState, ZoneState } from "@/lib/types";
 import type { MetricId } from "@/lib/constants";
 
 interface AppState {
@@ -10,6 +10,7 @@ interface AppState {
   wsConnected: boolean;
   streaming: boolean;
   zoneStates: Record<string, ZoneState>;
+  weatherState: WeatherState | null;
   buildingLive: { total_power_kw?: number; occupancy?: number };
 
   selectedEntityKey: string | null;
@@ -23,7 +24,9 @@ interface AppState {
   activeAgentRunId: string | null;
 
   setReplay: (ts: string, zones: Record<string, ZoneState>,
-              building: { total_power_kw?: number; occupancy?: number }) => void;
+              building: { total_power_kw?: number; occupancy?: number },
+              weather?: WeatherState) => void;
+  setWeatherState: (weather: WeatherState) => void;
   setWsConnected: (v: boolean) => void;
   setStreaming: (v: boolean) => void;
   selectEntity: (key: string | null) => void;
@@ -43,6 +46,7 @@ export const useAppStore = create<AppState>((set) => ({
   wsConnected: false,
   streaming: false,
   zoneStates: {},
+  weatherState: null,
   buildingLive: {},
 
   selectedEntityKey: null,
@@ -54,8 +58,10 @@ export const useAppStore = create<AppState>((set) => ({
   chatbotOpen: false,
   activeAgentRunId: null,
 
-  setReplay: (ts, zones, building) =>
-    set({ replayTimestamp: ts, zoneStates: zones, buildingLive: building }),
+  setReplay: (ts, zones, building, weather) =>
+    set({ replayTimestamp: ts, zoneStates: zones, buildingLive: building,
+          ...(weather ? { weatherState: weather } : {}) }),
+  setWeatherState: (weatherState) => set({ weatherState }),
   setWsConnected: (v) => set({ wsConnected: v }),
   setStreaming: (v) => set({ streaming: v }),
   selectEntity: (key) => set({ selectedEntityKey: key }),

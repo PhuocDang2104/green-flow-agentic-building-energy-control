@@ -46,28 +46,25 @@ manager = ConnectionManager()
 
 
 async def replay_ticker() -> None:
-    """Cycle through the latest day of telemetry, one 15-min tick per interval."""
+    """Broadcast the state at the shared virtual replay clock."""
     from ..replayclock import stream_status
     settings = get_settings()
     building_id = settings.default_building_id
     interval = max(2, settings.replay_speed_seconds)
-    tick_index = 0
 
     while True:
         try:
             # psycopg connect/query is blocking; run it off the event loop so a
             # slow or unreachable Postgres never freezes HTTP request handling.
             status = await asyncio.to_thread(stream_status)
-            if status["streaming"]:
-                # Streaming: broadcast the virtual 'now' (grid-snapped) so the 3D
-                # viewer tracks the same clock as the polled KPI cards.
-                ts = status["now"]
-            else:
-                timestamps = await asyncio.to_thread(_distinct_timestamps, building_id)
-                ts = timestamps[tick_index % len(timestamps)] if timestamps else None
-                tick_index += 1
+            # Whether paused or streaming, every dashboard surface follows the
+            # same replay anchor shown in the top bar. Streaming advances that
+            # anchor; paused mode keeps it fixed instead of silently cycling a
+            # different 24-hour window in the 3D/dashboard state.
+            ts = status["now"]
             if ts:
                 zones = await asyncio.to_thread(_zone_states_at, building_id, ts)
+                weather = await asyncio.to_thread(_weather_at, ts)
                 total_kw = sum(z.get("total_power_kw") or 0 for z in zones.values())
                 occupancy = sum(z.get("occupancy_count") or 0 for z in zones.values())
                 await manager.broadcast(f"building:{building_id}", {
@@ -76,6 +73,7 @@ async def replay_ticker() -> None:
                     "building": {"total_power_kw": round(total_kw, 2),
                                  "occupancy": occupancy},
                     "zones": zones,
+                    "weather": weather,
                 })
         except Exception:
             pass  # ticker must survive DB hiccups
@@ -113,18 +111,6 @@ async def broadcast_agent_event(building_id: str, event: dict) -> None:
                             {"type": "agent_event", **event})
 
 
-def _distinct_timestamps(building_id: str) -> list:
-    from ..replayclock import anchor
-    with db_conn() as conn:
-        a = anchor(conn, building_id)
-        rows = fetch_all(conn, """
-            SELECT DISTINCT timestamp FROM telemetry_zone_15m
-            WHERE building_id = :b AND timestamp > :a - interval '24 hours' AND timestamp <= :a
-            ORDER BY timestamp
-        """, b=building_id, a=a)
-    return [r["timestamp"].isoformat() for r in rows]
-
-
 def _zone_states_at(building_id: str, ts: str) -> dict[str, dict]:
     with db_conn() as conn:
         rows = fetch_all(conn, """
@@ -135,3 +121,18 @@ def _zone_states_at(building_id: str, ts: str) -> dict[str, dict]:
             WHERE t.building_id = :b AND t.timestamp = cast(:ts as timestamptz)
         """, b=building_id, ts=ts)
     return {r["entity_key"]: _clean(r) for r in rows}
+
+
+def _weather_at(ts: str) -> dict:
+    """Weather row on the same grid point as the state tick."""
+    with db_conn() as conn:
+        row = fetch_all(conn, """
+            SELECT timestamp, location_name, outdoor_temp_c, humidity_pct,
+                   wind_speed_mps, cloud_cover_pct, precipitation_mm, solar_w_m2,
+                   forecast_horizon_min
+            FROM weather_15m
+            WHERE timestamp <= cast(:ts as timestamptz)
+            ORDER BY timestamp DESC
+            LIMIT 1
+        """, ts=ts)
+    return _clean(row[0]) if row else {}

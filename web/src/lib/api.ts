@@ -5,6 +5,7 @@ import type {
   ActionItem, AgentLog, AgentRun, AgentRunStart, Alert, Approval, Building, ChatMessageRow,
   ChatQueryResponse, ChatSessionSummary, ComparisonKpi, Device,
   HealthScore, Kpis, ReplayStatus, Report, SimulationRun, ValidationResult, Zone,
+  WeatherState,
 } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
@@ -56,6 +57,7 @@ export const api = {
     get<any[]>(`/timeseries?zone=${zoneRef}&hours=${hours}`),
   buildingTimeseries: (hours = 24) => get<any[]>(`/timeseries/building?hours=${hours}`),
   latestState: () => get<any>("/state/latest"),
+  currentWeather: () => get<WeatherState>("/weather/current"),
 
   // agent
   runOptimization: (scenario_config = {}, session_id?: string | null) =>
