@@ -48,6 +48,28 @@ def expected_step_count(start: date, end: date, *, timestep_minutes: int) -> int
     return int(days * 24 * 60 / timestep_minutes)
 
 
+def telemetry_step_count(*, scenario_id: str | None, start: date, end: date,
+                         building_id: str | None = None) -> int:
+    """Count actual recorded timestamps in the requested local-date window.
+
+    El Nino starts at 2024-03-01 00:30 and has a terminal 2024-05-01 00:00
+    timestamp, so calendar-day chunks are not always exactly 48 steps.
+    """
+    with db_conn() as conn:
+        row = fetch_one(conn, """
+            SELECT count(DISTINCT timestamp) AS n
+            FROM telemetry_zone_15m
+            WHERE timestamp >= CAST(:df AS timestamptz)
+              AND timestamp < CAST(:dt AS timestamptz)
+              AND (CAST(:building_id AS uuid) IS NULL OR building_id = CAST(:building_id AS uuid))
+              AND (CAST(:scenario_id AS text) IS NULL
+                   OR scenario_id = CAST(:scenario_id AS text)
+                   OR scenario_id IS NULL)
+        """, df=local_midnight(start), dt=local_midnight(end),
+            building_id=building_id, scenario_id=scenario_id)
+    return int((row or {}).get("n") or 0)
+
+
 def iter_chunks(start: date, end: date, *, chunk_days: int) -> list[tuple[date, date]]:
     chunks = []
     cur = start
@@ -586,7 +608,8 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
 
 
 def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | None = None,
-                         horizon_steps: int | None = None, top_k: int | None = None) -> dict:
+                         horizon_steps: int | None = None, top_k: int | None = None,
+                         building_id: str | None = None) -> dict:
     ds = active_dataset()
     scenario = scenario_id or ds.scenario_id
     horizon = int(horizon_steps or get_settings().greenflow_control_horizon_steps)
@@ -596,7 +619,10 @@ def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | Non
     if start is None or end is None or start >= end:
         raise ValueError("date_from/date_to are required and date_from must be before date_to")
     expected_days = (end - start).days
-    expected_steps = expected_step_count(start, end, timestep_minutes=ds.timestep_minutes)
+    expected_steps = telemetry_step_count(
+        scenario_id=scenario, start=start, end=end, building_id=building_id)
+    if expected_steps <= 0:
+        expected_steps = expected_step_count(start, end, timestep_minutes=ds.timestep_minutes)
     expected_dates = {start + timedelta(days=i) for i in range(expected_days)}
 
     with db_conn() as conn:

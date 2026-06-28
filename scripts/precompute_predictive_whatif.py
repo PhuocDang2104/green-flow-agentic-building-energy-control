@@ -22,6 +22,7 @@ from greenflow.control.whatif_cache import (  # noqa: E402
     iter_chunks,
     load_zone_model_metadata,
     parse_local_date,
+    telemetry_step_count,
     validate_cache_range,
     write_artifacts,
     write_replay_result,
@@ -105,11 +106,18 @@ def main() -> int:
     exit_code = 0
     for c0, c1 in chunks:
         run_id = None
-        expected_steps = expected_step_count(c0, c1, timestep_minutes=ds.timestep_minutes)
+        nominal_steps = expected_step_count(c0, c1, timestep_minutes=ds.timestep_minutes)
+        expected_steps = telemetry_step_count(
+            scenario_id=scenario_id,
+            start=c0,
+            end=c1,
+            building_id=args.building_id,
+        ) or nominal_steps
         chunk_log = {
             "date_from": c0.isoformat(),
             "date_to": c1.isoformat(),
             "expected_steps": expected_steps,
+            "nominal_steps": nominal_steps,
         }
         try:
             with db_conn() as conn:
@@ -203,6 +211,7 @@ def main() -> int:
             scenario_id=scenario_id,
             horizon_steps=args.horizon_steps,
             top_k=args.top_k,
+            building_id=args.building_id,
         )
         if not summary["validation"].get("ok"):
             exit_code = 1

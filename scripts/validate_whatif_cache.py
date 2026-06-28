@@ -19,6 +19,7 @@ def main() -> int:
     ap = argparse.ArgumentParser(description=__doc__)
     ap.add_argument("--date-from", required=True)
     ap.add_argument("--date-to", required=True)
+    ap.add_argument("--building-id", default=get_settings().default_building_id)
     ap.add_argument("--scenario-id", default=None)
     ap.add_argument("--horizon-steps", type=int, default=get_settings().greenflow_control_horizon_steps)
     ap.add_argument("--top-k", type=int, default=get_settings().greenflow_control_top_k)
@@ -31,6 +32,7 @@ def main() -> int:
         scenario_id=args.scenario_id or ds.scenario_id,
         horizon_steps=args.horizon_steps,
         top_k=args.top_k,
+        building_id=args.building_id,
     )
     print(json.dumps(result, indent=2, default=str))
     return 0 if result.get("ok") else 1
