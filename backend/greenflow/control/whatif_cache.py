@@ -24,7 +24,7 @@ from ..db import db_conn, fetch_all, fetch_one
 TZ = timezone(timedelta(hours=7))
 CONTROL_MODE = "predictive_replay"
 OBJECTIVE_VERSION = "v2_policy_aware"
-CONTROLLER_VERSION = "predictive_mpc_v6"
+CONTROLLER_VERSION = "predictive_mpc_v8"
 GRID_CO2_KG_PER_KWH = 0.6766
 DEFAULT_AVG_TARIFF_VND_PER_KWH = 1839
 

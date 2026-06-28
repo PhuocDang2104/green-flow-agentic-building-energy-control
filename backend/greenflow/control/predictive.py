@@ -435,12 +435,12 @@ def generate_candidate_trajectories(state: dict, *, horizon_steps: int, top_k: i
             _add_lighting_actions(
                 actions, step=step, ts=ts, step_min=step_min, groups=groups,
                 factors={
-                    "empty_controllable": 0.30,
-                    "low_controllable": 0.65,
-                    "occupied_controllable": 0.92,
+                    "empty_controllable": 0.25,
+                    "low_controllable": 0.58,
+                    "occupied_controllable": 0.90,
                     "common_area": 0.84,
-                    "service_area": 0.55,
-                    "limited_control": 0.84,
+                    "service_area": 0.50,
+                    "limited_control": 0.80,
                 },
                 action_type="occupancy_based_lighting_dim",
                 reason="Dim lighting according to occupancy and space policy",
@@ -483,12 +483,12 @@ def generate_candidate_trajectories(state: dict, *, horizon_steps: int, top_k: i
             _add_lighting_actions(
                 actions, step=step, ts=ts, step_min=step_min, groups=groups,
                 factors={
-                    "empty_controllable": 0.20,
-                    "low_controllable": 0.50,
-                    "occupied_controllable": 0.88,
+                    "empty_controllable": 0.18,
+                    "low_controllable": 0.45,
+                    "occupied_controllable": 0.86,
                     "common_area": 0.80,
-                    "service_area": 0.45,
-                    "limited_control": 0.78,
+                    "service_area": 0.40,
+                    "limited_control": 0.72,
                 },
                 action_type="peak_aware_lighting_trim",
                 reason="Trim lighting during predicted demand stress",
@@ -584,12 +584,12 @@ def generate_candidate_trajectories(state: dict, *, horizon_steps: int, top_k: i
             _add_lighting_actions(
                 actions, step=step, ts=ts, step_min=step_min, groups=groups,
                 factors={
-                    "empty_controllable": 0.25,
-                    "low_controllable": 0.55,
-                    "occupied_controllable": 0.90,
+                    "empty_controllable": 0.22,
+                    "low_controllable": 0.50,
+                    "occupied_controllable": 0.88,
                     "common_area": 0.82,
-                    "service_area": 0.50,
-                    "limited_control": 0.82,
+                    "service_area": 0.45,
+                    "limited_control": 0.76,
                 },
                 action_type="peak_aware_lighting_trim",
                 reason="Follow pre-peak shift with moderate demand response",
@@ -679,13 +679,20 @@ def evaluate_trajectory(state: dict, candidate: dict,
                 lighting_delta = r["baseline_lighting_kw"] * (1.0 - factor)
                 opt_kw[i] = max(0.0, opt_kw[i] - lighting_delta)
                 step_lighting_saving_kw += lighting_delta
-            if r["policy_bucket"] == "safety_critical" and (factor < 1.0 or abs(delta) > 0.001):
+            bucket = r["policy_bucket"]
+            occ = float(r["occupancy_count"] or 0.0)
+            if bucket == "safety_critical" and (factor < 1.0 or abs(delta) > 0.001):
                 step_policy_violations += 1
-            if r["policy_bucket"] == "common_area" and factor < 0.80:
+            if bucket == "common_area" and factor < 0.78:
                 step_policy_violations += 1
-            if (r["policy_bucket"] == "controllable"
-                    and r["occupancy_count"] >= 0.5 and factor < 0.85):
+            if bucket == "service_area" and factor < 0.38:
                 step_policy_violations += 1
+            if bucket == "limited_control" and factor < 0.70:
+                step_policy_violations += 1
+            if bucket == "controllable" and occ >= 0.5:
+                min_factor = 0.43 if occ <= 2.0 else 0.85
+                if factor < min_factor:
+                    step_policy_violations += 1
         if not any("pre_peak_precool" in (m.get("action_types") or set()) for m in mods.values()):
             opt_kw = np.minimum(opt_kw, base_kw)
         step_total = float(opt_kw.sum())
