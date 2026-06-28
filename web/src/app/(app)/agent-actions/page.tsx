@@ -15,6 +15,7 @@ import ChatThread, { type ChatRunEvent } from "@/components/chatbot/ChatThread";
 import { usePollMs } from "@/hooks/usePollMs";
 import { useAgentRun } from "@/hooks/useAgentRun";
 import { api } from "@/lib/api";
+import { displayPromptInEnglish } from "@/lib/constants";
 import type { ActionItem, Approval, ChatSessionSummary } from "@/lib/types";
 
 /** One glanceable stat for the status line (plain inline, no card). The value
@@ -179,7 +180,7 @@ export default function AgentActionsPage() {
                         className={`block w-full rounded-lg px-2.5 py-2 pr-8 text-left transition hover:bg-surface-muted
                           ${s.id === sessionId ? "bg-teal-soft" : ""}`}>
                   <p className={`truncate text-[12.5px] ${s.id === sessionId ? "font-medium text-teal" : "text-text-secondary"}`}>
-                    {s.first_message || "New conversation"}
+                    {s.first_message ? displayPromptInEnglish(s.first_message) : "New conversation"}
                   </p>
                   <p className="mt-0.5 text-[11px] text-text-muted">{s.n_messages} messages</p>
                 </button>
@@ -200,7 +201,9 @@ export default function AgentActionsPage() {
             </span>
             <div className="min-w-0">
               <p className="truncate text-[13.5px] font-semibold tracking-tight">
-                {activeSession?.first_message || "Building agent"}
+                {activeSession?.first_message
+                  ? displayPromptInEnglish(activeSession.first_message)
+                  : "Building agent"}
               </p>
               <p className="text-[11px] text-text-muted">
                 {running ? "reasoning live…"

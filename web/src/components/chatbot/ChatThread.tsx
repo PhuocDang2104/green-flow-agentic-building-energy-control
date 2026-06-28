@@ -4,7 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
 import { BookOpen, Loader2, Mic, Send, Square, Volume2, VolumeX } from "lucide-react";
 import { api } from "@/lib/api";
-import { SUGGESTED_PROMPTS } from "@/lib/constants";
+import { displayPromptInEnglish, SUGGESTED_PROMPTS } from "@/lib/constants";
 import type { ChatMessageRow, ChatQueryResponse } from "@/lib/types";
 import InlineRunSteps from "./InlineRunSteps";
 import Markdown from "./Markdown";
@@ -49,7 +49,7 @@ function rowsToMessages(rows: ChatMessageRow[]): Message[] {
     .filter((r) => r.role === "user" || r.role === "assistant")
     .map((r) => ({
       role: r.role as "user" | "assistant",
-      text: r.content,
+      text: displayPromptInEnglish(r.content),
       meta: r.tool_calls?.length
         ? { session_id: "", answer: r.content, tools_used: r.tool_calls }
         : undefined,

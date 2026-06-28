@@ -6,9 +6,9 @@ import { Brain, Check, FileSearch, Loader2, Sparkles } from "lucide-react";
 // The /chat endpoint isn't streamed, so we surface the pipeline it actually
 // runs (reason → RAG/SQL retrieval → synthesis) as a timed, reassuring stepper.
 const STAGES = [
-  { icon: Brain, label: "Đang phân tích câu hỏi" },
-  { icon: FileSearch, label: "Truy vấn tài liệu & dữ liệu" },
-  { icon: Sparkles, label: "Tổng hợp câu trả lời" },
+  { icon: Brain, label: "Analyzing your question" },
+  { icon: FileSearch, label: "Retrieving documents and live data" },
+  { icon: Sparkles, label: "Preparing the response" },
 ];
 
 export default function ThinkingIndicator() {

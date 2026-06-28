@@ -45,9 +45,15 @@ export const ROOM_TYPE_LABELS: Record<string, string> = {
   hallway: "Circulation",
 };
 
-export const SUGGESTED_PROMPTS = [
-  "Tòa nhà tiêu thụ bao nhiêu điện hôm nay?",
-  "Zone nào tiêu thụ điện nhiều nhất tuần này?",
-  "Có cảnh báo nào đang mở không?",
-  "Liệt kê các zone trong tòa nhà",
-];
+const LEGACY_PROMPT_TRANSLATIONS: Record<string, string> = {
+  "Tòa nhà tiêu thụ bao nhiêu điện hôm nay?": "How much energy has the building used today?",
+  "Zone nào tiêu thụ điện nhiều nhất tuần này?": "Which zone used the most energy this week?",
+  "Có cảnh báo nào đang mở không?": "Are there any open alerts?",
+  "Liệt kê các zone trong tòa nhà": "List all zones in the building",
+};
+
+export function displayPromptInEnglish(text: string): string {
+  return LEGACY_PROMPT_TRANSLATIONS[text] ?? text;
+}
+
+export const SUGGESTED_PROMPTS = Object.values(LEGACY_PROMPT_TRANSLATIONS);
