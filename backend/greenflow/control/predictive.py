@@ -24,7 +24,7 @@ from .trajectory import action_step, trajectory
 
 TZ = timezone(timedelta(hours=7))
 
-SAFETY_ROOM_TYPES = {"technical_core", "gross_area_placeholder"}
+SAFETY_ROOM_TYPES = {"technical_core"}
 COMMON_ROOM_TYPES = {"circulation", "parking_shelter"}
 SERVICE_ROOM_TYPES = {"service"}
 CONTROLLABLE_ROOM_TYPES = {"workspace", "meeting_event", "amenity"}
@@ -435,12 +435,12 @@ def generate_candidate_trajectories(state: dict, *, horizon_steps: int, top_k: i
             _add_lighting_actions(
                 actions, step=step, ts=ts, step_min=step_min, groups=groups,
                 factors={
-                    "empty_controllable": 0.35,
-                    "low_controllable": 0.75,
-                    "occupied_controllable": 0.96,
-                    "common_area": 0.90,
-                    "service_area": 0.70,
-                    "limited_control": 0.95,
+                    "empty_controllable": 0.30,
+                    "low_controllable": 0.65,
+                    "occupied_controllable": 0.92,
+                    "common_area": 0.84,
+                    "service_area": 0.55,
+                    "limited_control": 0.84,
                 },
                 action_type="occupancy_based_lighting_dim",
                 reason="Dim lighting according to occupancy and space policy",
@@ -483,12 +483,12 @@ def generate_candidate_trajectories(state: dict, *, horizon_steps: int, top_k: i
             _add_lighting_actions(
                 actions, step=step, ts=ts, step_min=step_min, groups=groups,
                 factors={
-                    "empty_controllable": 0.25,
-                    "low_controllable": 0.62,
-                    "occupied_controllable": 0.90,
-                    "common_area": 0.82,
-                    "service_area": 0.60,
-                    "limited_control": 0.90,
+                    "empty_controllable": 0.20,
+                    "low_controllable": 0.50,
+                    "occupied_controllable": 0.88,
+                    "common_area": 0.80,
+                    "service_area": 0.45,
+                    "limited_control": 0.78,
                 },
                 action_type="peak_aware_lighting_trim",
                 reason="Trim lighting during predicted demand stress",
@@ -584,12 +584,12 @@ def generate_candidate_trajectories(state: dict, *, horizon_steps: int, top_k: i
             _add_lighting_actions(
                 actions, step=step, ts=ts, step_min=step_min, groups=groups,
                 factors={
-                    "empty_controllable": 0.30,
-                    "low_controllable": 0.68,
-                    "occupied_controllable": 0.92,
-                    "common_area": 0.86,
-                    "service_area": 0.65,
-                    "limited_control": 0.92,
+                    "empty_controllable": 0.25,
+                    "low_controllable": 0.55,
+                    "occupied_controllable": 0.90,
+                    "common_area": 0.82,
+                    "service_area": 0.50,
+                    "limited_control": 0.82,
                 },
                 action_type="peak_aware_lighting_trim",
                 reason="Follow pre-peak shift with moderate demand response",
@@ -684,7 +684,7 @@ def evaluate_trajectory(state: dict, candidate: dict,
             if r["policy_bucket"] == "common_area" and factor < 0.80:
                 step_policy_violations += 1
             if (r["policy_bucket"] == "controllable"
-                    and r["occupancy_count"] >= 0.5 and factor < 0.88):
+                    and r["occupancy_count"] >= 0.5 and factor < 0.85):
                 step_policy_violations += 1
         if not any("pre_peak_precool" in (m.get("action_types") or set()) for m in mods.values()):
             opt_kw = np.minimum(opt_kw, base_kw)
