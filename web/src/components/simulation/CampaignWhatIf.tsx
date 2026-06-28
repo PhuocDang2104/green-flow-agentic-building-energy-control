@@ -1,6 +1,6 @@
 "use client";
 
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import {
   Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
@@ -9,12 +9,12 @@ import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
 
-type WhatIfData = Awaited<ReturnType<typeof api.campaign>> | Awaited<ReturnType<typeof api.whatifCache>>;
-type RangeMode = "period" | "month" | "custom";
-type AnalysisMode = "campaign" | "predictive";
+type WhatIfData = Awaited<ReturnType<typeof api.whatifCache>>;
 type DateRange = { start: string; end: string };
 
-const DELTAS = [1, 2, 3] as const;            // tree surrogate steps cleanly on integer °C
+const PRECOMPUTE_DATE_FROM = "2024-03-01";
+const PRECOMPUTE_DATE_TO = "2024-05-01";
+const PRECOMPUTE_LABEL = "01 Mar 2024 - 30 Apr 2024";
 const PREDICTIVE_HORIZON_STEPS = 8;
 const PREDICTIVE_TOP_K = 4;
 const METRICS = [
@@ -32,23 +32,10 @@ const fullDate = (date: string) => new Intl.DateTimeFormat("en-GB", {
 }).format(new Date(`${date}T00:00:00Z`));
 
 const periodLabel = (range: DateRange | null) => {
-  if (!range) return "Loading recorded period";
+  if (!range) return PRECOMPUTE_LABEL;
   if (range.start === range.end) return fullDate(range.start);
   return `${fullDate(range.start)} - ${fullDate(range.end)}`;
 };
-
-const nextDay = (date: string) => {
-  const [year, month, day] = date.split("-").map(Number);
-  const value = new Date(Date.UTC(year, month - 1, day + 1));
-  return value.toISOString().slice(0, 10);
-};
-
-const nextMonth = (monthValue: string) => {
-  const [year, month] = monthValue.split("-").map(Number);
-  return new Date(Date.UTC(year, month, 1)).toISOString().slice(0, 10);
-};
-
-const apiDate = (date: string) => `${date}T00:00:00+07:00`;
 
 function MetricHelp({ text }: { text: string }) {
   return (
@@ -88,6 +75,8 @@ function MetricReadout({ label, value, sub, tone = "text-text-primary", help }: 
 function EnergyComparisonCard({ baseline, optimized, savingPercent, period, index }: {
   baseline?: number; optimized?: number; savingPercent?: number; period: string; index: number;
 }) {
+  const signedSaving = savingPercent == null ? "." : `${savingPercent > 0 ? "-" : "+"}${Math.abs(savingPercent)}`;
+
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
@@ -100,22 +89,22 @@ function EnergyComparisonCard({ baseline, optimized, savingPercent, period, inde
           <p className="mt-1 text-[12px] text-text-muted">{period}</p>
         </div>
         <div className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 tabular-nums">
-          -{savingPercent ?? "·"}% vs no AI
+          {signedSaving}% vs no AI
         </div>
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <MetricReadout
           label="Without AI"
-          value={baseline != null ? `${Math.round(baseline).toLocaleString()} kWh` : "·"}
+          value={baseline != null ? `${Math.round(baseline).toLocaleString()} kWh` : "."}
           tone="text-slate-700"
-          help="Baseline consumption from recorded data. This is the no-AI reference used for comparison."
+          help="Baseline consumption from recorded EnergyPlus telemetry. This is the no-AI reference."
         />
         <MetricReadout
           label="With AI"
-          value={optimized != null ? `${Math.round(optimized).toLocaleString()} kWh` : "·"}
+          value={optimized != null ? `${Math.round(optimized).toLocaleString()} kWh` : "."}
           tone="text-teal"
-          help="Estimated consumption after applying the selected AI setpoint policy to the same days."
+          help="Estimated consumption from the precomputed predictive MPC replay over the same period."
         />
       </div>
     </motion.div>
@@ -137,7 +126,7 @@ function ImpactCard({ energySaved, costSaving, co2Avoided, comfortDelta, days, p
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
           <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">Operational impact</p>
-          <p className="mt-1 text-[12px] text-text-muted">{days ?? "·"} recorded day{days === 1 ? "" : "s"}</p>
+          <p className="mt-1 text-[12px] text-text-muted">{days ?? "."} recorded day{days === 1 ? "" : "s"}</p>
         </div>
         <p className="rounded-full border border-border/70 px-2.5 py-1 text-[11px] font-medium text-text-secondary">
           same period
@@ -147,22 +136,22 @@ function ImpactCard({ energySaved, costSaving, co2Avoided, comfortDelta, days, p
       <div className="mt-3 grid gap-2 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
         <MetricReadout
           label="Energy saved"
-          value={energySaved != null ? `${Math.round(energySaved).toLocaleString()} kWh` : "·"}
-          tone="text-success"
+          value={energySaved != null ? `${Math.round(energySaved).toLocaleString()} kWh` : "."}
+          tone={energySaved != null && energySaved < 0 ? "text-amber-700" : "text-success"}
           help="Difference between Without AI and With AI. Positive value means lower energy use with AI."
         />
         <MetricReadout
           label="Cost saved"
-          value={costSaving != null ? fmtVnd(Math.round(costSaving)) : "·"}
+          value={costSaving != null ? fmtVnd(Math.round(costSaving)) : "."}
           sub={period}
-          tone="text-success"
-          help="Estimated electricity cost reduction from the energy saved over the selected period."
+          tone={costSaving != null && costSaving < 0 ? "text-amber-700" : "text-success"}
+          help="Estimated electricity cost impact over the selected period."
         />
         <MetricReadout
-          label="CO₂ avoided"
-          value={co2Avoided != null ? `${Math.round(co2Avoided).toLocaleString()} kg` : "·"}
-          tone="text-blue-600"
-          help="Estimated emissions avoided by consuming less electricity. This is derived from saved energy."
+          label="CO2 avoided"
+          value={co2Avoided != null ? `${Math.round(co2Avoided).toLocaleString()} kg` : "."}
+          tone={co2Avoided != null && co2Avoided < 0 ? "text-amber-700" : "text-blue-600"}
+          help="Estimated emissions impact derived from saved energy."
         />
       </div>
 
@@ -170,7 +159,7 @@ function ImpactCard({ energySaved, costSaving, co2Avoided, comfortDelta, days, p
         <div className="flex items-center justify-between gap-3">
           <div className="flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">
             <span>Comfort change</span>
-            <MetricHelp text="Change in comfort-violation minutes after applying the AI policy. Positive values mean more minutes outside the comfort rule, so savings should be weighed against occupant comfort." />
+            <MetricHelp text="Change in comfort-violation minutes from the predictive MPC replay. Positive values mean more minutes outside the comfort rule." />
           </div>
           <p className={`text-[13px] font-semibold tabular-nums ${comfortTone}`}>{comfortLabel}</p>
         </div>
@@ -179,82 +168,29 @@ function ImpactCard({ energySaved, costSaving, co2Avoided, comfortDelta, days, p
   );
 }
 
-/**
- * Period (campaign) what-if: the building run over the WHOLE dataset WITHOUT any
- * AI vs WITH a fixed setpoint policy. baseline = measured; with-AI = measured
- * minus the structural surrogate's reduction. Shows the aggregate impact a
- * decision-maker actually cares about, not a single day.
- */
 export default function CampaignWhatIf() {
-  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>("campaign");
-  const [delta, setDelta] = useState<number>(1);
   const [metricId, setMetricId] = useState<string>("energy");
-  const [rangeMode, setRangeMode] = useState<RangeMode>("period");
-  const [month, setMonth] = useState("");
-  const [dateFrom, setDateFrom] = useState("");
-  const [dateTo, setDateTo] = useState("");
-  const [datasetRange, setDatasetRange] = useState<DateRange | null>(null);
   const [data, setData] = useState<WhatIfData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
-  const campaignQuery = useMemo(() => {
-    const payload: Parameters<typeof api.campaign>[0] = { setpoint_delta: delta };
-    if (rangeMode === "month" && month) {
-      payload.date_from = apiDate(`${month}-01`);
-      payload.date_to = apiDate(nextMonth(month));
-    }
-    if (rangeMode === "custom" && dateFrom && dateTo && dateFrom <= dateTo) {
-      payload.date_from = apiDate(dateFrom);
-      payload.date_to = apiDate(nextDay(dateTo));
-    }
-    return payload;
-  }, [dateFrom, dateTo, delta, month, rangeMode]);
-
-  const cacheQuery = useMemo(() => {
-    const payload: Parameters<typeof api.whatifCache>[0] = {
+  const run = useCallback(() => {
+    setLoading(true);
+    setError(null);
+    api.whatifCache({
       mode: "predictive_replay",
+      date_from: PRECOMPUTE_DATE_FROM,
+      date_to: PRECOMPUTE_DATE_TO,
       horizon_steps: PREDICTIVE_HORIZON_STEPS,
       top_k: PREDICTIVE_TOP_K,
-    };
-    if (rangeMode === "period" && datasetRange) {
-      payload.date_from = datasetRange.start;
-      payload.date_to = nextDay(datasetRange.end);
-    }
-    if (rangeMode === "month" && month) {
-      payload.date_from = `${month}-01`;
-      payload.date_to = nextMonth(month);
-    }
-    if (rangeMode === "custom" && dateFrom && dateTo && dateFrom <= dateTo) {
-      payload.date_from = dateFrom;
-      payload.date_to = nextDay(dateTo);
-    }
-    return payload;
-  }, [datasetRange, dateFrom, dateTo, month, rangeMode]);
-
-  const run = useCallback(() => {
-    setLoading(true); setError(null);
-    const request = analysisMode === "campaign"
-      ? api.campaign(campaignQuery)
-      : api.whatifCache(cacheQuery);
-    request
-      .then((result) => {
-        setData(result);
-        if (result.daily.length) {
-          setDatasetRange({
-            start: result.daily[0].date,
-            end: result.daily[result.daily.length - 1].date,
-          });
-        }
-      })
+    })
+      .then(setData)
       .catch(() => {
         setData(null);
-        setError(analysisMode === "predictive"
-          ? "Predictive replay cache is not available for this range. Run the cloud precompute job first."
-          : "Campaign model unavailable on this dataset.");
+        setError(`Precomputed predictive replay cache is unavailable for ${PRECOMPUTE_LABEL}. Run scripts/precompute_predictive_whatif.py for this range.`);
       })
       .finally(() => setLoading(false));
-  }, [analysisMode, cacheQuery, campaignQuery]);
+  }, []);
 
   useEffect(() => { run(); }, [run]);
 
@@ -265,120 +201,31 @@ export default function CampaignWhatIf() {
     end: data.daily[data.daily.length - 1].date,
   } : null;
   const visiblePeriod = periodLabel(visibleRange);
-  const recordedThrough = visibleRange ? fullDate(visibleRange.end) : undefined;
-
-  const changeRangeMode = (mode: RangeMode) => {
-    setRangeMode(mode);
-    if (mode === "month" && !month && datasetRange) {
-      setMonth(datasetRange.start.slice(0, 7));
-    }
-    if (mode === "custom" && datasetRange) {
-      if (!dateFrom) setDateFrom(datasetRange.start);
-      if (!dateTo) setDateTo(datasetRange.end);
-    }
-  };
+  const recordedThrough = visibleRange ? fullDate(visibleRange.end) : PRECOMPUTE_LABEL;
 
   return (
     <div className="card-elevated px-5 py-4">
       <div className="flex flex-wrap items-center gap-2">
         <Sparkles size={16} className="text-teal" />
-        <h3 className="text-sm font-semibold tracking-tight">Period what-if &middot; building with AI vs without AI</h3>
+        <h3 className="text-sm font-semibold tracking-tight">Predictive MPC replay &middot; building with AI vs without AI</h3>
         {loading && <Loader2 size={13} className="animate-spin text-text-muted" />}
-        <div className="ml-auto flex rounded-lg border border-border p-0.5 text-[12px]">
-          {([
-            ["campaign", "Campaign policy"],
-            ["predictive", "Predictive MPC replay"],
-          ] as const).map(([mode, label]) => (
-            <button key={mode} type="button" onClick={() => setAnalysisMode(mode)}
-                    className={`rounded-md px-2.5 py-0.5 font-medium transition ${
-                      analysisMode === mode ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"
-                    }`}>
-              {label}
-            </button>
-          ))}
+        <div className="ml-auto rounded-full border border-teal/20 bg-teal-soft px-2.5 py-1 text-[11.5px] font-medium text-teal">
+          Precomputed MPC &middot; horizon {PREDICTIVE_HORIZON_STEPS} steps &middot; top {PREDICTIVE_TOP_K}
         </div>
-        <div className={`${analysisMode === "campaign" ? "flex" : "hidden"} items-center gap-2`}>
-          <span className="text-[11.5px] text-text-secondary">AI policy: setpoint</span>
-          <div className="flex rounded-lg border border-border p-0.5 text-[12px]">
-            {DELTAS.map((d) => (
-              <button key={d} onClick={() => setDelta(d)}
-                      className={`rounded-md px-2.5 py-0.5 font-medium tabular-nums transition ${
-                        delta === d ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"}`}>
-                +{d}&deg;C
-              </button>
-            ))}
-          </div>
-        </div>
-        {analysisMode === "predictive" && (
-          <div className="rounded-full border border-teal/20 bg-teal-soft px-2.5 py-1 text-[11.5px] font-medium text-teal">
-            Precomputed MPC · horizon {PREDICTIVE_HORIZON_STEPS} steps · top {PREDICTIVE_TOP_K}
-          </div>
-        )}
       </div>
 
       <p className="mt-1 text-[11.5px] text-text-muted">
-        {analysisMode === "campaign" && data
-          ? `Raise cooling setpoint +${data.policy.setpoint_delta_c}°C during ${data.policy.peak_window} on weekdays, rolled across ${k?.days} days. Baseline = measured; with-AI via the ${data.policy.engine}.`
-          : analysisMode === "campaign"
-            ? "Rolling a fixed AI setpoint policy across the whole period."
-            : data
-              ? `Reading precomputed receding-horizon replay across ${k?.days} days. Baseline = E+ telemetry; with-AI = surrogate MPC branch.`
-              : "Reading precomputed predictive replay cache. Heavy MPC replay is not run in the browser request."}
+        {data
+          ? `Reading the validated precomputed replay across ${k?.days} days. Baseline = E+ telemetry; with-AI = surrogate MPC branch.`
+          : "Loading the precomputed predictive replay cache. Heavy MPC replay is not run in the browser request."}
       </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl border border-border/60 bg-surface-muted/35 px-3 py-2.5">
         <CalendarDays size={15} className="text-teal" />
-        <div className="mr-2">
+        <div>
           <p className="text-[10.5px] font-medium uppercase tracking-wide text-text-muted">Recorded period</p>
           <p className="text-[12px] font-semibold text-text-primary">{visiblePeriod}</p>
         </div>
-
-        <div className="ml-auto flex rounded-lg border border-border bg-surface p-0.5 text-[11.5px]">
-          {([
-            ["period", "Full period"], ["month", "Month"], ["custom", "Date range"],
-          ] as const).map(([mode, label]) => (
-            <button key={mode} type="button" onClick={() => changeRangeMode(mode)}
-                    disabled={mode !== "period" && !datasetRange}
-                    className={`whitespace-nowrap rounded-md px-2.5 py-1 font-medium transition disabled:opacity-40 ${
-                      rangeMode === mode ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"
-                    }`}>
-              {label}
-            </button>
-          ))}
-        </div>
-
-        {rangeMode === "month" && (
-          <label className="flex items-center gap-2 text-[11px] text-text-muted">
-            View month
-            <input type="month" value={month}
-                   min={datasetRange?.start.slice(0, 7)} max={datasetRange?.end.slice(0, 7)}
-                   onChange={(event) => setMonth(event.target.value)}
-                   className="rounded-lg border border-border bg-surface px-2.5 py-1.5 text-[12px] font-medium text-text-primary outline-none focus:border-teal" />
-          </label>
-        )}
-
-        {rangeMode === "custom" && (
-          <div className="flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
-            <label className="flex items-center gap-1.5">
-              From
-              <input type="date" value={dateFrom} min={datasetRange?.start}
-                     max={dateTo || datasetRange?.end}
-                     onChange={(event) => {
-                       const value = event.target.value;
-                       setDateFrom(value);
-                       if (dateTo && value > dateTo) setDateTo(value);
-                     }}
-                     className="rounded-lg border border-border bg-surface px-2 py-1.5 text-[12px] font-medium text-text-primary outline-none focus:border-teal" />
-            </label>
-            <label className="flex items-center gap-1.5">
-              To
-              <input type="date" value={dateTo} min={dateFrom || datasetRange?.start}
-                     max={datasetRange?.end}
-                     onChange={(event) => setDateTo(event.target.value)}
-                     className="rounded-lg border border-border bg-surface px-2 py-1.5 text-[12px] font-medium text-text-primary outline-none focus:border-teal" />
-            </label>
-          </div>
-        )}
       </div>
 
       {error ? (
@@ -387,7 +234,6 @@ export default function CampaignWhatIf() {
         </div>
       ) : (
         <>
-          {/* KPI hero */}
           <div className="mt-3 grid gap-3 xl:grid-cols-[1.45fr_1fr]">
             <EnergyComparisonCard
               index={0}
@@ -407,7 +253,6 @@ export default function CampaignWhatIf() {
             />
           </div>
 
-          {/* daily A/B chart */}
           <div className="mt-4 flex items-center gap-2">
             <div className="flex rounded-lg border border-border p-0.5 text-[11.5px]">
               {METRICS.map((m) => (
@@ -455,11 +300,7 @@ export default function CampaignWhatIf() {
               </ResponsiveContainer>
             ) : (
               <div className="grid h-full place-items-center text-[12px] text-text-muted">
-                {loading
-                  ? analysisMode === "campaign"
-                    ? "Running campaign across the period…"
-                    : "Loading precomputed predictive replay cache…"
-                  : "No data."}
+                {loading ? "Loading precomputed predictive replay cache..." : "No data."}
               </div>
             )}
           </div>
@@ -467,14 +308,10 @@ export default function CampaignWhatIf() {
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] text-text-muted">
             <span className="inline-flex items-center gap-1.5">
               <TrendingDown size={12} className="text-success" />
-              {analysisMode === "campaign"
-                ? "The teal band is the building running under the AI policy; the gap to the dashed line is the saving."
-                : "The teal band is the precomputed MPC replay; the gap to the dashed line is the predicted control impact."}
+              The teal band is the precomputed MPC replay; the gap to the dashed line is the predicted control impact.
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Wind size={12} /> {analysisMode === "campaign"
-                ? "Same weather and occupancy; only the setpoint policy differs."
-                : "The page reads materialized cache; run the cloud precompute job to refresh long ranges."}
+              <Wind size={12} /> The page reads materialized cache; run the cloud precompute job to refresh long ranges.
             </span>
           </div>
         </>

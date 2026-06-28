@@ -6,7 +6,7 @@ export default function SimulationBaselinePage() {
     <div data-wide-page className="pb-4">
       <PageHeader
         title="What-if Analysis"
-        subtitle="Compare measured baseline with fixed-policy and precomputed predictive MPC scenarios."
+        subtitle="Compare measured baseline with the precomputed predictive MPC replay."
       />
       <CampaignWhatIf />
     </div>
