@@ -538,6 +538,35 @@ def _local_iso(value: Any) -> str:
     return str(value)
 
 
+def _action_setpoint_delta(value: Any, zone_count: int) -> float:
+    if zone_count <= 0:
+        return 0.0
+    actions = value or []
+    if isinstance(actions, str):
+        try:
+            actions = json.loads(actions)
+        except json.JSONDecodeError:
+            actions = []
+    if not isinstance(actions, list):
+        return 0.0
+    by_zone: dict[str, float] = {}
+    for action in actions:
+        if not isinstance(action, dict):
+            continue
+        delta = _f(action.get("setpoint_delta_c"))
+        if not delta:
+            continue
+        for key in action.get("target_zone_keys") or []:
+            by_zone[str(key)] = by_zone.get(str(key), 0.0) + delta
+    return sum(by_zone.values()) / float(zone_count)
+
+
+def _local_date_key(value: Any) -> str:
+    if hasattr(value, "astimezone"):
+        return value.astimezone(TZ).date().isoformat()
+    return str(value)[:10]
+
+
 def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = None,
                         date_to: str | None = None, scenario_id: str | None = None,
                         horizon_steps: int | None = None, top_k: int | None = None,
@@ -594,7 +623,7 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
             step_rows = fetch_all(conn, """
                 SELECT t.timestamp, t.baseline_kw, t.ai_kw, t.baseline_kwh,
                        t.ai_kwh, t.saving_kwh, t.comfort_violation_min,
-                       t.selected_trajectory
+                       t.selected_trajectory, t.action_json
                 FROM whatif_cache_timestep t
                 JOIN whatif_cache_runs r ON r.id = t.run_id
                 WHERE r.cache_key = :cache_key
@@ -604,18 +633,104 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
                 ORDER BY t.timestamp
             """, cache_key=cache_key, date_from=local_midnight(start),
                 date_to=local_midnight(end))
+        else:
+            step_rows = fetch_all(conn, """
+                SELECT t.timestamp, t.baseline_kw, t.ai_kw, t.baseline_kwh,
+                       t.ai_kwh, t.saving_kwh, t.comfort_violation_min,
+                       t.selected_trajectory, t.action_json
+                FROM whatif_cache_timestep t
+                JOIN whatif_cache_runs r ON r.id = t.run_id
+                WHERE r.cache_key = :cache_key
+                  AND r.status = 'complete'
+                  AND t.timestamp >= CAST(:date_from AS timestamptz)
+                  AND t.timestamp < CAST(:date_to AS timestamptz)
+                ORDER BY t.timestamp
+            """, cache_key=cache_key, date_from=local_midnight(start),
+                date_to=local_midnight(end))
+        telemetry_rows = fetch_all(conn, """
+            SELECT timestamp,
+                   avg(temperature_c) AS baseline_temperature_c,
+                   avg(COALESCE(setpoint_c, 24)) AS baseline_setpoint_c,
+                   count(*) AS zone_count
+            FROM telemetry_zone_15m
+            WHERE timestamp >= CAST(:date_from AS timestamptz)
+              AND timestamp < CAST(:date_to AS timestamptz)
+              AND (CAST(:scenario_id AS text) IS NULL
+                   OR scenario_id = CAST(:scenario_id AS text)
+                   OR scenario_id IS NULL)
+            GROUP BY timestamp
+            ORDER BY timestamp
+        """, date_from=local_midnight(start), date_to=local_midnight(end),
+            scenario_id=scenario)
 
     if not rows:
         raise LookupError(f"precomputed what-if cache has no daily rows for {cache_key}")
 
+    telemetry_by_ts = {_local_iso(r["timestamp"]): r for r in telemetry_rows}
+    baseline_peak_for_loading = max((_f(r.get("baseline_kw")) for r in step_rows), default=0.0)
+    timestep_series = []
+    for r in step_rows:
+        ts_iso = _local_iso(r["timestamp"])
+        tele = telemetry_by_ts.get(ts_iso) or {}
+        zone_count = int(_f(tele.get("zone_count"), ds.expected_zones) or ds.expected_zones)
+        avg_delta = _action_setpoint_delta(r.get("action_json"), zone_count)
+        base_temp = _f(tele.get("baseline_temperature_c"), 25.0)
+        base_setpoint = _f(tele.get("baseline_setpoint_c"), 24.0)
+        base_kw = _f(r.get("baseline_kw"))
+        ai_kw = _f(r.get("ai_kw"))
+        denom = baseline_peak_for_loading or max(base_kw, ai_kw, 1.0)
+        timestep_series.append({
+            "timestamp": ts_iso,
+            "date": _local_date_key(r["timestamp"]),
+            "baseline_kwh": round(_f(r["baseline_kwh"]), 4),
+            "optimized_kwh": round(_f(r["ai_kwh"]), 4),
+            "peak_baseline_kw": round(base_kw, 3),
+            "peak_optimized_kw": round(ai_kw, 3),
+            "baseline_temperature_c": round(base_temp, 3),
+            "optimized_temperature_c": round(base_temp + 0.4 * avg_delta, 3),
+            "baseline_setpoint_c": round(base_setpoint, 3),
+            "optimized_setpoint_c": round(base_setpoint + avg_delta, 3),
+            "baseline_loading_pct": round(base_kw / denom * 100.0, 3) if denom else 0.0,
+            "optimized_loading_pct": round(ai_kw / denom * 100.0, 3) if denom else 0.0,
+            "saving_kwh": round(_f(r["saving_kwh"]), 4),
+            "comfort_violation_min": round(_f(r["comfort_violation_min"]), 2),
+            "selected_trajectory": r.get("selected_trajectory"),
+        })
+
+    by_day_extra: dict[str, dict[str, Any]] = defaultdict(lambda: {
+        "n": 0,
+        "baseline_temperature_c": 0.0,
+        "optimized_temperature_c": 0.0,
+        "baseline_setpoint_c": 0.0,
+        "optimized_setpoint_c": 0.0,
+        "baseline_loading_pct": 0.0,
+        "optimized_loading_pct": 0.0,
+    })
+    for point in timestep_series:
+        rec = by_day_extra[point["date"]]
+        rec["n"] += 1
+        for key in ("baseline_temperature_c", "optimized_temperature_c",
+                    "baseline_setpoint_c", "optimized_setpoint_c"):
+            rec[key] += _f(point[key])
+        rec["baseline_loading_pct"] = max(rec["baseline_loading_pct"], _f(point["baseline_loading_pct"]))
+        rec["optimized_loading_pct"] = max(rec["optimized_loading_pct"], _f(point["optimized_loading_pct"]))
+
     daily = []
     for r in rows:
+        extras = by_day_extra.get(str(r["date"])) or {}
+        n = int(extras.get("n") or 0)
         daily.append({
             "date": str(r["date"]),
             "baseline_kwh": round(_f(r["baseline_kwh"]), 1),
             "optimized_kwh": round(_f(r["ai_kwh"]), 1),
             "peak_baseline_kw": round(_f(r["baseline_peak_kw"]), 2),
             "peak_optimized_kw": round(_f(r["ai_peak_kw"]), 2),
+            "baseline_temperature_c": round(_f(extras.get("baseline_temperature_c")) / n, 2) if n else None,
+            "optimized_temperature_c": round(_f(extras.get("optimized_temperature_c")) / n, 2) if n else None,
+            "baseline_setpoint_c": round(_f(extras.get("baseline_setpoint_c")) / n, 2) if n else None,
+            "optimized_setpoint_c": round(_f(extras.get("optimized_setpoint_c")) / n, 2) if n else None,
+            "baseline_loading_pct": round(_f(extras.get("baseline_loading_pct")), 1) if n else None,
+            "optimized_loading_pct": round(_f(extras.get("optimized_loading_pct")), 1) if n else None,
         })
     baseline = sum(_f(r["baseline_kwh"]) for r in rows)
     optimized = sum(_f(r["ai_kwh"]) for r in rows)
@@ -626,17 +741,7 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
     comfort = sum(_f(r["comfort_violation_min"]) for r in rows)
     series = []
     if effective_resolution == "timestep":
-        for r in step_rows:
-            series.append({
-                "timestamp": _local_iso(r["timestamp"]),
-                "baseline_kwh": round(_f(r["baseline_kwh"]), 4),
-                "optimized_kwh": round(_f(r["ai_kwh"]), 4),
-                "peak_baseline_kw": round(_f(r["baseline_kw"]), 3),
-                "peak_optimized_kw": round(_f(r["ai_kw"]), 3),
-                "saving_kwh": round(_f(r["saving_kwh"]), 4),
-                "comfort_violation_min": round(_f(r["comfort_violation_min"]), 2),
-                "selected_trajectory": r.get("selected_trajectory"),
-            })
+        series = timestep_series
     return {
         "metadata": {
             "source": "precomputed_cache",
@@ -644,6 +749,11 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
             "control_mode": CONTROL_MODE,
             "resolution": effective_resolution,
             "point_count": len(series) if effective_resolution == "timestep" else len(daily),
+            "metric_thresholds": {
+                "comfort_temperature_c": {"min": 23.0, "max": 26.0},
+                "electrical_loading_pct": [80.0, 90.0, 100.0],
+                "loading_basis": "normalized_to_selected_range_baseline_peak",
+            },
             "cache_key": cache_key,
             "dataset": ds.to_metadata(),
             "scenario_id": scenario,

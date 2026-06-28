@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useState } from "react";
 import {
-  Area, CartesianGrid, ComposedChart, Line, ResponsiveContainer, Tooltip, XAxis, YAxis,
+  Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine,
+  ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { CalendarDays, Info, Loader2, Sparkles, TrendingDown, Wind } from "lucide-react";
 import { motion } from "motion/react";
@@ -11,6 +12,18 @@ import { fmtVnd } from "@/lib/format";
 
 type WhatIfData = Awaited<ReturnType<typeof api.whatifCache>>;
 type DateRange = { start: string; end: string };
+type MetricConfig = {
+  id: string;
+  label: string;
+  shortLabel: string;
+  unit: string;
+  base: string;
+  opt: string;
+  summary: string;
+  meaning: string;
+  band?: { y1: number; y2: number; label: string };
+  thresholds?: readonly number[];
+};
 
 const PRECOMPUTE_DATE_FROM = "2024-03-01";
 const PRECOMPUTE_DATE_TO = "2024-05-01";
@@ -18,9 +31,59 @@ const PRECOMPUTE_DATE_TO_INCLUSIVE = "2024-04-30";
 const PRECOMPUTE_LABEL = "01 Mar 2024 - 30 Apr 2024";
 const PREDICTIVE_HORIZON_STEPS = 8;
 const PREDICTIVE_TOP_K = 4;
-const METRICS = [
-  { id: "energy", label: "Daily energy", unit: " kWh", base: "baseline_kwh", opt: "optimized_kwh" },
-  { id: "peak", label: "Daily peak", unit: " kW", base: "peak_baseline_kw", opt: "peak_optimized_kw" },
+const METRICS: readonly MetricConfig[] = [
+  {
+    id: "energy",
+    label: "Energy Use",
+    shortLabel: "Energy",
+    unit: " kWh",
+    base: "baseline_kwh",
+    opt: "optimized_kwh",
+    summary: "Energy saved",
+    meaning: "Shows total energy reduction from the MPC replay.",
+  },
+  {
+    id: "power",
+    label: "Power / Demand",
+    shortLabel: "Power",
+    unit: " kW",
+    base: "peak_baseline_kw",
+    opt: "peak_optimized_kw",
+    summary: "Demand reduced",
+    meaning: "Shows peak shaving and load flattening behavior.",
+  },
+  {
+    id: "temperature",
+    label: "Comfort / Indoor Temperature",
+    shortLabel: "Comfort",
+    unit: " °C",
+    base: "baseline_temperature_c",
+    opt: "optimized_temperature_c",
+    summary: "Temperature change",
+    meaning: "Shows whether energy saving trades off against comfort.",
+    band: { y1: 23, y2: 26, label: "comfort band" },
+  },
+  {
+    id: "setpoint",
+    label: "HVAC Control / Setpoint",
+    shortLabel: "Setpoint",
+    unit: " °C",
+    base: "baseline_setpoint_c",
+    opt: "optimized_setpoint_c",
+    summary: "Setpoint shift",
+    meaning: "Shows the cooling setpoint action selected by MPC.",
+  },
+  {
+    id: "loading",
+    label: "Electrical Loading",
+    shortLabel: "Loading",
+    unit: "%",
+    base: "baseline_loading_pct",
+    opt: "optimized_loading_pct",
+    summary: "Loading reduced",
+    meaning: "Shows normalized electrical stress reduction versus the selected range peak.",
+    thresholds: [80, 90, 100],
+  },
 ] as const;
 
 const ddmm = (d: string) => {
@@ -82,6 +145,38 @@ const chartMinTickGap = (points: number, timestep = false) => {
   return 36;
 };
 
+const numeric = (value: unknown) => {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+};
+
+const formatMetricValue = (value: number | null | undefined, unit: string) => {
+  if (value == null || !Number.isFinite(value)) return ".";
+  const abs = Math.abs(value);
+  const digits = unit.includes("°C") ? 1 : abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
+  return `${value.toLocaleString(undefined, {
+    maximumFractionDigits: digits,
+    minimumFractionDigits: unit.includes("°C") ? 1 : 0,
+  })}${unit}`;
+};
+
+const aggregateMetric = (rows: any[], key: string, metricId: string) => {
+  const values = rows.map((row) => numeric(row[key])).filter((v): v is number => v != null);
+  if (!values.length) return null;
+  if (metricId === "energy") return values.reduce((sum, value) => sum + value, 0);
+  if (metricId === "temperature" || metricId === "setpoint") {
+    return values.reduce((sum, value) => sum + value, 0) / values.length;
+  }
+  return Math.max(...values);
+};
+
+const metricDomain = (metric: MetricConfig): [number | "auto", number | "auto"] => {
+  if (metric.id === "temperature") return [20, 30];
+  if (metric.id === "setpoint") return [22, 28];
+  if (metric.id === "loading") return [0, 105];
+  return [0, "auto"];
+};
+
 function MetricHelp({ text }: { text: string }) {
   return (
     <button
@@ -117,10 +212,14 @@ function MetricReadout({ label, value, sub, tone = "text-text-primary", help }: 
   );
 }
 
-function EnergyComparisonCard({ baseline, optimized, savingPercent, period, index }: {
-  baseline?: number; optimized?: number; savingPercent?: number; period: string; index: number;
+function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent, period, index }: {
+  metric: MetricConfig; baseline?: number | null; optimized?: number | null;
+  delta?: number | null; deltaPercent?: number | null; period: string; index: number;
 }) {
-  const signedSaving = savingPercent == null ? "." : `${savingPercent > 0 ? "-" : "+"}${Math.abs(savingPercent)}`;
+  const signedDelta = deltaPercent == null || !Number.isFinite(deltaPercent)
+    ? "."
+    : `${deltaPercent > 0 ? "-" : "+"}${Math.abs(deltaPercent).toFixed(2)}`;
+  const positive = (delta ?? 0) >= 0;
 
   return (
     <motion.div
@@ -130,26 +229,30 @@ function EnergyComparisonCard({ baseline, optimized, savingPercent, period, inde
     >
       <div className="flex flex-wrap items-start justify-between gap-2">
         <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700/80">Energy use comparison</p>
+          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700/80">
+            {metric.label} comparison
+          </p>
           <p className="mt-1 text-[12px] text-text-muted">{period}</p>
         </div>
-        <div className="rounded-full bg-emerald-100 px-2.5 py-1 text-[11px] font-semibold text-emerald-700 tabular-nums">
-          {signedSaving}% vs no AI
+        <div className={`rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums ${
+          positive ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
+        }`}>
+          {signedDelta}% vs no AI
         </div>
       </div>
 
       <div className="mt-3 grid gap-2 sm:grid-cols-2">
         <MetricReadout
           label="Without AI"
-          value={baseline != null ? `${Math.round(baseline).toLocaleString()} kWh` : "."}
+          value={formatMetricValue(baseline, metric.unit)}
           tone="text-slate-700"
-          help="Baseline consumption from recorded EnergyPlus telemetry. This is the no-AI reference."
+          help={`Baseline ${metric.shortLabel.toLowerCase()} from recorded EnergyPlus telemetry. This is the no-AI reference.`}
         />
         <MetricReadout
           label="With AI"
-          value={optimized != null ? `${Math.round(optimized).toLocaleString()} kWh` : "."}
+          value={formatMetricValue(optimized, metric.unit)}
           tone="text-teal"
-          help="Estimated consumption from the precomputed predictive MPC replay over the same period."
+          help={metric.meaning}
         />
       </div>
     </motion.div>
@@ -213,6 +316,44 @@ function ImpactCard({ energySaved, costSaving, co2Avoided, comfortDelta, days, p
   );
 }
 
+function MetricTooltip({ active, payload, label, metric, isTimestep }: {
+  active?: boolean; payload?: any[]; label?: string; metric: MetricConfig; isTimestep: boolean;
+}) {
+  if (!active || !payload?.length) return null;
+  const row = payload[0]?.payload || {};
+  const baseline = numeric(row[metric.base]);
+  const optimized = numeric(row[metric.opt]);
+  const delta = baseline != null && optimized != null ? baseline - optimized : null;
+  const pct = delta != null && baseline ? (delta / baseline) * 100 : null;
+  const positive = (delta ?? 0) >= 0;
+
+  return (
+    <div className="min-w-[220px] rounded-xl border border-border/70 bg-white px-3 py-2 text-[12px] shadow-lg">
+      <p className="font-semibold text-text-primary">
+        {isTimestep ? timeLabel(String(label)) : fullDate(String(label))}
+      </p>
+      <div className="mt-2 space-y-1 tabular-nums">
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-text-muted">Without AI</span>
+          <span className="font-medium text-slate-700">{formatMetricValue(baseline, metric.unit)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4">
+          <span className="text-text-muted">With AI</span>
+          <span className="font-medium text-teal">{formatMetricValue(optimized, metric.unit)}</span>
+        </div>
+        <div className="flex items-center justify-between gap-4 border-t border-border/60 pt-1">
+          <span className="text-text-muted">Delta</span>
+          <span className={`font-semibold ${positive ? "text-success" : "text-amber-700"}`}>
+            {delta == null ? "." : formatMetricValue(delta, metric.unit)}
+            {pct != null ? ` (${pct.toFixed(2)}%)` : ""}
+          </span>
+        </div>
+      </div>
+      <p className="mt-2 max-w-[260px] text-[11px] leading-snug text-text-muted">{metric.meaning}</p>
+    </div>
+  );
+}
+
 export default function CampaignWhatIf() {
   const [metricId, setMetricId] = useState<string>("energy");
   const [dateFrom, setDateFrom] = useState(PRECOMPUTE_DATE_FROM);
@@ -245,11 +386,7 @@ export default function CampaignWhatIf() {
 
   const k = data?.kpi;
   const isTimestep = data?.metadata?.resolution === "timestep";
-  const activeMetrics = isTimestep ? [
-    { id: "energy", label: "30-min energy", unit: " kWh", base: "baseline_kwh", opt: "optimized_kwh" },
-    { id: "peak", label: "Power", unit: " kW", base: "peak_baseline_kw", opt: "peak_optimized_kw" },
-  ] : METRICS;
-  const metric = activeMetrics.find((m) => m.id === metricId) ?? activeMetrics[0];
+  const metric = METRICS.find((m) => m.id === metricId) ?? METRICS[0];
   const chartData = isTimestep && data?.series?.length ? data.series : data?.daily ?? [];
   const xKey = isTimestep ? "timestamp" : "date";
   const visibleRange = data?.daily?.length ? {
@@ -259,6 +396,10 @@ export default function CampaignWhatIf() {
   const visiblePeriod = periodLabel(visibleRange);
   const recordedThrough = visibleRange ? fullDate(visibleRange.end) : PRECOMPUTE_LABEL;
   const pointCount = chartData.length;
+  const cardBaseline = metric.id === "energy" ? k?.baseline_kwh : aggregateMetric(chartData, metric.base, metric.id);
+  const cardOptimized = metric.id === "energy" ? k?.optimized_kwh : aggregateMetric(chartData, metric.opt, metric.id);
+  const cardDelta = cardBaseline != null && cardOptimized != null ? cardBaseline - cardOptimized : null;
+  const cardDeltaPercent = cardDelta != null && cardBaseline ? (cardDelta / cardBaseline) * 100 : null;
   const setRange = (start: string, end: string) => {
     const selected = clampRange(start, end);
     setDateFrom(selected.start);
@@ -331,11 +472,13 @@ export default function CampaignWhatIf() {
       ) : (
         <>
           <div className="mt-3 grid gap-3 xl:grid-cols-[1.45fr_1fr]">
-            <EnergyComparisonCard
+            <MetricComparisonCard
               index={0}
-              baseline={k?.baseline_kwh}
-              optimized={k?.optimized_kwh}
-              savingPercent={k?.saving_percent}
+              metric={metric}
+              baseline={cardBaseline}
+              optimized={cardOptimized}
+              delta={cardDelta}
+              deltaPercent={cardDeltaPercent}
               period={visiblePeriod}
             />
             <ImpactCard
@@ -350,14 +493,17 @@ export default function CampaignWhatIf() {
           </div>
 
           <div className="mt-4 flex items-center gap-2">
-            <div className="flex rounded-lg border border-border p-0.5 text-[11.5px]">
-              {activeMetrics.map((m) => (
-                <button key={m.id} onClick={() => setMetricId(m.id)}
-                        className={`rounded-md px-2 py-0.5 font-medium transition ${
-                          metricId === m.id ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"}`}>
-                  {m.label}
-                </button>
-              ))}
+            <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-2 py-1 text-[11.5px]">
+              <span className="font-medium text-text-muted">Metric</span>
+              <select
+                value={metricId}
+                onChange={(event) => setMetricId(event.target.value)}
+                className="min-w-[220px] rounded-md border border-border/70 bg-white px-2 py-1 text-[12px] font-semibold text-text-primary outline-none focus:border-teal"
+              >
+                {METRICS.map((m) => (
+                  <option key={m.id} value={m.id}>{m.label}</option>
+                ))}
+              </select>
             </div>
             <div className="ml-auto flex items-center gap-3 text-[11px] text-text-muted">
               <span className="inline-flex items-center gap-1.5">
@@ -386,12 +532,25 @@ export default function CampaignWhatIf() {
                          minTickGap={chartMinTickGap(pointCount, isTimestep)}
                          tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false}
-                         domain={[0, "auto"]} width={76}
+                         domain={metricDomain(metric)} width={76}
                          tickFormatter={(value: number) => `${Math.round(value).toLocaleString()}${metric.unit}`} />
-                  <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E2E8F0", fontSize: 12 }}
-                           labelFormatter={(label: string) => isTimestep ? timeLabel(label) : fullDate(label)}
-                           formatter={(v: any, n: any) => [`${Number(v).toFixed(1)}${metric.unit}`,
-                             n === metric.opt ? "With AI" : "Without AI"]} />
+                  {metric.band && (
+                    <ReferenceArea y1={metric.band.y1} y2={metric.band.y2}
+                                   fill="#14b8a6" fillOpacity={0.08}
+                                   label={{ value: metric.band.label, fill: "#0F766E", fontSize: 10 }} />
+                  )}
+                  {metric.thresholds?.map((value) => (
+                    <ReferenceLine key={value} y={value} stroke={value >= 100 ? "#ef4444" : "#f59e0b"}
+                                   strokeDasharray="3 3"
+                                   label={{ value: `${value}%`, fill: value >= 100 ? "#ef4444" : "#b45309", fontSize: 10 }} />
+                  ))}
+                  {metric.id === "power" && cardBaseline != null && (
+                    <ReferenceLine y={cardBaseline} stroke="#64748B" strokeDasharray="3 3"
+                                   label={{ value: "baseline peak", fill: "#64748B", fontSize: 10 }} />
+                  )}
+                  <Tooltip content={(props) => (
+                    <MetricTooltip {...props} metric={metric} isTimestep={isTimestep} />
+                  )} />
                   <Area type="monotone" dataKey={metric.opt} stroke="#0F766E" strokeWidth={2}
                         fill="url(#cwTeal)" dot={false} />
                   <Line type="monotone" dataKey={metric.base} stroke="#94A3B8" strokeWidth={1.6}

@@ -162,9 +162,15 @@ export const api = {
         comfort_violation_delta_min: number; co2_avoided_kg: number; days: number;
       };
       daily: { date: string; baseline_kwh: number; optimized_kwh: number;
-               peak_baseline_kw: number; peak_optimized_kw: number }[];
+               peak_baseline_kw: number; peak_optimized_kw: number;
+               baseline_temperature_c?: number | null; optimized_temperature_c?: number | null;
+               baseline_setpoint_c?: number | null; optimized_setpoint_c?: number | null;
+               baseline_loading_pct?: number | null; optimized_loading_pct?: number | null }[];
       series?: { timestamp: string; baseline_kwh: number; optimized_kwh: number;
                  peak_baseline_kw: number; peak_optimized_kw: number;
+                 baseline_temperature_c?: number; optimized_temperature_c?: number;
+                 baseline_setpoint_c?: number; optimized_setpoint_c?: number;
+                 baseline_loading_pct?: number; optimized_loading_pct?: number;
                  saving_kwh?: number; comfort_violation_min?: number;
                  selected_trajectory?: string | null }[];
     }>(`/simulations/whatif-cache?${params.toString()}`);
