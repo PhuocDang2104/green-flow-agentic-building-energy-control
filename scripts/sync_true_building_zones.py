@@ -22,6 +22,7 @@ sys.path.insert(0, str(ROOT / "backend"))
 import duckdb  # noqa: E402
 from sqlalchemy import text  # noqa: E402
 
+from greenflow.cctv import camera_profile  # noqa: E402
 from greenflow.datasets import active_dataset  # noqa: E402
 from greenflow.db import db_conn, fetch_all  # noqa: E402
 
@@ -71,6 +72,53 @@ def read_zone_metadata(duckdb_path: Path) -> list[dict]:
         "area_m2_final", "volume_m3_final", "height_m_final",
     ]
     return [dict(zip(cols, r, strict=True)) for r in rows]
+
+
+def sync_cameras(conn) -> int:
+    """Replace managed demo mappings with one suitable feed per true zone."""
+    zones = fetch_all(conn, """
+        SELECT id, floor_id, entity_key, name, room_type
+        FROM zones WHERE building_id = :b
+        ORDER BY entity_key
+    """, b=BUILDING_ID)
+
+    # Preserve any future real/external cameras; only replace the demo media
+    # mappings managed by this repository.
+    conn.execute(text("""
+        DELETE FROM cameras
+        WHERE building_id = :b AND video_source LIKE '/media/cctv/%'
+    """), {"b": BUILDING_ID})
+
+    records = []
+    for zone in zones:
+        profile = camera_profile(
+            str(zone["entity_key"]), str(zone["name"]), str(zone["room_type"] or "unknown")
+        )
+        records.append({
+            "id": stable_uuid("camera", str(zone["entity_key"])),
+            "b": BUILDING_ID,
+            "f": zone["floor_id"],
+            "z": zone["id"],
+            "name": f"CCTV {profile.label} · Zone {zone['name']}",
+            "src": profile.video_source,
+            "guid": f"demo-cctv:{zone['entity_key']}",
+        })
+
+    insert_camera = text("""
+        INSERT INTO cameras (id, building_id, floor_id, zone_id, name,
+                             video_source, privacy_mode, raw_ifc_guid)
+        VALUES (:id, :b, :f, :z, :name, :src, 'count_only', :guid)
+        ON CONFLICT (id) DO UPDATE SET
+            floor_id = EXCLUDED.floor_id,
+            zone_id = EXCLUDED.zone_id,
+            name = EXCLUDED.name,
+            video_source = EXCLUDED.video_source,
+            privacy_mode = EXCLUDED.privacy_mode,
+            raw_ifc_guid = EXCLUDED.raw_ifc_guid
+    """)
+    for i in range(0, len(records), 1000):
+        conn.execute(insert_camera, records[i:i + 1000])
+    return len(records)
 
 
 def main() -> int:
@@ -149,6 +197,8 @@ def main() -> int:
         for i in range(0, len(zone_records), 1000):
             conn.execute(upsert_zone, zone_records[i:i + 1000])
 
+        camera_count = sync_cameras(conn)
+
         counts = fetch_all(conn, """
             SELECT count(*) AS zones, count(DISTINCT floor_id) AS floors
             FROM zones WHERE building_id = :b
@@ -156,7 +206,8 @@ def main() -> int:
 
     print(
         f"synced true-building zones: source={duckdb_path} "
-        f"upserted={len(zone_records)} db_zones={counts['zones']} floors={counts['floors']}"
+        f"upserted={len(zone_records)} db_zones={counts['zones']} "
+        f"floors={counts['floors']} cameras={camera_count}"
     )
     if len(zone_records) != ds.expected_zones:
         raise SystemExit(f"expected {ds.expected_zones} zones, got {len(zone_records)}")
