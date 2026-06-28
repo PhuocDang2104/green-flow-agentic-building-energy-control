@@ -1,180 +1,241 @@
-"""Train surrogate LightGBM trên DỮ LIỆU THẬT (final_ai_training_timeseries).
+"""Train the production surrogates on the active 308-zone data contract.
 
-Thay surrogate cũ (DoE EnergyPlus TỔNG HỢP) bằng model học từ MỘT NĂM EnergyPlus
-+ Open-Meteo THẬT (2025, 30-phút, 308 zone). Bảng có sẵn target_* +
-train_test_split_label -> đo R²/MAE/MAPE trên test giữ riêng (số credibility).
+Targets and splits intentionally match ``final_ai_training_timeseries`` from
+the El Nino Mar-Apr 2024 package:
 
-2 model:
-  - BUILDING: tổng điện toàn tòa/30-phút (gộp theo timestamp) — dùng cho dự báo
-    demand/peak; mượt nên R² cao (headline pitch).
-  - ZONE: điện/zone — feature giàu (classification, volume, conditioned) cho
-    what-if setpoint ở mức zone (action scoring). Dự báo ĐIỆN trực tiếp.
+* building: ``target_facility_power_kw`` (one facility-meter value/timestep)
+* zone: ``target_total_zone_power_kw``
+* HVAC: ``target_hvac_power_kw``
+* split: ``dataset_split`` = train / validation / test
 
-Chạy trong container ([ml] có lightgbm), ghi model ra mount /out:
-  docker compose run --rm -v "<Dataset>:/data:ro" -v "$PWD/scripts:/app/scripts" \
-    -v "$PWD/backend/greenflow/ml/models:/out" api \
-    bash -lc "pip install -q duckdb && MODEL_OUT=/out python /app/scripts/train_surrogate_real.py"
+The script writes reproducible LightGBM text artifacts plus a metadata contract
+containing the dataset fingerprint, coverage, targets, features and test scores.
 """
+
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import sys
 from pathlib import Path
 
-import duckdb
-import lightgbm as lgb
-import numpy as np
+ROOT = Path(__file__).resolve().parents[1]
+sys.path.insert(0, str(ROOT / "backend"))
 
-DB = os.environ.get(
-    "DUCKDB_PATH",
-    "/data/Dat_data/greenflow_final_mode_b_plus_openmeteo_2025_30min_patched-001.duckdb")
-OUT = Path(os.environ.get("MODEL_OUT", "/out"))
+import duckdb  # noqa: E402
+import lightgbm as lgb  # noqa: E402
+import numpy as np  # noqa: E402
+
+from greenflow.datasets import active_dataset  # noqa: E402
+
+DATASET = active_dataset()
+OUT = Path(os.environ.get("MODEL_OUT", ROOT / "backend/greenflow/ml/models"))
 
 WEATHER_TIME = [
     "outdoor_temp_c", "outdoor_rh_pct", "global_horizontal_radiation_wh_m2",
     "wind_speed_m_s", "cloud_cover_pct", "hour_sin", "hour_cos",
     "dayofweek_sin", "dayofweek_cos", "month_sin", "month_cos", "office_hours_flag",
 ]
-# Numeric-only (no categorical) so inference encoding is trivially reproducible.
-ZONE_FEATURES = WEATHER_TIME + ["cooling_setpoint_c", "area_m2", "volume_m3",
-                                "ceiling_height_m"]
-BLD_FEATURES = WEATHER_TIME + ["avg_setpoint_c", "conditioned_area_m2"]
-PARAMS = dict(objective="regression", metric="l2", learning_rate=0.05,
-              num_leaves=63, min_data_in_leaf=100, feature_fraction=0.9,
-              bagging_fraction=0.8, bagging_freq=1, verbose=-1)
+WEATHER_EXPRESSIONS = {
+    "outdoor_temp_c": "outdoor_temp_c",
+    "outdoor_rh_pct": "outdoor_rh_pct",
+    "global_horizontal_radiation_wh_m2": "global_horizontal_radiation_wh_m2",
+    "wind_speed_m_s": "wind_speed_m_s",
+    "cloud_cover_pct": "coalesce(total_sky_cover_tenths, 4) * 10",
+    "hour_sin": "sin(2 * pi() * hour_decimal / 24)",
+    "hour_cos": "cos(2 * pi() * hour_decimal / 24)",
+    "dayofweek_sin": "sin(2 * pi() * dayofweek / 7)",
+    "dayofweek_cos": "cos(2 * pi() * dayofweek / 7)",
+    "month_sin": "sin(2 * pi() * month / 12)",
+    "month_cos": "cos(2 * pi() * month / 12)",
+    "office_hours_flag": "CASE WHEN dayofweek < 5 AND hour_decimal >= 7 "
+                         "AND hour_decimal < 19 THEN 1 ELSE 0 END",
+}
+ZONE_FEATURES = WEATHER_TIME + [
+    "cooling_setpoint_c", "area_m2_final", "volume_m3_final", "height_m_final",
+]
+BUILDING_FEATURES = WEATHER_TIME + ["avg_setpoint_c", "detailed_area_m2"]
+PARAMS = {
+    "objective": "regression", "metric": "l2", "learning_rate": 0.05,
+    "num_leaves": 63, "min_data_in_leaf": 100, "feature_fraction": 0.9,
+    "bagging_fraction": 0.8, "bagging_freq": 1, "verbose": -1,
+    "seed": 42, "feature_fraction_seed": 42, "bagging_seed": 42,
+    "deterministic": True, "force_col_wise": True,
+}
 
 
-def _metrics(y, p) -> dict:
-    err = p - y
+def _source() -> tuple[duckdb.DuckDBPyConnection, str, Path]:
+    explicit = os.environ.get("DUCKDB_PATH")
+    db_path = Path(explicit) if explicit else DATASET.duckdb_path
+    if db_path.exists():
+        return duckdb.connect(str(db_path), read_only=True), "final_ai_training_timeseries", db_path
+    parquet = DATASET.parquet_root / "final_ai_training_timeseries.parquet"
+    if not parquet.exists():
+        raise SystemExit(f"missing training source: {db_path} and {parquet}")
+    con = duckdb.connect()
+    return con, f"read_parquet('{parquet.as_posix()}')", parquet
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _portable_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(ROOT.resolve()))
+    except ValueError:
+        return path.name
+
+
+def _metrics(y, pred) -> dict:
+    err = pred - y
     ss_res = float(np.sum(err ** 2))
     ss_tot = float(np.sum((y - y.mean()) ** 2)) or 1e-9
-    mask = y > (0.05 if y.max() < 50 else 5.0)
+    threshold = 5.0 if float(np.max(y)) >= 50 else 0.05
+    mask = y > threshold
     mape = float(np.mean(np.abs(err[mask] / y[mask])) * 100) if mask.any() else None
-    return {"r2": round(1 - ss_res / ss_tot, 4),
-            "mae_kw": round(float(np.mean(np.abs(err))), 4),
-            "mape_pct": round(mape, 2) if mape is not None else None, "n": int(len(y))}
+    return {
+        "r2": round(1 - ss_res / ss_tot, 4),
+        "mae_kw": round(float(np.mean(np.abs(err))), 4),
+        "mape_pct": round(mape, 2) if mape is not None else None,
+        "n": int(len(y)),
+    }
 
 
-def _fit(tr, va, te, feats, target, cat=None) -> tuple:
-    for df in (tr, va, te):
-        if "office_hours_flag" in df:
-            df["office_hours_flag"] = df["office_hours_flag"].astype(int)
-        if "conditioned_flag" in df:
-            df["conditioned_flag"] = df["conditioned_flag"].astype(int)
-        if cat:
-            for c in cat:
-                df[c] = df[c].astype("category")
-    dtr = lgb.Dataset(tr[feats], tr[target], categorical_feature=cat or "auto")
-    dva = lgb.Dataset(va[feats], va[target], reference=dtr)
-    b = lgb.train(PARAMS, dtr, num_boost_round=700, valid_sets=[dva],
-                  callbacks=[lgb.early_stopping(40, verbose=False), lgb.log_evaluation(0)])
-    pred = np.clip(b.predict(te[feats]), 0, None)
-    m = _metrics(te[target].to_numpy(), pred)
-    imp = sorted(zip(feats, b.feature_importance("gain")), key=lambda x: -x[1])[:6]
-    return b, m, [{"f": f, "gain": int(g)} for f, g in imp]
+def _fit(frames: dict, features: list[str], target: str) -> tuple:
+    train, validation, test = (frames[key].copy() for key in ("train", "validation", "test"))
+    for frame in (train, validation, test):
+        frame["office_hours_flag"] = frame["office_hours_flag"].astype(int)
+    dtrain = lgb.Dataset(train[features], train[target])
+    dvalid = lgb.Dataset(validation[features], validation[target], reference=dtrain)
+    booster = lgb.train(
+        PARAMS, dtrain, num_boost_round=800, valid_sets=[dvalid],
+        callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(0)],
+    )
+    pred = np.clip(booster.predict(test[features]), 0, None)
+    metrics = _metrics(test[target].to_numpy(), pred)
+    importance = sorted(
+        zip(features, booster.feature_importance("gain")), key=lambda item: -item[1]
+    )[:10]
+    return booster, metrics, [{"f": feature, "gain": int(gain)} for feature, gain in importance]
+
+
+def _dataset_contract(con, source: str, source_path: Path) -> dict:
+    columns = {row[0] for row in con.execute(f"DESCRIBE SELECT * FROM {source}").fetchall()}
+    required = {
+        "datetime", "zone_id", "dataset_split", "room_type",
+        "outdoor_temp_c", "outdoor_rh_pct", "global_horizontal_radiation_wh_m2",
+        "wind_speed_m_s", "total_sky_cover_tenths", "hour_decimal", "dayofweek", "month",
+        "cooling_setpoint_c", "area_m2_final", "volume_m3_final", "height_m_final",
+        "target_facility_power_kw", "target_total_zone_power_kw", "target_hvac_power_kw",
+    }
+    missing = sorted(required - columns)
+    if missing:
+        raise SystemExit(f"training source violates v2 contract; missing columns: {missing}")
+    row = con.execute(f"""
+        SELECT count(*) AS rows, count(DISTINCT zone_id) AS zones,
+               count(DISTINCT datetime) AS timesteps, min(datetime), max(datetime)
+        FROM {source}
+    """).fetchone()
+    splits = {
+        split: {"rows": int(rows), "timesteps": int(timesteps), "zones": int(zones)}
+        for split, rows, timesteps, zones in con.execute(f"""
+            SELECT dataset_split, count(*), count(DISTINCT datetime), count(DISTINCT zone_id)
+            FROM {source} GROUP BY dataset_split ORDER BY dataset_split
+        """).fetchall()
+    }
+    contract = {
+        "schema_version": 2,
+        "dataset_key": DATASET.key,
+        "scenario_id": DATASET.scenario_id,
+        "timezone": DATASET.timezone,
+        "timestep_minutes": DATASET.timestep_minutes,
+        "source_path": _portable_path(source_path),
+        "source_sha256": _sha256(source_path),
+        "zone_count": int(row[1]),
+        "timestep_count": int(row[2]),
+        "row_count": int(row[0]),
+        "time_range": {"start": str(row[3]), "end": str(row[4])},
+        "splits": splits,
+    }
+    expected = (DATASET.expected_zones, DATASET.expected_timesteps, DATASET.expected_zone_rows)
+    actual = (contract["zone_count"], contract["timestep_count"], contract["row_count"])
+    if actual != expected:
+        raise SystemExit(f"dataset coverage mismatch: expected={expected}, actual={actual}")
+    return contract
 
 
 def main() -> None:
-    con = duckdb.connect(DB, read_only=True)
+    con, source, source_path = _source()
+    contract = _dataset_contract(con, source, source_path)
     OUT.mkdir(parents=True, exist_ok=True)
-    meta = {"source": "final_ai_training_timeseries (EnergyPlus + Open-Meteo 2025, 30-min)",
-            "models": {}}
+    meta = {
+        "source": f"{DATASET.key} · EnergyPlus facility/zone targets · 30-minute",
+        "dataset": contract,
+        "models": {},
+    }
+    print("dataset contract:", json.dumps(contract, indent=2))
 
-    # ---- BUILDING-level (aggregate by timestamp) ----
-    wt = ", ".join(f"any_value({c}) AS {c}" for c in WEATHER_TIME)
-    print("loading building-level ...")
-    bld = {s: con.execute(f"""
-        SELECT {wt}, avg(cooling_setpoint_c) AS avg_setpoint_c,
-               sum(area_m2) FILTER (WHERE conditioned_flag) AS conditioned_area_m2,
-               sum(target_total_zone_electricity_kw) AS y
-        FROM final_ai_training_timeseries
-        WHERE train_test_split_label = ?
-        GROUP BY timestamp""", [s]).df() for s in ("train", "validation", "test")}
-    print(f"building rows: train={len(bld['train']):,} test={len(bld['test']):,}")
-    b, m, imp = _fit(bld["train"], bld["validation"], bld["test"], BLD_FEATURES, "y")
-    b.save_model(str(OUT / "surrogate_real_building.txt"))
-    meta["models"]["building"] = {"target": "building_total_kw", "features": BLD_FEATURES,
-                                  "best_iter": b.best_iteration, "test_metrics": m, "top_features": imp}
-    print(f"[building] test R²={m['r2']} MAE={m['mae_kw']}kW MAPE={m['mape_pct']}%")
+    weather = ", ".join(
+        f"any_value({WEATHER_EXPRESSIONS[column]}) AS {column}" for column in WEATHER_TIME
+    )
+    print("loading building model frames ...")
+    building_frames = {
+        split: con.execute(f"""
+            SELECT {weather}, avg(cooling_setpoint_c) AS avg_setpoint_c,
+                   sum(area_m2_final) FILTER (WHERE room_type <> 'gross_area_placeholder')
+                       AS detailed_area_m2,
+                   any_value(target_facility_power_kw) AS target
+            FROM {source}
+            WHERE dataset_split = ?
+            GROUP BY datetime ORDER BY datetime
+        """, [split]).df()
+        for split in ("train", "validation", "test")
+    }
+    model, metrics, importance = _fit(building_frames, BUILDING_FEATURES, "target")
+    model.save_model(str(OUT / "surrogate_real_building.txt"))
+    meta["models"]["building"] = {
+        "target": "target_facility_power_kw", "features": BUILDING_FEATURES,
+        "best_iter": model.best_iteration, "split": "dataset_split",
+        "test_metrics": metrics, "top_features": importance,
+    }
+    print("[building]", metrics)
 
-    # ---- ZONE-level (rich features) for setpoint what-if ----
-    cols = ", ".join(ZONE_FEATURES)
-    print("loading zone-level ...")
-    zn = {s: con.execute(f"""
-        SELECT {cols}, target_total_zone_electricity_kw AS y
-        FROM final_ai_training_timeseries
-        WHERE train_test_split_label = ? AND conditioned_flag
-        """, [s]).df() for s in ("train", "validation", "test")}
-    print(f"zone rows (conditioned): train={len(zn['train']):,} test={len(zn['test']):,}")
-    b, m, imp = _fit(zn["train"], zn["validation"], zn["test"], ZONE_FEATURES, "y")
-    b.save_model(str(OUT / "surrogate_real_zone.txt"))
-    meta["models"]["zone"] = {"target": "zone_total_kw", "features": ZONE_FEATURES,
-                              "best_iter": b.best_iteration,
-                              "test_metrics": m, "top_features": imp}
-    print(f"[zone] test R²={m['r2']} MAE={m['mae_kw']}kW MAPE={m['mape_pct']}%")
+    columns = ", ".join(
+        [f"{WEATHER_EXPRESSIONS[column]} AS {column}" for column in WEATHER_TIME]
+        + ["cooling_setpoint_c", "area_m2_final", "volume_m3_final", "height_m_final"]
+    )
+    for kind, target, filename in (
+        ("zone", "target_total_zone_power_kw", "surrogate_real_zone.txt"),
+        ("hvac", "target_hvac_power_kw", "surrogate_real_hvac.txt"),
+    ):
+        print(f"loading {kind} model frames ...")
+        frames = {
+            split: con.execute(f"""
+                SELECT {columns}, {target} AS target
+                FROM {source}
+                WHERE dataset_split = ?
+                ORDER BY zone_id, datetime
+            """, [split]).df()
+            for split in ("train", "validation", "test")
+        }
+        model, metrics, importance = _fit(frames, ZONE_FEATURES, "target")
+        model.save_model(str(OUT / filename))
+        meta["models"][kind] = {
+            "target": target, "features": ZONE_FEATURES,
+            "best_iter": model.best_iteration, "split": "dataset_split",
+            "test_metrics": metrics, "top_features": importance,
+        }
+        print(f"[{kind}]", metrics)
 
-    # ---- HVAC-level (zone HVAC electricity) -> hvac_power_kw.
-    # Uses a DAY-GROUPED split (whole days held out, disjoint, covering all
-    # seasons) NOT the seasonal train_test_split_label: HVAC is cooling-dominated
-    # so the seasonal holdout (cool months, HVAC ~86% off) is a degenerate test
-    # (near-zero variance -> negative R²). Day-disjoint all-season eval is the
-    # honest in-distribution test -> R²~0.97. Bucket by date hash %10.
-    print("loading hvac-level (day-grouped split) ...")
-    hv_all = con.execute(f"""
-        SELECT {cols}, target_hvac_electricity_kw AS y,
-               abs(hash(CAST(timestamp AS DATE))) % 10 AS bucket
-        FROM final_ai_training_timeseries WHERE conditioned_flag""").df()
-    hv_all["office_hours_flag"] = hv_all["office_hours_flag"].astype(int)
-    hv = {"train": hv_all[hv_all.bucket >= 3].copy(),
-          "validation": hv_all[hv_all.bucket == 2].copy(),
-          "test": hv_all[hv_all.bucket < 2].copy()}
-    print(f"hvac rows: train={len(hv['train']):,} test={len(hv['test']):,}")
-    b, m, imp = _fit(hv["train"], hv["validation"], hv["test"], ZONE_FEATURES, "y")
-    b.save_model(str(OUT / "surrogate_real_hvac.txt"))
-    meta["models"]["hvac"] = {"target": "hvac_power_kw", "features": ZONE_FEATURES,
-                              "best_iter": b.best_iteration, "split": "day-grouped (all-season)",
-                              "test_metrics": m, "top_features": imp}
-    print(f"[hvac] test R²={m['r2']} MAE={m['mae_kw']}kW MAPE={m['mape_pct']}%")
-
-    (OUT / "surrogate_real_meta.json").write_text(json.dumps(meta, indent=2))
-    print(f"saved -> {OUT}")
-    _log_mlflow(meta, OUT)
-
-
-# Best-effort MLflow logging: only runs if MLFLOW_TRACKING_URI is set AND reachable
-# (e.g. on the VM / via proxy). A local train without a server just skips this and
-# still writes the .txt models; scripts/log_models_to_mlflow.py backfills later.
-def _log_mlflow(meta: dict, out: Path) -> None:
-    uri = os.environ.get("MLFLOW_TRACKING_URI")
-    if not uri:
-        print("MLFLOW_TRACKING_URI unset -> skip MLflow logging (models saved to disk)")
-        return
-    try:
-        import mlflow
-        files = {"building": "surrogate_real_building.txt", "zone": "surrogate_real_zone.txt",
-                 "hvac": "surrogate_real_hvac.txt"}
-        mlflow.set_tracking_uri(uri)
-        mlflow.set_experiment("greenflow-surrogate")
-        for name, info in meta["models"].items():
-            mp = out / files.get(name, "")
-            if not mp.exists():
-                continue
-            with mlflow.start_run(run_name=f"surrogate_{name}"):
-                mlflow.set_tags({"source": meta["source"], "model": name, "engine": "lightgbm",
-                                 "stage": "production"})
-                mlflow.log_param("target", info["target"])
-                mlflow.log_param("n_features", len(info["features"]))
-                if info.get("best_iter") is not None:
-                    mlflow.log_param("best_iter", info["best_iter"])
-                for k, v in (info.get("test_metrics") or {}).items():
-                    if isinstance(v, (int, float)):
-                        mlflow.log_metric(f"test_{k}", float(v))
-                import lightgbm as _lgb
-                mlflow.lightgbm.log_model(_lgb.Booster(model_file=str(mp)), artifact_path="model",
-                                          registered_model_name=f"greenflow_surrogate_{name}")
-            print("mlflow logged + registered:", name)
-    except Exception as e:  # noqa: BLE001 — logging must never fail the training
-        print("mlflow logging skipped:", repr(e)[:160])
+    metadata_path = OUT / "surrogate_real_meta.json"
+    metadata_path.write_text(json.dumps(meta, indent=2), encoding="utf-8")
+    print("saved models + metadata ->", OUT)
 
 
 if __name__ == "__main__":

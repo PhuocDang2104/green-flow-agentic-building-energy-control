@@ -80,6 +80,16 @@ def _duckdb_checks(duckdb_path: Path) -> dict[str, Any]:
         "march_kwh", "april_kwh", "apr25_kwh", "lights_kwh",
         "equipment_kwh", "hvac_kwh", "total_kwh",
     ), totals, strict=True)))
+    meter_error = con.execute("""
+        WITH per_step AS (
+            SELECT datetime, sum(target_total_zone_power_kw) AS zone_total_kw,
+                   any_value(target_facility_power_kw) AS facility_kw
+            FROM {source} GROUP BY datetime
+        )
+        SELECT max(abs(zone_total_kw - facility_kw)), max(facility_kw) FROM per_step
+    """.format(source=source)).fetchone()
+    out["facility_meter_max_abs_error_kw"] = meter_error[0]
+    out["facility_peak_kw"] = meter_error[1]
     out["checks"] = {
         "zones": out["zones"] == EXPECTED["zones"],
         "timesteps": out["timesteps"] == EXPECTED["timesteps"],
@@ -87,8 +97,36 @@ def _duckdb_checks(duckdb_path: Path) -> dict[str, Any]:
         "march_kwh": _ok_close(out["march_kwh"], EXPECTED["march_kwh"], 1.0),
         "april_kwh": _ok_close(out["april_kwh"], EXPECTED["april_kwh"], 1.0),
         "apr25_kwh": _ok_close(out["apr25_kwh"], EXPECTED["apr25_kwh"], 1.0),
+        "zone_sum_matches_facility_meter": float(meter_error[0] or 0.0) < 1e-6,
     }
     return out
+
+
+def _model_checks() -> dict[str, Any]:
+    model_dir = ROOT / "backend" / "greenflow" / "ml" / "models"
+    try:
+        surrogate = json.loads((model_dir / "surrogate_real_meta.json").read_text())
+        forecast = json.loads((model_dir / "forecast_lag_total_meta.json").read_text())
+        contracts = [surrogate.get("dataset", {}), forecast.get("dataset", {})]
+        files = [
+            "surrogate_real_building.txt", "surrogate_real_zone.txt",
+            "surrogate_real_hvac.txt", "forecast_lag_total.txt",
+        ]
+        metrics = surrogate.get("models", {})
+        checks = {
+            "all_model_files_exist": all((model_dir / name).exists() for name in files),
+            "dataset_key": all(c.get("dataset_key") == active_dataset().key for c in contracts),
+            "dataset_fingerprint": len({c.get("source_sha256") for c in contracts}) == 1,
+            "zone_count": all(c.get("zone_count") == EXPECTED["zones"] for c in contracts),
+            "row_count": all(c.get("row_count") == EXPECTED["zone_rows"] for c in contracts),
+            "building_quality": metrics["building"]["test_metrics"]["r2"] >= 0.9,
+            "zone_quality": metrics["zone"]["test_metrics"]["r2"] >= 0.9,
+            "hvac_quality": metrics["hvac"]["test_metrics"]["r2"] >= 0.5,
+            "forecast_beats_persistence": forecast.get("beats_persistence") is True,
+        }
+        return {"available": True, "contracts": contracts, "checks": checks}
+    except Exception as exc:  # noqa: BLE001
+        return {"available": False, "error": repr(exc)[:240], "checks": {}}
 
 
 def _postgres_checks(building_id: str, scenario_id: str) -> dict[str, Any]:
@@ -182,6 +220,7 @@ def main() -> int:
         "dataset": ds.to_metadata(),
         "expected": EXPECTED,
         "duckdb": _duckdb_checks(ds.duckdb_path),
+        "models": _model_checks(),
         "postgres": (_postgres_checks(args.building_id, ds.scenario_id) if check_pg
                      else {"available": False, "skipped": True}),
         "electrical": _electrical_checks(ds.electrical_out, ds.scenario_id),
@@ -189,7 +228,9 @@ def main() -> int:
     print(json.dumps(out, indent=2, default=str))
 
     hard = out["duckdb"]["checks"]
-    ok = all(hard.values())
+    ok = all(hard.values()) and out["models"].get("available") and all(
+        out["models"].get("checks", {}).values()
+    )
     if args.require_postgres:
         ok = ok and out["postgres"].get("available") and all(
             out["postgres"].get("checks", {}).values())

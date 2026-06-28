@@ -4,7 +4,7 @@ from __future__ import annotations
 
 from ..policy import evaluate_action
 from ..state import GreenFlowState
-from .prediction import CAPACITY_KW, peak_risk_from_utilization
+from .prediction import contracted_demand_kw, peak_risk_from_utilization
 
 
 def run(state: GreenFlowState) -> dict:
@@ -21,7 +21,7 @@ def run(state: GreenFlowState) -> dict:
     kpi = state.get("baseline_vs_optimized", {})
     if kpi.get("peak_window_optimized_kw") is not None:
         peak_risk_after = peak_risk_from_utilization(
-            kpi["peak_window_optimized_kw"] / CAPACITY_KW)
+            kpi["peak_window_optimized_kw"] / contracted_demand_kw())
     else:
         peak_risk_after = state.get("peak_risk", {}).get("value", 0.0)
 

@@ -7,7 +7,7 @@ reason text — action selection itself stays deterministic and auditable.
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 
 from ...replayclock import anchor
 from ...sim.actions import make_action
@@ -66,7 +66,7 @@ def run(state: GreenFlowState) -> dict:
             peak_at = (demand.get("peak_at") or "")[11:16]  # HH:MM from "YYYY-MM-DD HH:MM:SS..."
             candidates.append(make_action(
                 "pre_cooling", [], start_hour=pw["start_hour"], end_hour=pw["end_hour"],
-                reason=f"Day-ahead forecast peaks {demand.get('peak_hvac_kw')} kW around "
+                reason=f"Day-ahead facility forecast peaks {demand.get('peak_total_kw')} kW around "
                        f"{peak_at}; pre-cool early ({pw['start_hour']:02d}:00) to charge "
                        f"thermal mass while power is cheaper and outdoor air is cooler"))
         else:

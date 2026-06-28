@@ -153,7 +153,7 @@ def load_zone_model_metadata(*, allow_local_fallback: bool = False) -> dict[str,
     This intentionally avoids downloading MLflow artifacts. The actual replay
     will load the model; cache identity only needs the configured selector.
     """
-    from ..ml.model_registry import REGISTERED_MODELS
+    from ..ml.model_registry import REGISTERED_MODELS, model_contract
 
     settings = get_settings()
     configured_source = (settings.greenflow_model_source or "mlflow").lower()
@@ -173,13 +173,32 @@ def load_zone_model_metadata(*, allow_local_fallback: bool = False) -> dict[str,
             f"zone model source is {configured_source!r}; rerun with --allow-local-fallback "
             "if this is intentional"
         )
+    run_id = None
+    selector = version
+    if configured_source == "mlflow" and registered and version:
+        import mlflow
+
+        mlflow.set_tracking_uri(settings.mlflow_tracking_uri)
+        client = mlflow.MlflowClient()
+        if "@" in model_uri:
+            resolved = client.get_model_version_by_alias(registered, version)
+        elif version.isdigit():
+            resolved = client.get_model_version(registered, version)
+        else:
+            resolved = None
+        if resolved is not None:
+            version = str(resolved.version)
+            run_id = resolved.run_id
+    contract = model_contract("zone")
     return {
         "key": "zone",
         "source": configured_source,
         "registered_model": registered,
         "model_uri": model_uri,
         "version": version,
-        "run_id": None,
+        "selector": selector,
+        "run_id": run_id,
+        "dataset": contract,
         "n_features": None,
         "error": None,
     }
@@ -202,6 +221,8 @@ def build_cache_identity(*, ds: DatasetConfig, scenario_id: str, horizon_steps: 
             "registered_model": model_metadata.get("registered_model"),
             "model_uri": model_metadata.get("model_uri"),
             "version": model_metadata.get("version"),
+            "run_id": model_metadata.get("run_id"),
+            "dataset_sha256": (model_metadata.get("dataset") or {}).get("source_sha256"),
         },
         "timestep_minutes": ds.timestep_minutes,
     }

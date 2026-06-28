@@ -12,9 +12,8 @@ from __future__ import annotations
 
 import math
 from functools import lru_cache
-from pathlib import Path
 
-MODEL = Path(__file__).parent / "models" / "forecast_lag_total.txt"
+from .model_registry import load_model
 # Must match FEATS order in scripts/train_forecast_lag.py
 FEATS = ["cur", "lag1", "lag2", "lag3", "lag_day", "roll_mean", "roll_std",
          "delta", "hour_sin", "hour_cos", "dow", "is_weekend", "occ", "otemp"]
@@ -23,11 +22,8 @@ STEPS_PER_DAY = 48
 
 @lru_cache(maxsize=1)
 def _booster():
-    try:
-        import lightgbm as lgb
-    except Exception:
-        return None
-    return lgb.Booster(model_file=str(MODEL)) if MODEL.exists() else None
+    loaded = load_model("forecast")
+    return loaded.model if loaded is not None else None
 
 
 def available() -> bool:

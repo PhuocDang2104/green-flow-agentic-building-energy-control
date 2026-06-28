@@ -21,12 +21,14 @@ MODEL_FILES = {
     "building": "surrogate_real_building.txt",
     "zone": "surrogate_real_zone.txt",
     "hvac": "surrogate_real_hvac.txt",
+    "forecast": "forecast_lag_total.txt",
 }
 
 REGISTERED_MODELS = {
     "building": "greenflow_surrogate_building",
     "zone": "greenflow_surrogate_zone",
     "hvac": "greenflow_surrogate_hvac",
+    "forecast": "greenflow_forecast_lag_total",
 }
 
 
@@ -41,6 +43,7 @@ class LoadedModel:
     version: str | None = None
     run_id: str | None = None
     error: str | None = None
+    dataset: dict | None = None
 
     def metadata(self) -> dict:
         return {
@@ -52,6 +55,7 @@ class LoadedModel:
             "run_id": self.run_id,
             "n_features": len(self.features),
             "error": self.error,
+            "dataset": self.dataset or {},
         }
 
 
@@ -66,8 +70,30 @@ def model_metrics() -> dict:
     return _meta().get("models", {})
 
 
+def _forecast_meta() -> dict:
+    try:
+        return json.loads((MODEL_DIR / "forecast_lag_total_meta.json").read_text())
+    except Exception:
+        return {}
+
+
+def _model_info(kind: str) -> dict:
+    return _forecast_meta() if kind == "forecast" else model_metrics().get(kind, {}) or {}
+
+
+def _dataset_info(kind: str) -> dict:
+    return (_forecast_meta().get("dataset", {}) if kind == "forecast"
+            else _meta().get("dataset", {}))
+
+
+def model_contract(kind: str) -> dict:
+    if kind not in REGISTERED_MODELS:
+        raise ValueError(f"unknown surrogate model kind: {kind}")
+    return dict(_dataset_info(kind))
+
+
 def _features(kind: str) -> list[str]:
-    return list((_meta().get("models", {}).get(kind, {}) or {}).get("features", []))
+    return list(_model_info(kind).get("features", []))
 
 
 def _configured_uri(kind: str) -> str:
@@ -76,6 +102,7 @@ def _configured_uri(kind: str) -> str:
         "building": s.greenflow_model_building,
         "zone": s.greenflow_model_zone,
         "hvac": s.greenflow_model_hvac,
+        "forecast": s.greenflow_model_forecast,
     }.get(kind, f"models:/{REGISTERED_MODELS[kind]}/1")
 
 
@@ -97,11 +124,24 @@ def _parse_model_uri(kind: str, uri: str) -> tuple[str | None, str | None]:
 
 def _load_mlflow(kind: str) -> LoadedModel | None:
     uri = _configured_uri(kind)
-    registered, version = _parse_model_uri(kind, uri)
+    registered, selector = _parse_model_uri(kind, uri)
     try:
         import mlflow
 
         mlflow.set_tracking_uri(get_settings().mlflow_tracking_uri)
+        version = selector
+        run_id = None
+        client = mlflow.MlflowClient()
+        if registered and selector:
+            if "@" in uri:
+                model_version = client.get_model_version_by_alias(registered, selector)
+            elif selector.isdigit():
+                model_version = client.get_model_version(registered, selector)
+            else:
+                model_version = None
+            if model_version is not None:
+                version = str(model_version.version)
+                run_id = model_version.run_id
         try:
             import mlflow.lightgbm
             model = mlflow.lightgbm.load_model(uri)
@@ -115,6 +155,8 @@ def _load_mlflow(kind: str) -> LoadedModel | None:
             registered_model=registered or REGISTERED_MODELS[kind],
             model_uri=uri,
             version=version,
+            run_id=run_id,
+            dataset=_dataset_info(kind),
         )
     except Exception as exc:  # noqa: BLE001 - fallback handles registry outages
         return LoadedModel(
@@ -124,8 +166,9 @@ def _load_mlflow(kind: str) -> LoadedModel | None:
             source="mlflow_unavailable",
             registered_model=registered or REGISTERED_MODELS[kind],
             model_uri=uri,
-            version=version,
+            version=selector,
             error=repr(exc)[:240],
+            dataset=_dataset_info(kind),
         )
 
 
@@ -142,6 +185,7 @@ def _load_local(kind: str, *, previous_error: str | None = None) -> LoadedModel 
             registered_model=REGISTERED_MODELS[kind],
             model_uri=str(MODEL_DIR / MODEL_FILES[kind]),
             error=previous_error,
+            dataset=_dataset_info(kind),
         )
     except Exception as exc:  # noqa: BLE001
         err = previous_error or repr(exc)[:240]
@@ -153,6 +197,7 @@ def _load_local(kind: str, *, previous_error: str | None = None) -> LoadedModel 
             registered_model=REGISTERED_MODELS[kind],
             model_uri=str(MODEL_DIR / MODEL_FILES.get(kind, "")),
             error=err,
+            dataset=_dataset_info(kind),
         )
 
 
@@ -172,11 +217,10 @@ def load_model(kind: str) -> LoadedModel | None:
 
 
 def model_inventory() -> list[dict]:
-    metrics = model_metrics()
     out = []
     for kind, registered in REGISTERED_MODELS.items():
         loaded = load_model(kind)
-        info = metrics.get(kind, {})
+        info = _model_info(kind)
         meta = loaded.metadata() if loaded else {
             "key": kind,
             "source": "unavailable",
@@ -187,11 +231,16 @@ def model_inventory() -> list[dict]:
             "n_features": len(_features(kind)),
             "error": "model not loadable",
         }
+        dataset = info.get("dataset") or _meta().get("dataset", {})
+        metrics = info.get("test_metrics", {})
         meta.update({
             "target": info.get("target"),
-            "metrics": info.get("test_metrics", {}),
-            "split": info.get("split", "seasonal holdout (cool months)"),
-            "top_features": [t["f"] for t in (info.get("top_features") or [])[:5]],
+            "metrics": metrics,
+            "split": info.get("split"),
+            "dataset": dataset,
+            "top_features": [
+                t.get("f") or t.get("feature") for t in (info.get("top_features") or [])[:5]
+            ],
         })
         out.append(meta)
     return out

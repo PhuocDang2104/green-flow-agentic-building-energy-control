@@ -1,8 +1,41 @@
 {
-  "source": "final_ai_training_timeseries (EnergyPlus + Open-Meteo 2025, 30-min)",
+  "source": "elnino_2024_mar_apr \u00b7 EnergyPlus facility/zone targets \u00b7 30-minute",
+  "dataset": {
+    "schema_version": 2,
+    "dataset_key": "elnino_2024_mar_apr",
+    "scenario_id": "elnino_2024_mar_apr_baseline",
+    "timezone": "Asia/Ho_Chi_Minh",
+    "timestep_minutes": 30,
+    "source_path": "data/final_elnino/3. D\u1ea1ng parquet/final_ai_training_timeseries.parquet",
+    "source_sha256": "4dda0344ff5e2e421d2fba0ce304bad4d66e83cf7e136f5fe9ed4f22985026cc",
+    "zone_count": 308,
+    "timestep_count": 2928,
+    "row_count": 901824,
+    "time_range": {
+      "start": "2024-03-01 00:30:00",
+      "end": "2024-05-01 00:00:00"
+    },
+    "splits": {
+      "test": {
+        "rows": 221760,
+        "timesteps": 720,
+        "zones": 308
+      },
+      "train": {
+        "rows": 458304,
+        "timesteps": 1488,
+        "zones": 308
+      },
+      "validation": {
+        "rows": 221760,
+        "timesteps": 720,
+        "zones": 308
+      }
+    }
+  },
   "models": {
     "building": {
-      "target": "building_total_kw",
+      "target": "target_facility_power_kw",
       "features": [
         "outdoor_temp_c",
         "outdoor_rh_pct",
@@ -17,44 +50,61 @@
         "month_cos",
         "office_hours_flag",
         "avg_setpoint_c",
-        "conditioned_area_m2"
+        "detailed_area_m2"
       ],
-      "best_iter": 156,
+      "best_iter": 794,
+      "split": "dataset_split",
       "test_metrics": {
-        "r2": 0.8709,
-        "mae_kw": 51.0409,
-        "mape_pct": 19.24,
-        "n": 2928
+        "r2": 0.9341,
+        "mae_kw": 50.9772,
+        "mape_pct": 26.16,
+        "n": 720
       },
       "top_features": [
         {
           "f": "avg_setpoint_c",
-          "gain": 12938765918
-        },
-        {
-          "f": "global_horizontal_radiation_wh_m2",
-          "gain": 1271847556
-        },
-        {
-          "f": "outdoor_temp_c",
-          "gain": 1268672737
-        },
-        {
-          "f": "dayofweek_cos",
-          "gain": 414839959
+          "gain": 724147237
         },
         {
           "f": "hour_sin",
-          "gain": 352108998
+          "gain": 28280392
+        },
+        {
+          "f": "hour_cos",
+          "gain": 12915141
+        },
+        {
+          "f": "global_horizontal_radiation_wh_m2",
+          "gain": 5706974
+        },
+        {
+          "f": "office_hours_flag",
+          "gain": 4909212
         },
         {
           "f": "dayofweek_sin",
-          "gain": 260898205
+          "gain": 4315269
+        },
+        {
+          "f": "outdoor_temp_c",
+          "gain": 3855442
+        },
+        {
+          "f": "outdoor_rh_pct",
+          "gain": 1047807
+        },
+        {
+          "f": "wind_speed_m_s",
+          "gain": 452572
+        },
+        {
+          "f": "dayofweek_cos",
+          "gain": 100776
         }
       ]
     },
     "zone": {
-      "target": "zone_total_kw",
+      "target": "target_total_zone_power_kw",
       "features": [
         "outdoor_temp_c",
         "outdoor_rh_pct",
@@ -69,46 +119,63 @@
         "month_cos",
         "office_hours_flag",
         "cooling_setpoint_c",
-        "area_m2",
-        "volume_m3",
-        "ceiling_height_m"
+        "area_m2_final",
+        "volume_m3_final",
+        "height_m_final"
       ],
-      "best_iter": 135,
+      "best_iter": 796,
+      "split": "dataset_split",
       "test_metrics": {
-        "r2": 0.9223,
-        "mae_kw": 0.2184,
-        "mape_pct": 27.03,
-        "n": 893040
+        "r2": 0.9419,
+        "mae_kw": 0.1835,
+        "mape_pct": 17.47,
+        "n": 221760
       },
       "top_features": [
         {
+          "f": "area_m2_final",
+          "gain": 12955853
+        },
+        {
+          "f": "office_hours_flag",
+          "gain": 11749030
+        },
+        {
+          "f": "volume_m3_final",
+          "gain": 6688258
+        },
+        {
           "f": "cooling_setpoint_c",
-          "gain": 337876929
+          "gain": 6081855
         },
         {
-          "f": "area_m2",
-          "gain": 300925785
-        },
-        {
-          "f": "volume_m3",
-          "gain": 163344314
-        },
-        {
-          "f": "ceiling_height_m",
-          "gain": 48651027
-        },
-        {
-          "f": "outdoor_temp_c",
-          "gain": 30989428
+          "f": "height_m_final",
+          "gain": 1901017
         },
         {
           "f": "global_horizontal_radiation_wh_m2",
-          "gain": 24282269
+          "gain": 1275366
+        },
+        {
+          "f": "hour_sin",
+          "gain": 1182367
+        },
+        {
+          "f": "hour_cos",
+          "gain": 340530
+        },
+        {
+          "f": "outdoor_temp_c",
+          "gain": 268314
+        },
+        {
+          "f": "dayofweek_sin",
+          "gain": 72562
         }
       ]
     },
     "hvac": {
-      "target": "hvac_power_kw",
+      "target": "target_hvac_power_kw",
       "features": [
         "outdoor_temp_c",
         "outdoor_rh_pct",
@@ -123,42 +190,58 @@
         "month_cos",
         "office_hours_flag",
         "cooling_setpoint_c",
-        "area_m2",
-        "volume_m3",
-        "ceiling_height_m"
+        "area_m2_final",
+        "volume_m3_final",
+        "height_m_final"
       ],
-      "best_iter": 698,
-      "split": "day-grouped (all-season)",
+      "best_iter": 786,
+      "split": "dataset_split",
       "test_metrics": {
-        "r2": 0.9793,
-        "mae_kw": 0.0345,
-        "mape_pct": 5.5,
-        "n": 1054080
+        "r2": 0.6489,
+        "mae_kw": 0.1424,
+        "mape_pct": 60.79,
+        "n": 221760
       },
       "top_features": [
         {
-          "f": "cooling_setpoint_c",
-          "gain": 35499556
-        },
-        {
-          "f": "volume_m3",
-          "gain": 24748365
-        },
-        {
           "f": "outdoor_temp_c",
-          "gain": 20848435
+          "gain": 284840
         },
         {
-          "f": "area_m2",
-          "gain": 12588336
+          "f": "cooling_setpoint_c",
+          "gain": 206040
         },
         {
-          "f": "month_cos",
-          "gain": 7755243
+          "f": "area_m2_final",
+          "gain": 139061
         },
         {
-          "f": "month_sin",
-          "gain": 5364155
+          "f": "volume_m3_final",
+          "gain": 87433
+        },
+        {
+          "f": "hour_sin",
+          "gain": 66751
+        },
+        {
+          "f": "height_m_final",
+          "gain": 30189
+        },
+        {
+          "f": "global_horizontal_radiation_wh_m2",
+          "gain": 19111
+        },
+        {
+          "f": "hour_cos",
+          "gain": 14759
+        },
+        {
+          "f": "outdoor_rh_pct",
+          "gain": 8248
+        },
+        {
+          "f": "office_hours_flag",
+          "gain": 7548
         }
       ]
     }
