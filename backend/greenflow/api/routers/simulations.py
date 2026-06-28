@@ -103,7 +103,8 @@ def whatif_cache(mode: str = Query(default="predictive_replay"),
                  date_to: str | None = Query(default=None),
                  scenario_id: str | None = Query(default=None),
                  horizon_steps: int | None = Query(default=None),
-                 top_k: int | None = Query(default=None)):
+                 top_k: int | None = Query(default=None),
+                 resolution: str = Query(default="auto")):
     """Read precomputed what-if/MPC replay data.
 
     This endpoint intentionally does not run predictive replay on cache miss;
@@ -119,6 +120,7 @@ def whatif_cache(mode: str = Query(default="predictive_replay"),
             scenario_id=scenario_id,
             horizon_steps=horizon_steps,
             top_k=top_k,
+            resolution=resolution,
         )
     except ValueError as exc:
         raise HTTPException(400, str(exc))

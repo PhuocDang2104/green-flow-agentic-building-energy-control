@@ -143,6 +143,7 @@ export const api = {
   whatifCache: (payload: {
     mode?: "predictive_replay"; date_from?: string; date_to?: string;
     scenario_id?: string; horizon_steps?: number; top_k?: number;
+    resolution?: "auto" | "daily" | "timestep";
   }) => {
     const params = new URLSearchParams();
     if (payload.mode) params.set("mode", payload.mode);
@@ -151,6 +152,7 @@ export const api = {
     if (payload.scenario_id) params.set("scenario_id", payload.scenario_id);
     if (payload.horizon_steps) params.set("horizon_steps", String(payload.horizon_steps));
     if (payload.top_k) params.set("top_k", String(payload.top_k));
+    if (payload.resolution) params.set("resolution", payload.resolution);
     return get<{
       metadata?: any;
       policy: { setpoint_delta_c: number | null; peak_window: string; engine: string };
@@ -161,6 +163,10 @@ export const api = {
       };
       daily: { date: string; baseline_kwh: number; optimized_kwh: number;
                peak_baseline_kw: number; peak_optimized_kw: number }[];
+      series?: { timestamp: string; baseline_kwh: number; optimized_kwh: number;
+                 peak_baseline_kw: number; peak_optimized_kw: number;
+                 saving_kwh?: number; comfort_violation_min?: number;
+                 selected_trajectory?: string | null }[];
     }>(`/simulations/whatif-cache?${params.toString()}`);
   },
   predictiveControl: (payload: {

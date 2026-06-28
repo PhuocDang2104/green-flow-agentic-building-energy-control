@@ -32,6 +32,11 @@ const fullDate = (date: string) => new Intl.DateTimeFormat("en-GB", {
   day: "2-digit", month: "short", year: "numeric", timeZone: "UTC",
 }).format(new Date(`${date}T00:00:00Z`));
 
+const timeLabel = (value: string) => new Intl.DateTimeFormat("en-GB", {
+  day: "2-digit", month: "2-digit", hour: "2-digit", minute: "2-digit",
+  timeZone: "Asia/Ho_Chi_Minh",
+}).format(new Date(value));
+
 const periodLabel = (range: DateRange | null) => {
   if (!range) return PRECOMPUTE_LABEL;
   if (range.start === range.end) return fullDate(range.start);
@@ -51,14 +56,26 @@ const clampRange = (start: string, end: string) => {
     : { start: safeEnd, end: safeEnd };
 };
 
-const chartInterval = (points: number) => {
+const chartInterval = (points: number, timestep = false) => {
+  if (timestep) {
+    if (points <= 24) return 0;
+    if (points <= 48) return 2;
+    if (points <= 96) return 5;
+    return "preserveStartEnd" as const;
+  }
   if (points <= 10) return 0;
   if (points <= 21) return 1;
   if (points <= 35) return 2;
   return "preserveStartEnd" as const;
 };
 
-const chartMinTickGap = (points: number) => {
+const chartMinTickGap = (points: number, timestep = false) => {
+  if (timestep) {
+    if (points <= 24) return 6;
+    if (points <= 48) return 12;
+    if (points <= 96) return 16;
+    return 30;
+  }
   if (points <= 10) return 8;
   if (points <= 21) return 18;
   if (points <= 35) return 28;
@@ -214,6 +231,7 @@ export default function CampaignWhatIf() {
       date_to: nextDay(selected.end),
       horizon_steps: PREDICTIVE_HORIZON_STEPS,
       top_k: PREDICTIVE_TOP_K,
+      resolution: "auto",
     })
       .then(setData)
       .catch(() => {
@@ -226,14 +244,21 @@ export default function CampaignWhatIf() {
   useEffect(() => { run(); }, [run]);
 
   const k = data?.kpi;
-  const metric = METRICS.find((m) => m.id === metricId)!;
+  const isTimestep = data?.metadata?.resolution === "timestep";
+  const activeMetrics = isTimestep ? [
+    { id: "energy", label: "30-min energy", unit: " kWh", base: "baseline_kwh", opt: "optimized_kwh" },
+    { id: "peak", label: "Power", unit: " kW", base: "peak_baseline_kw", opt: "peak_optimized_kw" },
+  ] : METRICS;
+  const metric = activeMetrics.find((m) => m.id === metricId) ?? activeMetrics[0];
+  const chartData = isTimestep && data?.series?.length ? data.series : data?.daily ?? [];
+  const xKey = isTimestep ? "timestamp" : "date";
   const visibleRange = data?.daily?.length ? {
     start: data.daily[0].date,
     end: data.daily[data.daily.length - 1].date,
   } : null;
   const visiblePeriod = periodLabel(visibleRange);
   const recordedThrough = visibleRange ? fullDate(visibleRange.end) : PRECOMPUTE_LABEL;
-  const pointCount = data?.daily?.length ?? 0;
+  const pointCount = chartData.length;
   const setRange = (start: string, end: string) => {
     const selected = clampRange(start, end);
     setDateFrom(selected.start);
@@ -326,7 +351,7 @@ export default function CampaignWhatIf() {
 
           <div className="mt-4 flex items-center gap-2">
             <div className="flex rounded-lg border border-border p-0.5 text-[11.5px]">
-              {METRICS.map((m) => (
+              {activeMetrics.map((m) => (
                 <button key={m.id} onClick={() => setMetricId(m.id)}
                         className={`rounded-md px-2 py-0.5 font-medium transition ${
                           metricId === m.id ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"}`}>
@@ -344,9 +369,9 @@ export default function CampaignWhatIf() {
             </div>
           </div>
           <div className="mt-2 h-[260px]">
-            {data?.daily?.length ? (
+            {chartData.length ? (
               <ResponsiveContainer width="100%" height="100%">
-                <ComposedChart data={data.daily} margin={{ top: 6, right: 10, bottom: 0, left: 8 }}>
+                <ComposedChart data={chartData} margin={{ top: 6, right: 10, bottom: 0, left: 8 }}>
                   <defs>
                     <linearGradient id="cwTeal" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="0%" stopColor="#0F766E" stopOpacity={0.28} />
@@ -354,14 +379,17 @@ export default function CampaignWhatIf() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke="#EEF2F7" vertical={false} />
-                  <XAxis dataKey="date" tickFormatter={ddmm} tick={{ fontSize: 10, fill: "#94A3B8" }}
-                         interval={chartInterval(pointCount)} minTickGap={chartMinTickGap(pointCount)}
+                  <XAxis dataKey={xKey}
+                         tickFormatter={isTimestep ? timeLabel : ddmm}
+                         tick={{ fontSize: 10, fill: "#94A3B8" }}
+                         interval={chartInterval(pointCount, isTimestep)}
+                         minTickGap={chartMinTickGap(pointCount, isTimestep)}
                          tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false}
                          domain={[0, "auto"]} width={76}
                          tickFormatter={(value: number) => `${Math.round(value).toLocaleString()}${metric.unit}`} />
                   <Tooltip contentStyle={{ borderRadius: 12, border: "1px solid #E2E8F0", fontSize: 12 }}
-                           labelFormatter={(label: string) => fullDate(label)}
+                           labelFormatter={(label: string) => isTimestep ? timeLabel(label) : fullDate(label)}
                            formatter={(v: any, n: any) => [`${Number(v).toFixed(1)}${metric.unit}`,
                              n === metric.opt ? "With AI" : "Without AI"]} />
                   <Area type="monotone" dataKey={metric.opt} stroke="#0F766E" strokeWidth={2}

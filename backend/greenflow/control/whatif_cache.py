@@ -532,9 +532,16 @@ def _completed_cache_key(conn: Connection, *, ds: DatasetConfig, scenario_id: st
         date_from=start, date_to=end, expected_days=expected_days)
 
 
+def _local_iso(value: Any) -> str:
+    if hasattr(value, "astimezone"):
+        return value.astimezone(TZ).isoformat()
+    return str(value)
+
+
 def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = None,
                         date_to: str | None = None, scenario_id: str | None = None,
-                        horizon_steps: int | None = None, top_k: int | None = None) -> dict:
+                        horizon_steps: int | None = None, top_k: int | None = None,
+                        resolution: str = "auto") -> dict:
     ds = active_dataset()
     if mode != CONTROL_MODE:
         raise ValueError(f"unsupported what-if cache mode: {mode}")
@@ -543,6 +550,9 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
     top = int(top_k or get_settings().greenflow_control_top_k)
     start = parse_local_date(date_from)
     end = parse_local_date(date_to)
+    resolution = (resolution or "auto").lower()
+    if resolution not in {"auto", "daily", "timestep"}:
+        raise ValueError("resolution must be one of: auto, daily, timestep")
 
     with db_conn() as conn:
         ensure_schema(conn)
@@ -573,6 +583,27 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
               AND d.date < :date_to
             ORDER BY d.date
         """, cache_key=cache_key, date_from=start, date_to=end)
+        span_days = max(0, (end - start).days) if start and end else 0
+        effective_resolution = (
+            "timestep" if resolution == "timestep"
+            else "timestep" if resolution == "auto" and 0 < span_days <= 2
+            else "daily"
+        )
+        step_rows = []
+        if effective_resolution == "timestep":
+            step_rows = fetch_all(conn, """
+                SELECT t.timestamp, t.baseline_kw, t.ai_kw, t.baseline_kwh,
+                       t.ai_kwh, t.saving_kwh, t.comfort_violation_min,
+                       t.selected_trajectory
+                FROM whatif_cache_timestep t
+                JOIN whatif_cache_runs r ON r.id = t.run_id
+                WHERE r.cache_key = :cache_key
+                  AND r.status = 'complete'
+                  AND t.timestamp >= CAST(:date_from AS timestamptz)
+                  AND t.timestamp < CAST(:date_to AS timestamptz)
+                ORDER BY t.timestamp
+            """, cache_key=cache_key, date_from=local_midnight(start),
+                date_to=local_midnight(end))
 
     if not rows:
         raise LookupError(f"precomputed what-if cache has no daily rows for {cache_key}")
@@ -593,11 +624,26 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
         _f(r["baseline_peak_kw"]) - _f(r["ai_peak_kw"]) for r in rows
     ]
     comfort = sum(_f(r["comfort_violation_min"]) for r in rows)
+    series = []
+    if effective_resolution == "timestep":
+        for r in step_rows:
+            series.append({
+                "timestamp": _local_iso(r["timestamp"]),
+                "baseline_kwh": round(_f(r["baseline_kwh"]), 4),
+                "optimized_kwh": round(_f(r["ai_kwh"]), 4),
+                "peak_baseline_kw": round(_f(r["baseline_kw"]), 3),
+                "peak_optimized_kw": round(_f(r["ai_kw"]), 3),
+                "saving_kwh": round(_f(r["saving_kwh"]), 4),
+                "comfort_violation_min": round(_f(r["comfort_violation_min"]), 2),
+                "selected_trajectory": r.get("selected_trajectory"),
+            })
     return {
         "metadata": {
             "source": "precomputed_cache",
             "status": "complete",
             "control_mode": CONTROL_MODE,
+            "resolution": effective_resolution,
+            "point_count": len(series) if effective_resolution == "timestep" else len(daily),
             "cache_key": cache_key,
             "dataset": ds.to_metadata(),
             "scenario_id": scenario,
@@ -625,6 +671,7 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
             "days": len(daily),
         },
         "daily": daily,
+        "series": series,
     }
 
 
