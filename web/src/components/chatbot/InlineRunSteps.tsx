@@ -55,20 +55,31 @@ function PredictionBlock({ st }: { st: any }) {
   );
 }
 
-/** Control node -> selected actions with the policy auto-review verdict. */
-function ControlBlock({ st }: { st: any }) {
+/** Control node -> selected actions with policy verdicts and approval controls. */
+function ControlBlock({
+  st, approvals, busyId, onDecide,
+}: {
+  st: any;
+  approvals: Approval[];
+  busyId: string | null;
+  onDecide: (approvalId: string, approve: boolean) => void;
+}) {
   const acts: any[] = st?.selected_actions || st?.final_action_plan
     || st?.ranked_actions || st?.candidate_actions || [];
   const decByType: Record<string, any> = {};
   for (const d of st?.policy_decisions || []) decByType[d.action_type || d.target || ""] = d;
+  const approvalByType: Record<string, Approval> = {};
+  for (const approval of approvals) approvalByType[approval.action_type] = approval;
   if (!acts.length) return null;
   return (
     <div className="mt-1.5 space-y-1">
       {acts.slice(0, 6).map((a: any, i: number) => {
-        const dec = a.policy_decision || decByType[a.action_type]?.decision;
-        const reason = a.policy_reason || (decByType[a.action_type]?.reasons || [])[0];
+        const actionType = a.action_type || a.type || "action";
+        const dec = a.policy_decision || decByType[actionType]?.decision;
+        const reason = a.policy_reason || (decByType[actionType]?.reasons || [])[0];
         const blocked = dec === "blocked" || dec === "rejected";
         const review = dec === "approval_required";
+        const approval = approvalByType[actionType];
         return (
           <div key={i} className="flex items-start gap-2 rounded-lg border border-border/55 bg-surface px-2.5 py-1.5 text-[11px]">
             <span className={`mt-0.5 grid h-4 w-4 shrink-0 place-items-center rounded-full ${
@@ -76,11 +87,28 @@ function ControlBlock({ st }: { st: any }) {
               {blocked ? <X size={9} /> : review ? <ShieldAlert size={9} /> : <Check size={9} />}
             </span>
             <div className="min-w-0 flex-1">
-              <p className="font-medium">{a.action_type || a.type || "action"}
+              <p className="font-medium">{actionType}
                 {a.expected_saving_kwh != null && <span className="text-success"> &middot; -{Number(a.expected_saving_kwh).toFixed(1)} kWh</span>}
               </p>
               {(reason || dec) && <p className="text-[10px] text-text-muted">{dec}{reason ? `: ${reason}` : ""}</p>}
             </div>
+            {review && approval && (
+              <div className="flex shrink-0 items-center gap-1">
+                <button onClick={() => onDecide(approval.approval_id, true)}
+                        disabled={busyId === approval.approval_id}
+                        className="flex items-center gap-1 rounded-md bg-success px-2 py-1 text-[10px] font-medium text-white transition hover:bg-success/90 disabled:opacity-50">
+                  {busyId === approval.approval_id
+                    ? <Loader2 size={10} className="animate-spin" />
+                    : <Check size={10} />}
+                  Approve
+                </button>
+                <button onClick={() => onDecide(approval.approval_id, false)}
+                        disabled={busyId === approval.approval_id}
+                        className="flex items-center gap-1 rounded-md border border-border px-2 py-1 text-[10px] font-medium text-text-secondary transition hover:bg-surface-muted disabled:opacity-50">
+                  <X size={10} /> Reject
+                </button>
+              </div>
+            )}
           </div>
         );
       })}
@@ -176,26 +204,10 @@ export default function InlineRunSteps({ runId, action }: { runId: string; actio
               <p className="ml-4 text-[11px] leading-snug text-text-muted">{l.message}</p>
               <div className="ml-4">
                 {kind === "prediction" && <PredictionBlock st={st} />}
-                {kind === "control" && <ControlBlock st={st} />}
-                {kind === "execution" && approvals.length > 0 && (
-                  <div className="mt-1.5 space-y-1.5">
-                    {approvals.map((ap) => (
-                      <div key={ap.approval_id} className="flex items-center gap-2 rounded-lg border border-warning/30 bg-warning/[0.06] px-2.5 py-1.5 text-[11px]">
-                        <ShieldAlert size={12} className="shrink-0 text-warning" />
-                        <span className="min-w-0 flex-1 truncate">{ap.action_type || ap.reason || "Awaiting approval"}</span>
-                        <button onClick={() => decide(ap.approval_id, true)} disabled={busyId === ap.approval_id}
-                                className="flex items-center gap-1 rounded-md bg-success px-2 py-0.5 text-[10px] font-medium text-white transition hover:bg-success/90 disabled:opacity-50">
-                          {busyId === ap.approval_id ? <Loader2 size={10} className="animate-spin" /> : <Check size={10} />} Approve
-                        </button>
-                        <button onClick={() => decide(ap.approval_id, false)} disabled={busyId === ap.approval_id}
-                                className="flex items-center gap-1 rounded-md border border-border px-2 py-0.5 text-[10px] font-medium text-text-secondary transition hover:bg-surface-muted disabled:opacity-50">
-                          <X size={10} /> Reject
-                        </button>
-                      </div>
-                    ))}
-                  </div>
+                {kind === "control" && (
+                  <ControlBlock st={st} approvals={approvals} busyId={busyId} onDecide={decide} />
                 )}
-                {kind === "execution" && decisionError && (
+                {kind === "control" && decisionError && (
                   <p className="mt-1.5 text-[10px] text-danger" role="alert">{decisionError}</p>
                 )}
               </div>
