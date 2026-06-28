@@ -5,7 +5,7 @@ import {
   Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { CalendarDays, Info, Loader2, Sparkles, TrendingDown, Wind } from "lucide-react";
+import { BarChart3, CalendarDays, Cloud, DollarSign, Info, Loader2, Sparkles, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
@@ -150,14 +150,28 @@ const numeric = (value: unknown) => {
   return Number.isFinite(n) ? n : null;
 };
 
+const VN_LOCALE = "vi-VN";
+const formatNumber = (value: number, maximumFractionDigits = 0, minimumFractionDigits = 0) => (
+  value.toLocaleString(VN_LOCALE, { maximumFractionDigits, minimumFractionDigits })
+);
+
+const formatPercent = (value: number | null | undefined) => (
+  value == null || !Number.isFinite(value)
+    ? "."
+    : `${formatNumber(value, 2, 2)}%`
+);
+
+const formatMinutes = (value: number | null | undefined) => (
+  value == null || !Number.isFinite(value)
+    ? "."
+    : `${formatNumber(Math.round(value))} min`
+);
+
 const formatMetricValue = (value: number | null | undefined, unit: string) => {
   if (value == null || !Number.isFinite(value)) return ".";
   const abs = Math.abs(value);
   const digits = unit.includes("°C") ? 1 : abs >= 100 ? 0 : abs >= 10 ? 1 : 2;
-  return `${value.toLocaleString(undefined, {
-    maximumFractionDigits: digits,
-    minimumFractionDigits: unit.includes("°C") ? 1 : 0,
-  })}${unit}`;
+  return `${formatNumber(value, digits, unit.includes("°C") ? 1 : 0)}${unit}`;
 };
 
 const aggregateMetric = (rows: any[], key: string, metricId: string) => {
@@ -216,101 +230,141 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
   metric: MetricConfig; baseline?: number | null; optimized?: number | null;
   delta?: number | null; deltaPercent?: number | null; period: string; index: number;
 }) {
-  const signedDelta = deltaPercent == null || !Number.isFinite(deltaPercent)
-    ? "."
-    : `${deltaPercent > 0 ? "-" : "+"}${Math.abs(deltaPercent).toFixed(2)}`;
   const positive = (delta ?? 0) >= 0;
+  const maxValue = Math.max(Number(baseline) || 0, Number(optimized) || 0, 1);
+  const optimizedWidth = `${Math.max(4, Math.min(100, ((Number(optimized) || 0) / maxValue) * 100))}%`;
+  const baselineWidth = `${Math.max(4, Math.min(100, ((Number(baseline) || 0) / maxValue) * 100))}%`;
+  const deltaText = delta == null ? "." : formatMetricValue(Math.abs(delta), metric.unit);
+  const deltaPercentText = deltaPercent == null || !Number.isFinite(deltaPercent)
+    ? null
+    : `${formatPercent(Math.abs(deltaPercent))} ${positive ? "reduction" : "increase"}`;
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 26, delay: index * 0.05 }}
-      className="rounded-2xl border border-emerald-900/10 bg-gradient-to-br from-emerald-50/70 via-white to-white px-4 py-3.5 shadow-[0_18px_40px_-30px_rgba(15,118,110,0.55)]"
+      className="rounded-2xl border border-border/65 bg-white px-5 py-5 shadow-[0_18px_45px_-34px_rgba(15,23,42,0.35)]"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-emerald-700/80">
-            {metric.label} comparison
-          </p>
-          <p className="mt-1 text-[12px] text-text-muted">{period}</p>
+      <div className="flex items-start gap-4">
+        <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+          <Zap size={24} />
         </div>
-        <div className={`rounded-full px-2.5 py-1 text-[11px] font-semibold tabular-nums ${
-          positive ? "bg-emerald-100 text-emerald-700" : "bg-amber-100 text-amber-700"
-        }`}>
-          {signedDelta}% vs no AI
+        <div className="min-w-0">
+          <h4 className="text-[18px] font-semibold leading-tight tracking-tight text-text-primary">
+            {metric.label} Comparison
+          </h4>
+          <p className="mt-1 text-[13px] text-text-muted">{period}</p>
         </div>
       </div>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-2">
-        <MetricReadout
-          label="Without AI"
-          value={formatMetricValue(baseline, metric.unit)}
-          tone="text-slate-700"
-          help={`Baseline ${metric.shortLabel.toLowerCase()} from recorded EnergyPlus telemetry. This is the no-AI reference.`}
-        />
-        <MetricReadout
-          label="With AI"
-          value={formatMetricValue(optimized, metric.unit)}
-          tone="text-teal"
-          help={metric.meaning}
-        />
+      <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_220px]">
+        <div className="space-y-7">
+          <div className="grid grid-cols-[150px_1fr] items-center gap-4">
+            <div className="flex items-center gap-3 text-[14px] font-medium text-text-primary">
+              <span className="h-3 w-3 rounded-full bg-teal" />
+              <span>With AI</span>
+              <MetricHelp text={metric.meaning} />
+            </div>
+            <div className="h-8 rounded-md bg-emerald-50">
+              <div className="h-8 rounded-md bg-gradient-to-r from-emerald-600 to-emerald-500 shadow-sm" style={{ width: optimizedWidth }} />
+            </div>
+          </div>
+          <div className="grid grid-cols-[150px_1fr] items-center gap-4">
+            <div className="flex items-center gap-3 text-[14px] font-medium text-text-primary">
+              <span className="h-3 w-3 rounded-full bg-slate-300" />
+              <span>Without AI</span>
+              <MetricHelp text={`Baseline ${metric.shortLabel.toLowerCase()} from recorded EnergyPlus telemetry. This is the no-AI reference.`} />
+            </div>
+            <div className="h-8 rounded-md bg-slate-100">
+              <div className="h-8 rounded-md bg-gradient-to-r from-slate-300 to-slate-400" style={{ width: baselineWidth }} />
+            </div>
+          </div>
+        </div>
+
+        <div className="border-t border-border/70 pt-5 lg:border-l lg:border-t-0 lg:pl-6 lg:pt-0">
+          <div className="flex items-center gap-1.5 text-[13px] font-medium text-text-primary">
+            <span>{metric.summary}</span>
+            <MetricHelp text={metric.meaning} />
+          </div>
+          <p className={`mt-3 text-[42px] font-bold leading-none tracking-tight tabular-nums ${
+            positive ? "text-success" : "text-amber-700"
+          }`}>
+            {deltaText.replace(metric.unit, "")}
+          </p>
+          <p className="mt-2 text-[16px] font-medium text-text-muted">{metric.unit.trim()}</p>
+          {deltaPercentText && (
+            <p className="mt-3 text-[12px] font-semibold text-emerald-700">{deltaPercentText}</p>
+          )}
+        </div>
       </div>
     </motion.div>
   );
 }
 
-function ImpactCard({ energySaved, costSaving, co2Avoided, comfortDelta, days, period, index }: {
-  energySaved?: number; costSaving?: number; co2Avoided?: number; comfortDelta?: number; days?: number; period: string; index: number;
+function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, days, period, index }: {
+  costSaving?: number; co2Avoided?: number; aiAddedComfort?: number; baselineComfort?: number;
+  days?: number; period: string; index: number;
 }) {
-  const comfortTone = (comfortDelta ?? 0) > 0 ? "text-amber-700" : "text-success";
-  const comfortLabel = `${comfortDelta != null && comfortDelta > 0 ? "+" : ""}${Math.round(comfortDelta ?? 0).toLocaleString()} min`;
+  const comfortTone = (aiAddedComfort ?? 0) > 0 ? "text-amber-700" : "text-success";
 
   return (
     <motion.div
       initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
       transition={{ type: "spring", stiffness: 260, damping: 26, delay: index * 0.05 }}
-      className="rounded-2xl border border-border/55 bg-surface px-4 py-3.5"
+      className="rounded-2xl border border-border/65 bg-white px-5 py-5 shadow-[0_18px_45px_-34px_rgba(15,23,42,0.35)]"
     >
-      <div className="flex flex-wrap items-start justify-between gap-2">
-        <div>
-          <p className="text-[11px] font-semibold uppercase tracking-[0.16em] text-text-muted">Operational impact</p>
-          <p className="mt-1 text-[12px] text-text-muted">{days ?? "."} recorded day{days === 1 ? "" : "s"}</p>
+      <div className="flex items-start justify-between gap-3">
+        <div className="flex items-start gap-4">
+          <div className="grid h-12 w-12 shrink-0 place-items-center rounded-full bg-emerald-100 text-emerald-700">
+            <BarChart3 size={22} />
+          </div>
+          <div>
+            <h4 className="text-[18px] font-semibold leading-tight tracking-tight text-text-primary">Operational Impact</h4>
+            <p className="mt-1 text-[13px] text-text-muted">{days ?? "."} recorded day{days === 1 ? "" : "s"}</p>
+          </div>
         </div>
-        <p className="rounded-full border border-border/70 px-2.5 py-1 text-[11px] font-medium text-text-secondary">
-          same period
+        <p className="rounded-full border border-border/70 px-3 py-1.5 text-[12px] font-medium text-text-secondary">
+          Same period
         </p>
       </div>
 
-      <div className="mt-3 grid gap-2 sm:grid-cols-3 xl:grid-cols-1 2xl:grid-cols-3">
-        <MetricReadout
-          label="Energy saved"
-          value={energySaved != null ? `${Math.round(energySaved).toLocaleString()} kWh` : "."}
-          tone={energySaved != null && energySaved < 0 ? "text-amber-700" : "text-success"}
-          help="Difference between Without AI and With AI. Positive value means lower energy use with AI."
-        />
-        <MetricReadout
-          label="Cost saved"
-          value={costSaving != null ? fmtVnd(Math.round(costSaving)) : "."}
-          sub={period}
-          tone={costSaving != null && costSaving < 0 ? "text-amber-700" : "text-success"}
-          help="Estimated electricity cost impact over the selected period."
-        />
-        <MetricReadout
-          label="CO2 avoided"
-          value={co2Avoided != null ? `${Math.round(co2Avoided).toLocaleString()} kg` : "."}
-          tone={co2Avoided != null && co2Avoided < 0 ? "text-amber-700" : "text-blue-600"}
-          help="Estimated emissions impact derived from saved energy."
-        />
+      <div className="mt-8 grid gap-5 sm:grid-cols-2">
+        <div className="grid justify-items-center gap-3 text-center">
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-emerald-50 text-success">
+            <DollarSign size={30} />
+          </div>
+          <MetricReadout
+            label="Cost saved"
+            value={costSaving != null ? fmtVnd(Math.round(costSaving)) : "."}
+            sub={period}
+            tone={costSaving != null && costSaving < 0 ? "text-amber-700" : "text-success"}
+            help="Estimated electricity cost impact over the selected period."
+          />
+        </div>
+        <div className="grid justify-items-center gap-3 border-t border-border/70 pt-5 text-center sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
+          <div className="grid h-16 w-16 place-items-center rounded-full bg-blue-50 text-blue-600">
+            <Cloud size={30} />
+          </div>
+          <MetricReadout
+            label="CO2 avoided"
+            value={co2Avoided != null ? `${formatNumber(Math.round(co2Avoided))} kg` : "."}
+            tone={co2Avoided != null && co2Avoided < 0 ? "text-amber-700" : "text-blue-600"}
+            help="Estimated emissions impact derived from saved energy."
+          />
+        </div>
       </div>
 
-      <div className="mt-3 rounded-xl border border-border/55 bg-surface-muted/45 px-3 py-2">
-        <div className="flex items-center justify-between gap-3">
-          <div className="flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">
-            <span>Comfort change</span>
-            <MetricHelp text="Change in comfort-violation minutes from the predictive MPC replay. Positive values mean more minutes outside the comfort rule." />
+      <div className="mt-5 rounded-xl border border-border/55 bg-surface-muted/45 px-3 py-2.5">
+        <div className="flex flex-wrap items-center justify-between gap-3">
+          <div className="flex items-center gap-1.5 text-[12px] font-medium text-text-secondary">
+            <span>AI-added comfort violation</span>
+            <MetricHelp text="Additional comfort-violation minutes caused by the MPC branch. Zero means AI did not make comfort worse than baseline." />
           </div>
-          <p className={`text-[13px] font-semibold tabular-nums ${comfortTone}`}>{comfortLabel}</p>
+          <p className={`text-[14px] font-semibold tabular-nums ${comfortTone}`}>{formatMinutes(aiAddedComfort ?? 0)}</p>
         </div>
+        <p className="mt-1 text-[11px] text-text-muted">
+          Baseline violation: <span className="font-medium text-text-secondary">{formatMinutes(baselineComfort)}</span>
+        </p>
       </div>
     </motion.div>
   );
@@ -345,7 +399,7 @@ function MetricTooltip({ active, payload, label, metric, isTimestep }: {
           <span className="text-text-muted">Delta</span>
           <span className={`font-semibold ${positive ? "text-success" : "text-amber-700"}`}>
             {delta == null ? "." : formatMetricValue(delta, metric.unit)}
-            {pct != null ? ` (${pct.toFixed(2)}%)` : ""}
+            {pct != null ? ` (${formatPercent(pct)})` : ""}
           </span>
         </div>
       </div>
@@ -412,16 +466,7 @@ export default function CampaignWhatIf() {
         <Sparkles size={16} className="text-teal" />
         <h3 className="text-sm font-semibold tracking-tight">Predictive MPC replay &middot; building with AI vs without AI</h3>
         {loading && <Loader2 size={13} className="animate-spin text-text-muted" />}
-        <div className="ml-auto rounded-full border border-teal/20 bg-teal-soft px-2.5 py-1 text-[11.5px] font-medium text-teal">
-          Precomputed MPC &middot; horizon {PREDICTIVE_HORIZON_STEPS} steps &middot; top {PREDICTIVE_TOP_K}
-        </div>
       </div>
-
-      <p className="mt-1 text-[11.5px] text-text-muted">
-        {data
-          ? `Reading the validated precomputed replay across ${k?.days} days. Baseline = E+ telemetry; with-AI = surrogate MPC branch.`
-          : "Loading the precomputed predictive replay cache. Heavy MPC replay is not run in the browser request."}
-      </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl border border-border/60 bg-surface-muted/35 px-3 py-2.5">
         <CalendarDays size={15} className="text-teal" />
@@ -430,24 +475,6 @@ export default function CampaignWhatIf() {
           <p className="text-[12px] font-semibold text-text-primary">{visiblePeriod}</p>
         </div>
         <div className="ml-auto flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
-          <div className="flex rounded-lg border border-border bg-surface p-0.5 text-[11.5px]">
-            <button type="button" onClick={() => setRange(PRECOMPUTE_DATE_FROM, PRECOMPUTE_DATE_TO_INCLUSIVE)}
-                    className="rounded-md px-2.5 py-1 font-medium text-text-secondary transition hover:bg-surface-muted">
-              Full
-            </button>
-            <button type="button" onClick={() => setRange("2024-03-01", "2024-03-31")}
-                    className="rounded-md px-2.5 py-1 font-medium text-text-secondary transition hover:bg-surface-muted">
-              Mar
-            </button>
-            <button type="button" onClick={() => setRange("2024-04-01", "2024-04-30")}
-                    className="rounded-md px-2.5 py-1 font-medium text-text-secondary transition hover:bg-surface-muted">
-              Apr
-            </button>
-            <button type="button" onClick={() => setRange("2024-04-25", "2024-04-26")}
-                    className="rounded-md px-2.5 py-1 font-medium text-text-secondary transition hover:bg-surface-muted">
-              Apr 25-26
-            </button>
-          </div>
           <label className="flex items-center gap-1.5">
             From
             <input type="date" value={dateFrom} min={PRECOMPUTE_DATE_FROM}
@@ -483,35 +510,38 @@ export default function CampaignWhatIf() {
             />
             <ImpactCard
               index={1}
-              energySaved={k?.saving_kwh}
               costSaving={k?.cost_saving_vnd}
               co2Avoided={k?.co2_avoided_kg}
-              comfortDelta={k?.comfort_violation_delta_min}
+              aiAddedComfort={k?.ai_added_comfort_violation_min ?? 0}
+              baselineComfort={k?.baseline_comfort_violation_min}
               days={k?.days}
               period={recordedThrough ? `through ${recordedThrough}` : visiblePeriod}
             />
           </div>
 
-          <div className="mt-4 flex items-center gap-2">
-            <div className="flex items-center gap-2 rounded-lg border border-border bg-surface px-2 py-1 text-[11.5px]">
-              <span className="font-medium text-text-muted">Metric</span>
+          <div className="mt-4 rounded-2xl border border-border/60 bg-surface-muted/30 px-3 py-2.5">
+            <div className="flex flex-wrap items-center gap-3">
+              <div className="flex items-center gap-2">
+                <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted">Metric view</span>
+                <MetricHelp text="Choose which baseline-vs-AI time-series metric to inspect. The visual style stays consistent across metrics." />
+              </div>
               <select
                 value={metricId}
                 onChange={(event) => setMetricId(event.target.value)}
-                className="min-w-[220px] rounded-md border border-border/70 bg-white px-2 py-1 text-[12px] font-semibold text-text-primary outline-none focus:border-teal"
+                className="min-w-[250px] rounded-lg border border-teal/30 bg-white px-3 py-2 text-[13px] font-semibold text-text-primary shadow-sm outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/15"
               >
                 {METRICS.map((m) => (
                   <option key={m.id} value={m.id}>{m.label}</option>
                 ))}
               </select>
-            </div>
-            <div className="ml-auto flex items-center gap-3 text-[11px] text-text-muted">
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-2 w-3 rounded-sm" style={{ background: "#94A3B8" }} /> Without AI
-              </span>
-              <span className="inline-flex items-center gap-1.5">
-                <span className="h-2 w-3 rounded-sm" style={{ background: "#0F766E" }} /> With AI
-              </span>
+              <div className="ml-auto flex items-center gap-3 text-[11px] text-text-muted">
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2 w-3 rounded-sm" style={{ background: "#94A3B8" }} /> Without AI
+                </span>
+                <span className="inline-flex items-center gap-1.5">
+                  <span className="h-2 w-3 rounded-sm" style={{ background: "#0F766E" }} /> With AI
+                </span>
+              </div>
             </div>
           </div>
           <div className="mt-2 h-[260px]">
@@ -533,7 +563,7 @@ export default function CampaignWhatIf() {
                          tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false}
                          domain={metricDomain(metric)} width={76}
-                         tickFormatter={(value: number) => `${Math.round(value).toLocaleString()}${metric.unit}`} />
+                         tickFormatter={(value: number) => `${formatNumber(Math.round(value))}${metric.unit}`} />
                   {metric.band && (
                     <ReferenceArea y1={metric.band.y1} y2={metric.band.y2}
                                    fill="#14b8a6" fillOpacity={0.08}
@@ -562,16 +592,6 @@ export default function CampaignWhatIf() {
                 {loading ? "Loading precomputed predictive replay cache..." : "No data."}
               </div>
             )}
-          </div>
-
-          <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] text-text-muted">
-            <span className="inline-flex items-center gap-1.5">
-              <TrendingDown size={12} className="text-success" />
-              The teal band is the precomputed MPC replay; the gap to the dashed line is the predicted control impact.
-            </span>
-            <span className="inline-flex items-center gap-1.5">
-              <Wind size={12} /> The page reads materialized cache; run the cloud precompute job to refresh long ranges.
-            </span>
           </div>
         </>
       )}
