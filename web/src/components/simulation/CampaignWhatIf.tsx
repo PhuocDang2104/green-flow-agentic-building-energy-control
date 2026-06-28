@@ -5,7 +5,7 @@ import {
   Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { BarChart3, CalendarDays, Cloud, DollarSign, Info, Loader2, Sparkles, Zap } from "lucide-react";
+import { BarChart3, CalendarDays, Info, Loader2, Sparkles, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
@@ -235,6 +235,8 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
   const optimizedWidth = `${Math.max(4, Math.min(100, ((Number(optimized) || 0) / maxValue) * 100))}%`;
   const baselineWidth = `${Math.max(4, Math.min(100, ((Number(baseline) || 0) / maxValue) * 100))}%`;
   const deltaText = delta == null ? "." : formatMetricValue(Math.abs(delta), metric.unit);
+  const optimizedText = formatMetricValue(optimized, metric.unit);
+  const baselineText = formatMetricValue(baseline, metric.unit);
   const deltaPercentText = deltaPercent == null || !Number.isFinite(deltaPercent)
     ? null
     : `${formatPercent(Math.abs(deltaPercent))} ${positive ? "reduction" : "increase"}`;
@@ -258,25 +260,43 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
       </div>
 
       <div className="mt-7 grid gap-6 lg:grid-cols-[1fr_220px]">
-        <div className="space-y-7">
-          <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-            <div className="flex items-center gap-3 text-[14px] font-medium text-text-primary">
-              <span className="h-3 w-3 rounded-full bg-teal" />
-              <span>With AI</span>
-              <MetricHelp text={metric.meaning} />
+        <div className="space-y-5">
+          <div className="rounded-xl border border-emerald-100 bg-emerald-50/45 px-3.5 py-3">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
+                <span className="h-2.5 w-2.5 rounded-full bg-teal shadow-[0_0_0_4px_rgba(15,118,110,0.10)]" />
+                <span className="tabular-nums text-teal">{optimizedText}</span>
+                <span className="text-text-secondary">With AI</span>
+                <MetricHelp text={metric.meaning} />
+              </div>
+              {deltaPercentText && positive && (
+                <span className="rounded-full bg-emerald-100 px-2 py-0.5 text-[11px] font-semibold text-emerald-700">
+                  {deltaPercentText}
+                </span>
+              )}
             </div>
-            <div className="h-8 rounded-md bg-emerald-50">
-              <div className="h-8 rounded-md bg-gradient-to-r from-emerald-600 to-emerald-500 shadow-sm" style={{ width: optimizedWidth }} />
+            <div className="h-9 overflow-hidden rounded-lg bg-white shadow-inner">
+              <div
+                className="h-full rounded-lg bg-gradient-to-r from-emerald-700 via-teal to-emerald-400 shadow-[0_8px_18px_-10px_rgba(15,118,110,0.7)] transition-[width] duration-500"
+                style={{ width: optimizedWidth }}
+              />
             </div>
           </div>
-          <div className="grid grid-cols-[150px_1fr] items-center gap-4">
-            <div className="flex items-center gap-3 text-[14px] font-medium text-text-primary">
-              <span className="h-3 w-3 rounded-full bg-slate-300" />
-              <span>Without AI</span>
-              <MetricHelp text={`Baseline ${metric.shortLabel.toLowerCase()} from recorded EnergyPlus telemetry. This is the no-AI reference.`} />
+
+          <div className="rounded-xl border border-slate-200 bg-slate-50/70 px-3.5 py-3">
+            <div className="mb-2 flex flex-wrap items-center justify-between gap-2">
+              <div className="flex items-center gap-2 text-[13px] font-semibold text-text-primary">
+                <span className="h-2.5 w-2.5 rounded-full bg-slate-400 shadow-[0_0_0_4px_rgba(148,163,184,0.16)]" />
+                <span className="tabular-nums text-slate-700">{baselineText}</span>
+                <span className="text-text-secondary">Without AI</span>
+                <MetricHelp text={`Baseline ${metric.shortLabel.toLowerCase()} from recorded EnergyPlus telemetry. This is the no-AI reference.`} />
+              </div>
             </div>
-            <div className="h-8 rounded-md bg-slate-100">
-              <div className="h-8 rounded-md bg-gradient-to-r from-slate-300 to-slate-400" style={{ width: baselineWidth }} />
+            <div className="h-9 overflow-hidden rounded-lg bg-white shadow-inner">
+              <div
+                className="h-full rounded-lg bg-gradient-to-r from-slate-300 via-slate-400 to-slate-500 transition-[width] duration-500"
+                style={{ width: baselineWidth }}
+              />
             </div>
           </div>
         </div>
@@ -292,9 +312,7 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
             {deltaText.replace(metric.unit, "")}
           </p>
           <p className="mt-2 text-[16px] font-medium text-text-muted">{metric.unit.trim()}</p>
-          {deltaPercentText && (
-            <p className="mt-3 text-[12px] font-semibold text-emerald-700">{deltaPercentText}</p>
-          )}
+          {deltaPercentText && <p className="mt-3 text-[12px] font-semibold text-emerald-700">{deltaPercentText}</p>}
         </div>
       </div>
     </motion.div>
@@ -329,10 +347,7 @@ function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, d
       </div>
 
       <div className="mt-8 grid gap-5 sm:grid-cols-2">
-        <div className="grid justify-items-center gap-3 text-center">
-          <div className="grid h-16 w-16 place-items-center rounded-full bg-emerald-50 text-success">
-            <DollarSign size={30} />
-          </div>
+        <div className="grid justify-items-center text-center">
           <MetricReadout
             label="Cost saved"
             value={costSaving != null ? fmtVnd(Math.round(costSaving)) : "."}
@@ -341,10 +356,7 @@ function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, d
             help="Estimated electricity cost impact over the selected period."
           />
         </div>
-        <div className="grid justify-items-center gap-3 border-t border-border/70 pt-5 text-center sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
-          <div className="grid h-16 w-16 place-items-center rounded-full bg-blue-50 text-blue-600">
-            <Cloud size={30} />
-          </div>
+        <div className="grid justify-items-center border-t border-border/70 pt-5 text-center sm:border-l sm:border-t-0 sm:pl-5 sm:pt-0">
           <MetricReadout
             label="CO2 avoided"
             value={co2Avoided != null ? `${formatNumber(Math.round(co2Avoided))} kg` : "."}
@@ -363,7 +375,7 @@ function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, d
           <p className={`text-[14px] font-semibold tabular-nums ${comfortTone}`}>{formatMinutes(aiAddedComfort ?? 0)}</p>
         </div>
         <p className="mt-1 text-[11px] text-text-muted">
-          Baseline violation: <span className="font-medium text-text-secondary">{formatMinutes(baselineComfort)}</span>
+          Baseline violation: <span className="font-semibold text-red-600">{formatMinutes(baselineComfort)}</span>
         </p>
       </div>
     </motion.div>
