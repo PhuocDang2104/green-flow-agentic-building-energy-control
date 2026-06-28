@@ -29,7 +29,7 @@ export function useStateWebSocket() {
         try {
           const msg = JSON.parse(event.data);
           if (msg.type === "state_tick") {
-            setReplay(msg.timestamp, msg.zones || {}, msg.building || {});
+            setReplay(msg.timestamp, msg.zones || {}, msg.building || {}, msg.weather || undefined);
           }
         } catch {
           /* ignore malformed frames */

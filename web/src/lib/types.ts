@@ -25,6 +25,19 @@ export interface ZoneState {
   anomaly_label?: string | null;
 }
 
+export interface WeatherState {
+  timestamp?: string;
+  replay_at?: string;
+  location_name?: string;
+  outdoor_temp_c?: number;
+  humidity_pct?: number;
+  wind_speed_mps?: number;
+  cloud_cover_pct?: number;
+  precipitation_mm?: number;
+  solar_w_m2?: number;
+  forecast_horizon_min?: number;
+}
+
 export interface Zone {
   id: string;
   name: string;
