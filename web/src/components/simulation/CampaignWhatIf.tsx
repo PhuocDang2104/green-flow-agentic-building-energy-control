@@ -14,6 +14,7 @@ type DateRange = { start: string; end: string };
 
 const PRECOMPUTE_DATE_FROM = "2024-03-01";
 const PRECOMPUTE_DATE_TO = "2024-05-01";
+const PRECOMPUTE_DATE_TO_INCLUSIVE = "2024-04-30";
 const PRECOMPUTE_LABEL = "01 Mar 2024 - 30 Apr 2024";
 const PREDICTIVE_HORIZON_STEPS = 8;
 const PREDICTIVE_TOP_K = 4;
@@ -35,6 +36,33 @@ const periodLabel = (range: DateRange | null) => {
   if (!range) return PRECOMPUTE_LABEL;
   if (range.start === range.end) return fullDate(range.start);
   return `${fullDate(range.start)} - ${fullDate(range.end)}`;
+};
+
+const nextDay = (date: string) => {
+  const [year, month, day] = date.split("-").map(Number);
+  return new Date(Date.UTC(year, month - 1, day + 1)).toISOString().slice(0, 10);
+};
+
+const clampRange = (start: string, end: string) => {
+  const safeStart = start < PRECOMPUTE_DATE_FROM ? PRECOMPUTE_DATE_FROM : start;
+  const safeEnd = end > PRECOMPUTE_DATE_TO_INCLUSIVE ? PRECOMPUTE_DATE_TO_INCLUSIVE : end;
+  return safeStart <= safeEnd
+    ? { start: safeStart, end: safeEnd }
+    : { start: safeEnd, end: safeEnd };
+};
+
+const chartInterval = (points: number) => {
+  if (points <= 10) return 0;
+  if (points <= 21) return 1;
+  if (points <= 35) return 2;
+  return "preserveStartEnd" as const;
+};
+
+const chartMinTickGap = (points: number) => {
+  if (points <= 10) return 8;
+  if (points <= 21) return 18;
+  if (points <= 35) return 28;
+  return 36;
 };
 
 function MetricHelp({ text }: { text: string }) {
@@ -170,17 +198,20 @@ function ImpactCard({ energySaved, costSaving, co2Avoided, comfortDelta, days, p
 
 export default function CampaignWhatIf() {
   const [metricId, setMetricId] = useState<string>("energy");
+  const [dateFrom, setDateFrom] = useState(PRECOMPUTE_DATE_FROM);
+  const [dateTo, setDateTo] = useState(PRECOMPUTE_DATE_TO_INCLUSIVE);
   const [data, setData] = useState<WhatIfData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
 
   const run = useCallback(() => {
+    const selected = clampRange(dateFrom, dateTo);
     setLoading(true);
     setError(null);
     api.whatifCache({
       mode: "predictive_replay",
-      date_from: PRECOMPUTE_DATE_FROM,
-      date_to: PRECOMPUTE_DATE_TO,
+      date_from: selected.start,
+      date_to: nextDay(selected.end),
       horizon_steps: PREDICTIVE_HORIZON_STEPS,
       top_k: PREDICTIVE_TOP_K,
     })
@@ -190,7 +221,7 @@ export default function CampaignWhatIf() {
         setError(`Precomputed predictive replay cache is unavailable for ${PRECOMPUTE_LABEL}. Run scripts/precompute_predictive_whatif.py for this range.`);
       })
       .finally(() => setLoading(false));
-  }, []);
+  }, [dateFrom, dateTo]);
 
   useEffect(() => { run(); }, [run]);
 
@@ -202,6 +233,12 @@ export default function CampaignWhatIf() {
   } : null;
   const visiblePeriod = periodLabel(visibleRange);
   const recordedThrough = visibleRange ? fullDate(visibleRange.end) : PRECOMPUTE_LABEL;
+  const pointCount = data?.daily?.length ?? 0;
+  const setRange = (start: string, end: string) => {
+    const selected = clampRange(start, end);
+    setDateFrom(selected.start);
+    setDateTo(selected.end);
+  };
 
   return (
     <div className="card-elevated px-5 py-4">
@@ -225,6 +262,40 @@ export default function CampaignWhatIf() {
         <div>
           <p className="text-[10.5px] font-medium uppercase tracking-wide text-text-muted">Recorded period</p>
           <p className="text-[12px] font-semibold text-text-primary">{visiblePeriod}</p>
+        </div>
+        <div className="ml-auto flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
+          <div className="flex rounded-lg border border-border bg-surface p-0.5 text-[11.5px]">
+            <button type="button" onClick={() => setRange(PRECOMPUTE_DATE_FROM, PRECOMPUTE_DATE_TO_INCLUSIVE)}
+                    className="rounded-md px-2.5 py-1 font-medium text-text-secondary transition hover:bg-surface-muted">
+              Full
+            </button>
+            <button type="button" onClick={() => setRange("2024-03-01", "2024-03-31")}
+                    className="rounded-md px-2.5 py-1 font-medium text-text-secondary transition hover:bg-surface-muted">
+              Mar
+            </button>
+            <button type="button" onClick={() => setRange("2024-04-01", "2024-04-30")}
+                    className="rounded-md px-2.5 py-1 font-medium text-text-secondary transition hover:bg-surface-muted">
+              Apr
+            </button>
+            <button type="button" onClick={() => setRange("2024-04-25", "2024-04-26")}
+                    className="rounded-md px-2.5 py-1 font-medium text-text-secondary transition hover:bg-surface-muted">
+              Apr 25-26
+            </button>
+          </div>
+          <label className="flex items-center gap-1.5">
+            From
+            <input type="date" value={dateFrom} min={PRECOMPUTE_DATE_FROM}
+                   max={dateTo}
+                   onChange={(event) => setRange(event.target.value, dateTo)}
+                   className="rounded-lg border border-border bg-surface px-2 py-1.5 text-[12px] font-medium text-text-primary outline-none focus:border-teal" />
+          </label>
+          <label className="flex items-center gap-1.5">
+            To
+            <input type="date" value={dateTo} min={dateFrom}
+                   max={PRECOMPUTE_DATE_TO_INCLUSIVE}
+                   onChange={(event) => setRange(dateFrom, event.target.value)}
+                   className="rounded-lg border border-border bg-surface px-2 py-1.5 text-[12px] font-medium text-text-primary outline-none focus:border-teal" />
+          </label>
         </div>
       </div>
 
@@ -284,7 +355,8 @@ export default function CampaignWhatIf() {
                   </defs>
                   <CartesianGrid stroke="#EEF2F7" vertical={false} />
                   <XAxis dataKey="date" tickFormatter={ddmm} tick={{ fontSize: 10, fill: "#94A3B8" }}
-                         interval="preserveStartEnd" minTickGap={36} tickLine={false} axisLine={false} />
+                         interval={chartInterval(pointCount)} minTickGap={chartMinTickGap(pointCount)}
+                         tickLine={false} axisLine={false} />
                   <YAxis tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false}
                          domain={[0, "auto"]} width={76}
                          tickFormatter={(value: number) => `${Math.round(value).toLocaleString()}${metric.unit}`} />
