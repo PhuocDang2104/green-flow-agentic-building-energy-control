@@ -125,7 +125,8 @@ def _rows_for_step(state: dict, step: int, setpoint_delta: dict[str, float]) -> 
     rows = []
     weather = _weather_for_step(state, step)
     for z in state["zones"]:
-        sp = float(z.get("setpoint_c") or 24.0) + setpoint_delta.get(z["entity_key"], 0.0)
+        base_sp = float(z.get("setpoint_c") or 24.0)
+        sp = min(27.5, max(18.0, base_sp + setpoint_delta.get(z["entity_key"], 0.0)))
         rows.append({
             "zone_key": z["entity_key"],
             "timestamp": ts,
@@ -147,7 +148,7 @@ def _rows_for_step(state: dict, step: int, setpoint_delta: dict[str, float]) -> 
             "baseline_lighting_kw": float(z.get("lighting_power_kw") or 0.0),
             "baseline_temp_c": float(z.get("temperature_c") or 25.0),
             "occupancy_count": float(z.get("occupancy_count") or 0.0),
-            "base_setpoint_c": float(z.get("setpoint_c") or 24.0),
+            "base_setpoint_c": base_sp,
         })
     return rows
 
@@ -223,6 +224,7 @@ def generate_candidate_trajectories(state: dict, *, horizon_steps: int, top_k: i
     safe = groups["safe"][:120]
     empty = groups["empty"][:120]
     large = groups["large"]
+    all_zones = [z["entity_key"] for z in state["zones"]]
     candidates = [
         trajectory("baseline_hold", start, horizon_steps, step_min, [], "baseline"),
     ]
@@ -272,6 +274,27 @@ def generate_candidate_trajectories(state: dict, *, horizon_steps: int, top_k: i
                 lighting_factor=0.85, reason="Trim lighting in largest zones during peak"))
     candidates.append(trajectory("lighting_peak_trim", start, horizon_steps, step_min,
                                  actions, "load_smoothing"))
+
+    actions = []
+    for step in range(1, horizon_steps + 1):
+        ts = start + timedelta(minutes=step_min * step)
+        if 7 <= ts.hour < 19 and all_zones:
+            actions.append(action_step(
+                step=step, start=ts, step_minutes=step_min,
+                action_type="whole_building_efficiency",
+                target_zone_keys=all_zones,
+                setpoint_delta_c=0.0,
+                lighting_factor=0.75,
+                reason="Reduce lighting load across the building"))
+        if 7 <= ts.hour < 19 and safe:
+            actions.append(action_step(
+                step=step, start=ts, step_minutes=step_min,
+                action_type="comfort_safe_setback",
+                target_zone_keys=safe,
+                setpoint_delta_c=0.5,
+                reason="Apply a mild cooling setback only in comfort-safe zones"))
+    candidates.append(trajectory("whole_building_efficiency", start, horizon_steps, step_min,
+                                 actions, "energy_first"))
     return candidates
 
 
@@ -300,17 +323,30 @@ def evaluate_trajectory(state: dict, candidate: dict,
     model_meta = None
     for step in range(1, int(candidate["horizon_steps"]) + 1):
         mods = _mods_for_step(candidate, step)
-        action_changes += len(mods)
+        action_changes += sum(1 for a in candidate.get("actions", [])
+                              if int(a.get("step") or 0) == step)
         deltas = {k: v["setpoint_delta_c"] for k, v in mods.items()}
+        base_rows = _rows_for_step(state, step, {})
         rows = _rows_for_step(state, step, deltas)
-        opt_kw, model_meta = _predict_total_kw(rows)
+        pred_base_kw, model_meta = _predict_total_kw(base_rows)
+        pred_action_kw, model_meta = _predict_total_kw(rows)
         base_kw = np.array([r["baseline_total_kw"] for r in rows], dtype=float)
+
+        # Calibrate the surrogate to the measured E+ telemetry at this timestep:
+        # use the model only for the action delta, not for absolute load. This
+        # prevents replay baseline drift and rejects zone-level actions that the
+        # surrogate predicts would increase energy.
+        reduction_kw = np.maximum(pred_base_kw - pred_action_kw, 0.0)
+        opt_kw = np.maximum(0.0, base_kw - reduction_kw)
+
         # Lighting factor is an explicit schedule modifier not learned by the
-        # setpoint surrogate; apply it as a transparent delta.
+        # setpoint surrogate; apply it as a transparent delta against measured
+        # lighting load.
         for i, r in enumerate(rows):
             factor = mods.get(r["zone_key"], {}).get("lighting_factor", 1.0)
             if factor < 1.0:
                 opt_kw[i] = max(0.0, opt_kw[i] - r["baseline_lighting_kw"] * (1.0 - factor))
+        opt_kw = np.minimum(opt_kw, base_kw)
         step_total = float(opt_kw.sum())
         baseline_total = float(base_kw.sum())
         baseline_energy += baseline_total * step_h

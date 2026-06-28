@@ -23,6 +23,7 @@ def main() -> int:
     ap.add_argument("--scenario-id", default=None)
     ap.add_argument("--horizon-steps", type=int, default=get_settings().greenflow_control_horizon_steps)
     ap.add_argument("--top-k", type=int, default=get_settings().greenflow_control_top_k)
+    ap.add_argument("--min-saving-percent", type=float, default=0.0)
     args = ap.parse_args()
 
     ds = active_dataset()
@@ -33,6 +34,7 @@ def main() -> int:
         horizon_steps=args.horizon_steps,
         top_k=args.top_k,
         building_id=args.building_id,
+        min_saving_percent=args.min_saving_percent,
     )
     print(json.dumps(result, indent=2, default=str))
     return 0 if result.get("ok") else 1

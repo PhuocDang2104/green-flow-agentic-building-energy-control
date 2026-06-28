@@ -24,7 +24,7 @@ from ..db import db_conn, fetch_all, fetch_one
 TZ = timezone(timedelta(hours=7))
 CONTROL_MODE = "predictive_replay"
 OBJECTIVE_VERSION = "v1"
-CONTROLLER_VERSION = "predictive_mpc_v1"
+CONTROLLER_VERSION = "predictive_mpc_v2"
 GRID_CO2_KG_PER_KWH = 0.6766
 DEFAULT_AVG_TARIFF_VND_PER_KWH = 1839
 
@@ -609,7 +609,8 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
 
 def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | None = None,
                          horizon_steps: int | None = None, top_k: int | None = None,
-                         building_id: str | None = None) -> dict:
+                         building_id: str | None = None,
+                         min_saving_percent: float = 0.0) -> dict:
     ds = active_dataset()
     scenario = scenario_id or ds.scenario_id
     horizon = int(horizon_steps or get_settings().greenflow_control_horizon_steps)
@@ -652,6 +653,17 @@ def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | Non
                   AND t.timestamp < CAST(:date_to AS timestamptz)
             """, cache_key=cache_key, date_from=local_midnight(start),
                 date_to=local_midnight(end))
+            total_row = fetch_one(conn, """
+                SELECT COALESCE(sum(d.baseline_kwh), 0) AS baseline_kwh,
+                       COALESCE(sum(d.ai_kwh), 0) AS ai_kwh,
+                       COALESCE(sum(d.saving_kwh), 0) AS saving_kwh
+                FROM whatif_cache_daily d
+                JOIN whatif_cache_runs r ON r.id = d.run_id
+                WHERE r.cache_key = :cache_key
+                  AND r.status = 'complete'
+                  AND d.date >= :date_from
+                  AND d.date < :date_to
+            """, cache_key=cache_key, date_from=start, date_to=end)
             error_rows = fetch_all(conn, """
                 SELECT id, error FROM whatif_cache_runs
                 WHERE cache_key = :cache_key
@@ -661,10 +673,14 @@ def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | Non
             """, cache_key=cache_key, date_from=local_midnight(start),
                 date_to=local_midnight(end))
         else:
-            daily_rows, step_row, error_rows = [], {"n": 0}, []
+            daily_rows, step_row, total_row, error_rows = [], {"n": 0}, {}, []
 
     found_dates = {parse_local_date(r["date"]) for r in daily_rows}
     missing = sorted(d for d in expected_dates if d not in found_dates)
+    baseline_kwh = _f((total_row or {}).get("baseline_kwh"))
+    ai_kwh = _f((total_row or {}).get("ai_kwh"))
+    saving_kwh = _f((total_row or {}).get("saving_kwh"))
+    saving_percent = saving_kwh / baseline_kwh * 100.0 if baseline_kwh else 0.0
     summary = {
         "dataset_key": ds.key,
         "scenario_id": scenario,
@@ -679,6 +695,11 @@ def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | Non
         "total_steps": int((step_row or {}).get("n") or 0),
         "errors": len(error_rows),
         "error_rows": error_rows,
+        "baseline_kwh": round(baseline_kwh, 3),
+        "ai_kwh": round(ai_kwh, 3),
+        "saving_kwh": round(saving_kwh, 3),
+        "saving_percent": round(saving_percent, 3),
+        "min_saving_percent": float(min_saving_percent),
         "source": "precomputed_cache" if cache_key else "missing",
     }
     summary["checks"] = {
@@ -687,6 +708,8 @@ def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | Non
         "missing_days": not missing,
         "total_steps": summary["total_steps"] == expected_steps,
         "errors": len(error_rows) == 0,
+        "saving_positive": saving_kwh > 0,
+        "saving_threshold": saving_percent >= float(min_saving_percent),
     }
     summary["ok"] = all(summary["checks"].values())
     return summary

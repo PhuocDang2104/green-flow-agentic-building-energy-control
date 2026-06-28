@@ -56,6 +56,7 @@ def main() -> int:
     ap.add_argument("--dry-run", action="store_true")
     ap.add_argument("--continue-on-error", action="store_true")
     ap.add_argument("--allow-local-fallback", action="store_true")
+    ap.add_argument("--min-saving-percent", type=float, default=0.0)
     args = ap.parse_args()
 
     ds = active_dataset()
@@ -212,6 +213,7 @@ def main() -> int:
             horizon_steps=args.horizon_steps,
             top_k=args.top_k,
             building_id=args.building_id,
+            min_saving_percent=args.min_saving_percent,
         )
         if not summary["validation"].get("ok"):
             exit_code = 1

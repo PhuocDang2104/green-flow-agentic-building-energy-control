@@ -72,8 +72,6 @@ def _overrides_from_zone_states(states: list[dict]) -> dict[str, dict]:
         out[str(key)] = {
             "temperature_c": z.get("temperature_c"),
             "setpoint_c": z.get("setpoint_c"),
-            "hvac_power_kw": z.get("hvac_power_kw"),
-            "total_power_kw": z.get("total_power_kw"),
         }
     return out
 

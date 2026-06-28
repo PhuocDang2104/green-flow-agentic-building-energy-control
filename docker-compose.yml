@@ -46,6 +46,11 @@ services:
     environment:
       DATABASE_URL: postgresql+psycopg://greenflow:${POSTGRES_PASSWORD:-greenflow}@db:5432/greenflow
       STORAGE_DIR: /app/storage
+      GREENFLOW_DATASET: elnino_2024_mar_apr
+      GREENFLOW_SCENARIO_ID: elnino_2024_mar_apr_baseline
+      GREENFLOW_ELECTRICAL_OUT: /app/storage/electrical_distribution_elnino
+      MLFLOW_TRACKING_URI: http://mlflow:5000
+      GREENFLOW_MODEL_SOURCE: mlflow
       IDF_PATH: /app/data/greenflow_archetype.idf
       S3_ENDPOINT: minio:9000
       S3_ACCESS_KEY: ${S3_ACCESS_KEY:-greenflow}
