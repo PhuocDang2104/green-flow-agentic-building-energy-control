@@ -438,7 +438,8 @@ def run_predictive_control(building_id: str, *, timestamp: str | None = None,
     scored_all = [evaluate_trajectory(state, c) for c in candidates]
     scored = sorted(scored_all, key=lambda c: c.get("objective", {}).get("score", float("inf")))
     best = select_best(scored)
-    execute_action = next((a for a in best.get("actions", []) if int(a.get("step") or 0) == 1), None)
+    execute_actions = [a for a in best.get("actions", []) if int(a.get("step") or 0) == 1]
+    execute_action = execute_actions[0] if execute_actions else None
     return {
         "metadata": {
             **state["metadata"],
@@ -449,6 +450,7 @@ def run_predictive_control(building_id: str, *, timestamp: str | None = None,
         },
         "selected": {k: v for k, v in best.items() if not k.startswith("_")},
         "execute_action": execute_action,
+        "execute_actions": execute_actions,
         "candidates": [{k: v for k, v in c.items() if not k.startswith("_")}
                        for c in scored[:max(1, top)]],
         "_first_step_zone_states": best.get("_first_step_zone_states", []),

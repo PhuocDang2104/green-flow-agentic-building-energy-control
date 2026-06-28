@@ -126,8 +126,10 @@ def run_predictive_replay(building_id: str, *, date_from: str | None = None,
                 "selected_trajectory": selected.get("trajectory_id") or selected.get("id"),
                 "objective_score": selected.get("objective", {}).get("score"),
             })
-            action = res.get("execute_action")
-            if action:
+            step_actions = res.get("execute_actions") or []
+            if not step_actions and res.get("execute_action"):
+                step_actions = [res["execute_action"]]
+            for action in step_actions:
                 actions.append({"timestamp": ts.isoformat(), **action})
             overrides = _overrides_from_zone_states(res.get("_first_step_zone_states") or [])
         except Exception as exc:  # noqa: BLE001 - keep replay evidence instead of aborting
