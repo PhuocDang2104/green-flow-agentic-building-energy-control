@@ -19,7 +19,7 @@ import numpy as np
 from .model_registry import load_model, model_metrics
 
 MODEL_DIR = Path(__file__).resolve().parent / "models"
-REF_DAY = datetime(2025, 7, 15)  # ngày hè điển hình cho what-if
+REF_DAY = datetime(2024, 4, 17)  # representative day inside the active dataset
 STEP_MIN = 30
 
 
@@ -63,6 +63,8 @@ def _frame(index, area, volume, ceiling, setpoint, w, feats):
                                        for t in index]),
         "cooling_setpoint_c": np.asarray(setpoint, dtype=float),
         "area_m2": float(area), "volume_m3": float(volume), "ceiling_height_m": float(ceiling),
+        "area_m2_final": float(area), "volume_m3_final": float(volume),
+        "height_m_final": float(ceiling),
     }
     return pd.DataFrame({k: full[k] for k in feats})
 
@@ -81,8 +83,16 @@ def what_if_setpoint(area_m2: float, setpoint_base: float, setpoint_delta: float
     vol = area_m2 * ceiling
     base = np.clip(booster.predict(_frame(index, area_m2, vol, ceiling,
                                           np.full(n, setpoint_base), w, feats)), 0, None)
-    act = np.clip(booster.predict(_frame(index, area_m2, vol, ceiling,
-                                         np.full(n, setpoint_base + setpoint_delta), w, feats)), 0, None)
+    # Tree models are piecewise constant between the dataset's discrete 25/26°C
+    # schedules.  Derive a local one-degree elasticity from those observed
+    # regimes, then apply the requested delta continuously around the measured
+    # baseline. This preserves direction for +0.5°C and pre-cooling -1°C.
+    at_25 = np.clip(booster.predict(_frame(index, area_m2, vol, ceiling,
+                                           np.full(n, 25.0), w, feats)), 0, None)
+    at_26 = np.clip(booster.predict(_frame(index, area_m2, vol, ceiling,
+                                           np.full(n, 26.0), w, feats)), 0, None)
+    elasticity_kw_per_c = np.clip(at_25 - at_26, 0, None)
+    act = np.clip(base - elasticity_kw_per_c * setpoint_delta, 0, None)
     return {"saving_kwh": float((base - act).sum()) * STEP_MIN / 60.0,
             "peak_reduction_kw": float(base.max() - act.max()), "confidence": 0.85}
 
@@ -119,6 +129,8 @@ def _row(feats, *, area, volume, ceiling, setpoint, hour, month, is_workday, w):
         "office_hours_flag": 1 if (7 <= hour < 19 and is_workday) else 0,
         "cooling_setpoint_c": float(setpoint), "area_m2": float(area),
         "volume_m3": float(volume), "ceiling_height_m": float(ceiling),
+        "area_m2_final": float(area), "volume_m3_final": float(volume),
+        "height_m_final": float(ceiling),
     }
     return pd.DataFrame({k: [full[k]] for k in feats})
 

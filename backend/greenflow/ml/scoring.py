@@ -19,7 +19,7 @@ SETPOINT_DELTA = {"hvac_eco_mode": 1.5, "hvac_setback_light": 1.0, "hvac_setback
                   "pre_cooling": -1.0, "peak_load_reduction": 1.5, "demand_response": 1.5}
 LIGHTING_FACTOR = {"lighting_reduction": 0.6, "turn_off_non_critical_lighting": 0.3}
 LPD_W_M2 = 11.0  # mật độ đèn (QCVN office)
-REF_DAY = datetime(2025, 7, 15)  # ngày hè điển hình (thứ Ba) cho replay clock
+REF_DAY = datetime(2024, 4, 17)  # representative weekday in active dataset
 
 
 def _start(hour: float) -> datetime:
@@ -28,7 +28,7 @@ def _start(hour: float) -> datetime:
 
 def score_zone_action(svc: ForecastService, action_type: str, room_type: str,
                       area_m2: float, start_hour: float, end_hour: float,
-                      setpoint_base: float = 24.0, occ_intensity=None,
+                      setpoint_base: float = 25.0, occ_intensity=None,
                       weather=None) -> dict:
     """KPI cho 1 action trên 1 zone. Quy ước dấu: dương = tốt (tiết kiệm),
     trừ comfort_violation_delta_min (dương = comfort xấu đi)."""

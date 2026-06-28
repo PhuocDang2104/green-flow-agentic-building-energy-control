@@ -81,9 +81,14 @@ class Settings(BaseSettings):
     # LightGBM model files remain the offline fallback.
     mlflow_tracking_uri: str = "http://mlflow:5000"
     greenflow_model_source: str = "mlflow"  # mlflow | local
-    greenflow_model_building: str = "models:/greenflow_surrogate_building/1"
-    greenflow_model_zone: str = "models:/greenflow_surrogate_zone/1"
-    greenflow_model_hvac: str = "models:/greenflow_surrogate_hvac/1"
+    greenflow_model_building: str = "models:/greenflow_surrogate_building@production"
+    greenflow_model_zone: str = "models:/greenflow_surrogate_zone@production"
+    greenflow_model_hvac: str = "models:/greenflow_surrogate_hvac@production"
+    greenflow_model_forecast: str = "models:/greenflow_forecast_lag_total@production"
+
+    # Calibrated from the active dataset's 893.4 kW facility peak with operational
+    # headroom. Override with the actual utility contract when available.
+    greenflow_contracted_demand_kw: float = 1000.0
 
     # Predictive / receding-horizon control defaults.
     greenflow_control_horizon_steps: int = 8

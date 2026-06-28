@@ -31,7 +31,9 @@ def _tariff_vnd(hour: float) -> int:
 
 def _frame(df, feats, setpoint):
     import pandas as pd
-    h = df["hour"].to_numpy(); dow = df["dow"].to_numpy(); mon = df["month"].to_numpy()
+    h = df["hour"].to_numpy()
+    dow = df["dow"].to_numpy()
+    mon = df["month"].to_numpy()
     full = {
         "outdoor_temp_c": df["outdoor_temp_c"], "outdoor_rh_pct": df["outdoor_rh_pct"],
         "global_horizontal_radiation_wh_m2": df["ghi"], "wind_speed_m_s": df["wind"],
@@ -43,6 +45,8 @@ def _frame(df, feats, setpoint):
         "cooling_setpoint_c": setpoint,
         "area_m2": df["area_m2"], "volume_m3": df["volume_m3"],
         "ceiling_height_m": df["ceiling_height_m"],
+        "area_m2_final": df["area_m2"], "volume_m3_final": df["volume_m3"],
+        "height_m_final": df["ceiling_height_m"],
     }
     return pd.DataFrame({k: full[k] for k in feats})
 
@@ -69,12 +73,10 @@ def compute_campaign(df, *, setpoint_delta: float = 1.0, peak_start: int = 13,
 
     active = ((df["hour"] >= peak_start) & (df["hour"] < peak_end)
               & (df["dow"] < 5)).to_numpy()
-    base_sp = df["cooling_setpoint_c"].to_numpy(dtype=float)
-    act_sp = base_sp + np.where(active, setpoint_delta, 0.0)
-
-    pred_base = np.clip(booster.predict(_frame(df, feats, base_sp)), 0, None)
-    pred_act = np.clip(booster.predict(_frame(df, feats, act_sp)), 0, None)
-    reduction = np.where(active, np.clip(pred_base - pred_act, 0, None), 0.0)
+    pred_25 = np.clip(booster.predict(_frame(df, feats, np.full(len(df), 25.0))), 0, None)
+    pred_26 = np.clip(booster.predict(_frame(df, feats, np.full(len(df), 26.0))), 0, None)
+    elasticity = np.clip(pred_25 - pred_26, 0, None)
+    reduction = np.where(active, elasticity * setpoint_delta, 0.0)
 
     measured = df["total_power_kw"].to_numpy(dtype=float)
     optimized = np.clip(measured - reduction, 0, None)
@@ -122,8 +124,9 @@ def compute_campaign(df, *, setpoint_delta: float = 1.0, peak_start: int = 13,
         "co2_avoided_kg": round(saving * GRID_CO2_KG_PER_KWH, 1),
         "days": len(daily_list),
     }
+    dataset = loaded.metadata().get("dataset") or {}
     return {"policy": {"setpoint_delta_c": setpoint_delta,
                        "peak_window": f"{peak_start:02d}:00-{peak_end:02d}:00",
-                       "engine": "zone_surrogate_r2_0.92"},
+                       "engine": f"zone_surrogate_{dataset.get('dataset_key', 'registered')}"},
             "metadata": {"model": loaded.metadata()},
             "kpi": kpi, "daily": daily_list}

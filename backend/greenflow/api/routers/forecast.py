@@ -8,7 +8,7 @@ demand curve, occupancy) have a data source. The surrogate forecast needs the
 
 from __future__ import annotations
 
-from datetime import datetime, timedelta, timezone
+from datetime import timedelta, timezone
 
 from fastapi import APIRouter, HTTPException, Query
 from pydantic import BaseModel
@@ -28,17 +28,21 @@ def model_info():
     (greenflow_surrogate_*). Attempts registry-backed loading first and reports
     the actual runtime source; local committed files are the fallback."""
     from ...config import get_settings
+    from ...datasets import dataset_metadata
     from ...ml.model_registry import model_inventory
+    settings = get_settings()
     out = model_inventory()
     return {
         "registry": "MLflow · experiment greenflow-surrogate",
-        "tracking_uri": get_settings().mlflow_tracking_uri,
-        "engine": "LightGBM surrogate (EnergyPlus + Open-Meteo 2025, 30-min)",
+        "tracking_uri": settings.mlflow_tracking_uri,
+        "engine": "LightGBM · El Nino Mar-Apr 2024 · 308 zones · 30-minute",
+        "dataset": dataset_metadata(),
+        "contracted_demand_kw": settings.greenflow_contracted_demand_kw,
         "models": out,
         "derived": {
             "comfort_risk": "rule: zone temp > 26.5°C while occupied",
             "peak_risk": "rule: zone power vs peak threshold",
-            "temperature_c": "DoE thermal surrogate (no real target in the training set)",
+            "temperature_c": "derived comfort state; no measured temperature target in control",
         },
     }
 
@@ -69,7 +73,7 @@ def predict_zone(req: ZoneStateRequest):
 def demand_forecast(building_id: str = Query(default=None),
                     horizon_h: int = Query(default=24, ge=1, le=72),
                     weather_shift: float = Query(default=0.0, ge=-10, le=10)):
-    """Day-ahead building HVAC demand + peak + structured pre-cool recommendation.
+    """Day-ahead facility + HVAC demand and structured pre-cool recommendation.
 
     `weather_shift` (°C) is a what-if knob (e.g. +3 = heatwave) for the curve.
     """

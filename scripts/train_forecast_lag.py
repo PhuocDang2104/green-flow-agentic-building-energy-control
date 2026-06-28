@@ -1,137 +1,170 @@
-"""Lag-based (autoregressive) next-step forecaster — SEPARATE from the structural
-what-if surrogate.
+"""Train the 308-zone autoregressive t+1 forecast on the active dataset."""
 
-Predicts zone total power at t+1 (next 30-min step) from PAST values (lags,
-rolling stats, momentum) + exogenous known-at-predict-time signals (occupancy,
-outdoor temp, time-of-day). Lag is the strongest predictor for a forecast — the
-opposite design of the no-lag what-if surrogate (lag would dampen interventions).
-
-Honesty gate: the model is only worth shipping if it BEATS naive persistence
-(pred[t+1] = value now). We report both, at zone and building level, on the
-dataset's temporal test split (no leakage: lags are causal/past only).
-
-Day-ahead (24h) = recursive rollout of this t+1 model (feed predictions back as
-lags) — done at serving time, not here.
-
-Run:
-  DUCKDB_PATH=<elnino.duckdb> python scripts/train_forecast_lag.py
-"""
 from __future__ import annotations
 
+import hashlib
 import json
 import os
+import sys
 from pathlib import Path
 
-import duckdb
-import lightgbm as lgb
-import numpy as np
-import pandas as pd
-from sklearn.metrics import mean_absolute_error, r2_score
-
 ROOT = Path(__file__).resolve().parents[1]
-OUT = ROOT / "backend" / "greenflow" / "ml" / "models"
-DUCKDB_PATH = os.environ.get(
-    "DUCKDB_PATH",
-    str(ROOT.parent / "Dataset" / "elnino_new" / "DATA MỚI TINH " / "DATA" /
-        "1. Dạng duckdb" /
-        "greenflow_final_mode_b_plus_mar_apr_2024_lpd_epd_SELF_CONTAINED.duckdb"))
+sys.path.insert(0, str(ROOT / "backend"))
 
-TARGET = "target_total_zone_power_kw"   # full zone total incl HVAC
-STEPS_PER_DAY = 48                       # 30-min
+import duckdb  # noqa: E402
+import lightgbm as lgb  # noqa: E402
+import numpy as np  # noqa: E402
+import pandas as pd  # noqa: E402
+from sklearn.metrics import mean_absolute_error, r2_score  # noqa: E402
 
+from greenflow.datasets import active_dataset  # noqa: E402
 
-def _metrics(y, p):
-    return {"mae_kw": round(float(mean_absolute_error(y, p)), 3),
-            "r2": round(float(r2_score(y, p)), 4)}
-
-
-def build_features(df: pd.DataFrame) -> pd.DataFrame:
-    df = df.sort_values(["zone_id", "datetime"]).copy()
-    g = df.groupby("zone_id", sort=False)[TARGET]
-    df["cur"] = df[TARGET]                       # value NOW (known) = persistence pred
-    df["lag1"] = g.shift(1)
-    df["lag2"] = g.shift(2)
-    df["lag3"] = g.shift(3)
-    df["lag_day"] = g.shift(STEPS_PER_DAY - 1)   # ~same time yesterday rel. to t+1
-    roll = g.shift(0).rolling(4)                 # last 2h ending now
-    df["roll_mean"] = roll.mean().reset_index(level=0, drop=True)
-    df["roll_std"] = roll.std().reset_index(level=0, drop=True)
-    df["delta"] = df["cur"] - df["lag1"]         # momentum
-    dt = pd.to_datetime(df["datetime"])
-    h = dt.dt.hour + dt.dt.minute / 60.0
-    df["hour_sin"] = np.sin(2 * np.pi * h / 24)
-    df["hour_cos"] = np.cos(2 * np.pi * h / 24)
-    df["dow"] = dt.dt.dayofweek
-    df["is_weekend"] = (dt.dt.dayofweek >= 5).astype(int)
-    df["occ"] = df["zone_people_occupant_count"]
-    df["otemp"] = df["outdoor_temp_c"]
-    df["target"] = g.shift(-1)                   # power at t+1
-    return df
+DATASET = active_dataset()
+OUT = Path(os.environ.get("MODEL_OUT", ROOT / "backend/greenflow/ml/models"))
+TARGET = "target_total_zone_power_kw"
+STEPS_PER_DAY = 48
+FEATURES = [
+    "cur", "lag1", "lag2", "lag3", "lag_day", "roll_mean", "roll_std",
+    "delta", "hour_sin", "hour_cos", "dow", "is_weekend", "occ", "otemp",
+]
 
 
-FEATS = ["cur", "lag1", "lag2", "lag3", "lag_day", "roll_mean", "roll_std",
-         "delta", "hour_sin", "hour_cos", "dow", "is_weekend", "occ", "otemp"]
+def _source() -> tuple[duckdb.DuckDBPyConnection, str, Path]:
+    explicit = os.environ.get("DUCKDB_PATH")
+    db_path = Path(explicit) if explicit else DATASET.duckdb_path
+    if db_path.exists():
+        return duckdb.connect(str(db_path), read_only=True), "final_ai_training_timeseries", db_path
+    parquet = DATASET.parquet_root / "final_ai_training_timeseries.parquet"
+    if not parquet.exists():
+        raise SystemExit(f"missing training source: {db_path} and {parquet}")
+    return duckdb.connect(), f"read_parquet('{parquet.as_posix()}')", parquet
+
+
+def _sha256(path: Path) -> str:
+    digest = hashlib.sha256()
+    with path.open("rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _portable_path(path: Path) -> str:
+    try:
+        return str(path.resolve().relative_to(ROOT.resolve()))
+    except ValueError:
+        return path.name
+
+
+def _metrics(actual, predicted) -> dict:
+    return {
+        "mae_kw": round(float(mean_absolute_error(actual, predicted)), 3),
+        "r2": round(float(r2_score(actual, predicted)), 4),
+    }
+
+
+def build_features(frame: pd.DataFrame) -> pd.DataFrame:
+    frame = frame.sort_values(["zone_id", "datetime"]).copy()
+    grouped = frame.groupby("zone_id", sort=False)[TARGET]
+    frame["cur"] = frame[TARGET]
+    frame["lag1"] = grouped.shift(1)
+    frame["lag2"] = grouped.shift(2)
+    frame["lag3"] = grouped.shift(3)
+    frame["lag_day"] = grouped.shift(STEPS_PER_DAY - 1)
+    rolling = grouped.shift(0).rolling(4)
+    frame["roll_mean"] = rolling.mean().reset_index(level=0, drop=True)
+    frame["roll_std"] = rolling.std().reset_index(level=0, drop=True)
+    frame["delta"] = frame["cur"] - frame["lag1"]
+    dt = pd.to_datetime(frame["datetime"])
+    hour = dt.dt.hour + dt.dt.minute / 60.0
+    frame["hour_sin"] = np.sin(2 * np.pi * hour / 24)
+    frame["hour_cos"] = np.cos(2 * np.pi * hour / 24)
+    frame["dow"] = dt.dt.dayofweek
+    frame["is_weekend"] = (dt.dt.dayofweek >= 5).astype(int)
+    frame["occ"] = frame["zone_people_occupant_count"]
+    frame["otemp"] = frame["outdoor_temp_c"]
+    frame["target"] = grouped.shift(-1)
+    return frame
 
 
 def main() -> None:
-    print(f"reading {DUCKDB_PATH}")
-    con = duckdb.connect(DUCKDB_PATH, read_only=True)
-    df = con.execute(f"""
+    con, source, source_path = _source()
+    frame = con.execute(f"""
         SELECT zone_id, datetime, {TARGET}, zone_people_occupant_count,
-               outdoor_temp_c, is_test
-        FROM final_ai_training_timeseries
+               outdoor_temp_c, dataset_split
+        FROM {source}
+        ORDER BY zone_id, datetime
     """).df()
-    print(f"rows={len(df):,} zones={df.zone_id.nunique()}")
+    zones = int(frame.zone_id.nunique())
+    timesteps = int(frame.datetime.nunique())
+    if (zones, timesteps, len(frame)) != (
+        DATASET.expected_zones, DATASET.expected_timesteps, DATASET.expected_zone_rows
+    ):
+        raise SystemExit("lag training source does not match active dataset contract")
 
-    df = build_features(df)
-    df = df.dropna(subset=FEATS + ["target"])
-    tr, te = df[~df.is_test.astype(bool)], df[df.is_test.astype(bool)]
-    print(f"train={len(tr):,} test={len(te):,}")
+    frame = build_features(frame).dropna(subset=FEATURES + ["target"])
+    train = frame[frame.dataset_split == "train"]
+    validation = frame[frame.dataset_split == "validation"]
+    test = frame[frame.dataset_split == "test"]
+    print(f"train={len(train):,} validation={len(validation):,} test={len(test):,}")
 
     model = lgb.LGBMRegressor(
-        n_estimators=600, learning_rate=0.05, num_leaves=63,
-        subsample=0.8, colsample_bytree=0.8, min_child_samples=50, n_jobs=-1)
-    model.fit(tr[FEATS], tr["target"],
-              eval_set=[(te[FEATS], te["target"])],
-              callbacks=[lgb.early_stopping(40), lgb.log_evaluation(0)])
+        n_estimators=800, learning_rate=0.05, num_leaves=63,
+        subsample=0.8, colsample_bytree=0.8, min_child_samples=50,
+        random_state=42, deterministic=True, force_col_wise=True, n_jobs=-1,
+    )
+    model.fit(
+        train[FEATURES], train["target"],
+        eval_set=[(validation[FEATURES], validation["target"])],
+        callbacks=[lgb.early_stopping(50, verbose=False), lgb.log_evaluation(0)],
+    )
+    predicted = np.clip(model.predict(test[FEATURES]), 0, None)
+    persistence = test["cur"].to_numpy()
+    actual = test["target"].to_numpy()
+    zone_model = _metrics(actual, predicted)
+    zone_persistence = _metrics(actual, persistence)
 
-    pred = model.predict(te[FEATS])
-    pers = te["cur"].values                      # persistence pred[t+1] = now
-    y = te["target"].values
+    building = test.assign(prediction=predicted).groupby("datetime").agg(
+        actual=("target", "sum"), prediction=("prediction", "sum"), current=("cur", "sum")
+    )
+    building_model = _metrics(building.actual, building.prediction)
+    building_persistence = _metrics(building.actual, building.current)
+    beats_persistence = building_model["mae_kw"] < building_persistence["mae_kw"]
+    if not beats_persistence:
+        raise SystemExit("forecast model failed the persistence quality gate")
 
-    zone_model, zone_pers = _metrics(y, pred), _metrics(y, pers)
-
-    # building level: sum per datetime
-    bt = te.assign(pred=pred).groupby("datetime").agg(
-        y=("target", "sum"), p=("pred", "sum"), cur=("cur", "sum"))
-    bld_model, bld_pers = _metrics(bt.y, bt.p), _metrics(bt.y, bt.cur)
-
-    print("\n=== ZONE level (t+1) ===")
-    print(f"  model      : {zone_model}")
-    print(f"  persistence: {zone_pers}")
-    print("=== BUILDING level (t+1, summed) ===")
-    print(f"  model      : {bld_model}")
-    print(f"  persistence: {bld_pers}")
-    beat = bld_model["mae_kw"] < bld_pers["mae_kw"]
-    print(f"\n>>> model {'BEATS' if beat else 'DOES NOT beat'} persistence "
-          f"(building MAE {bld_model['mae_kw']} vs {bld_pers['mae_kw']} kW)")
-
-    imp = sorted(zip(FEATS, model.feature_importances_), key=lambda x: -x[1])
-    print("top features:", [(f, int(i)) for f, i in imp[:6]])
-
+    importance = sorted(
+        zip(FEATURES, model.feature_importances_), key=lambda item: -item[1]
+    )
     OUT.mkdir(parents=True, exist_ok=True)
     model.booster_.save_model(str(OUT / "forecast_lag_total.txt"))
-    meta = {"kind": "autoregressive_forecast", "horizon": "t+1 (30min)",
-            "target": "total_power_kw", "features": FEATS,
-            "step_minutes": 30, "source": Path(DUCKDB_PATH).name,
-            "test_metrics": {"zone": {"model": zone_model, "persistence": zone_pers},
-                             "building": {"model": bld_model, "persistence": bld_pers}},
-            "beats_persistence": beat,
-            "top_features": [{"feature": f, "gain": int(i)} for f, i in imp[:10]],
-            "note": "Lag-based forecast; complements (does NOT replace) the no-lag "
-                    "what-if surrogate. Day-ahead = recursive rollout at serving."}
-    (OUT / "forecast_lag_total_meta.json").write_text(json.dumps(meta, indent=2))
-    print(f"\nsaved -> {OUT/'forecast_lag_total.txt'} + meta")
+    meta = {
+        "kind": "autoregressive_forecast",
+        "horizon": "t+1 (30 minutes); recursive for longer horizons",
+        "target": TARGET,
+        "features": FEATURES,
+        "step_minutes": DATASET.timestep_minutes,
+        "dataset": {
+            "schema_version": 2, "dataset_key": DATASET.key,
+            "scenario_id": DATASET.scenario_id, "source_path": _portable_path(source_path),
+            "source_sha256": _sha256(source_path), "zone_count": zones,
+            "timestep_count": timesteps,
+            "row_count": int(con.execute(f"SELECT count(*) FROM {source}").fetchone()[0]),
+        },
+        "split": "dataset_split (train/validation/test)",
+        "test_metrics": {
+            "zone": {"model": zone_model, "persistence": zone_persistence},
+            "building": {"model": building_model, "persistence": building_persistence},
+        },
+        "beats_persistence": beats_persistence,
+        "top_features": [
+            {"feature": feature, "gain": int(gain)} for feature, gain in importance[:10]
+        ],
+    }
+    (OUT / "forecast_lag_total_meta.json").write_text(
+        json.dumps(meta, indent=2), encoding="utf-8"
+    )
+    print("zone:", zone_model, "building:", building_model)
+    print("saved lag model + metadata ->", OUT)
 
 
 if __name__ == "__main__":

@@ -175,6 +175,9 @@ def _frame(rows: list[dict], features: list[str]):
         "area_m2": [r["area_m2"] for r in rows],
         "volume_m3": [r["volume_m3"] for r in rows],
         "ceiling_height_m": [r["ceiling_height_m"] for r in rows],
+        "area_m2_final": [r["area_m2"] for r in rows],
+        "volume_m3_final": [r["volume_m3"] for r in rows],
+        "height_m_final": [r["ceiling_height_m"] for r in rows],
     }
     return pd.DataFrame({k: full[k] for k in features})
 
@@ -183,7 +186,16 @@ def _predict_total_kw(rows: list[dict]) -> tuple[np.ndarray, dict]:
     loaded = load_model("zone")
     if loaded is not None and loaded.model is not None and loaded.features:
         try:
-            pred = np.clip(loaded.model.predict(_frame(rows, loaded.features)), 0, None)
+            rows_25 = [{**row, "cooling_setpoint_c": 25.0} for row in rows]
+            rows_26 = [{**row, "cooling_setpoint_c": 26.0} for row in rows]
+            pred_25 = np.clip(loaded.model.predict(_frame(rows_25, loaded.features)), 0, None)
+            pred_26 = np.clip(loaded.model.predict(_frame(rows_26, loaded.features)), 0, None)
+            elasticity = np.clip(pred_25 - pred_26, 0, None)
+            delta = np.array([
+                row["cooling_setpoint_c"] - row["base_setpoint_c"] for row in rows
+            ])
+            measured = np.array([row["baseline_total_kw"] for row in rows])
+            pred = np.clip(measured - elasticity * delta, 0, None)
             return pred.astype(float), loaded.metadata()
         except Exception as exc:  # noqa: BLE001
             meta = loaded.metadata()

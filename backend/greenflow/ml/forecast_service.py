@@ -32,6 +32,10 @@ ROOM_TYPE_TO_ARCHE = {
     "open_office": "open_office", "office": "office", "meeting_room": "meeting",
     "meeting": "meeting", "amenity": "amenity", "hallway": "circulation",
     "circulation": "circulation", "lobby": "circulation",
+    "workspace": "open_office", "meeting_event": "meeting",
+    "service": "amenity", "technical_core": "circulation",
+    "parking_shelter": "circulation", "gross_area_placeholder": "circulation",
+    "unknown": "circulation",
 }
 
 # Lịch giờ-trong-ngày (mirror tools/datagen/config — để dựng lại feature như lúc train)
