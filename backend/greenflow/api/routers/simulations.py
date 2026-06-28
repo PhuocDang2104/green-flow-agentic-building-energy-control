@@ -97,6 +97,35 @@ def validate_baseline(building_id: str = Query(default=None),
     return result
 
 
+@router.get("/simulations/whatif-cache")
+def whatif_cache(mode: str = Query(default="predictive_replay"),
+                 date_from: str | None = Query(default=None),
+                 date_to: str | None = Query(default=None),
+                 scenario_id: str | None = Query(default=None),
+                 horizon_steps: int | None = Query(default=None),
+                 top_k: int | None = Query(default=None)):
+    """Read precomputed what-if/MPC replay data.
+
+    This endpoint intentionally does not run predictive replay on cache miss;
+    long replay belongs to scripts/precompute_predictive_whatif.py.
+    """
+    from ...control.whatif_cache import read_cache_response
+
+    try:
+        return read_cache_response(
+            mode=mode,
+            date_from=date_from,
+            date_to=date_to,
+            scenario_id=scenario_id,
+            horizon_steps=horizon_steps,
+            top_k=top_k,
+        )
+    except ValueError as exc:
+        raise HTTPException(400, str(exc))
+    except LookupError as exc:
+        raise HTTPException(404, str(exc))
+
+
 @router.get("/simulations/{run_id}")
 def get_run(run_id: str):
     with db_conn() as conn:

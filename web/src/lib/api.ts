@@ -129,6 +129,7 @@ export const api = {
     date_from?: string; date_to?: string; scenario_id?: string;
   }) => post<{
     policy: { setpoint_delta_c: number; peak_window: string; engine: string };
+    metadata?: any;
     kpi: {
       baseline_kwh: number; optimized_kwh: number; saving_kwh: number;
       saving_percent: number; cost_saving_vnd: number; peak_reduction_kw: number;
@@ -137,6 +138,29 @@ export const api = {
     daily: { date: string; baseline_kwh: number; optimized_kwh: number;
              peak_baseline_kw: number; peak_optimized_kw: number }[];
   }>("/simulations/campaign", payload),
+  whatifCache: (payload: {
+    mode?: "predictive_replay"; date_from?: string; date_to?: string;
+    scenario_id?: string; horizon_steps?: number; top_k?: number;
+  }) => {
+    const params = new URLSearchParams();
+    if (payload.mode) params.set("mode", payload.mode);
+    if (payload.date_from) params.set("date_from", payload.date_from);
+    if (payload.date_to) params.set("date_to", payload.date_to);
+    if (payload.scenario_id) params.set("scenario_id", payload.scenario_id);
+    if (payload.horizon_steps) params.set("horizon_steps", String(payload.horizon_steps));
+    if (payload.top_k) params.set("top_k", String(payload.top_k));
+    return get<{
+      metadata?: any;
+      policy: { setpoint_delta_c: number | null; peak_window: string; engine: string };
+      kpi: {
+        baseline_kwh: number; optimized_kwh: number; saving_kwh: number;
+        saving_percent: number; cost_saving_vnd: number; peak_reduction_kw: number;
+        comfort_violation_delta_min: number; co2_avoided_kg: number; days: number;
+      };
+      daily: { date: string; baseline_kwh: number; optimized_kwh: number;
+               peak_baseline_kw: number; peak_optimized_kw: number }[];
+    }>(`/simulations/whatif-cache?${params.toString()}`);
+  },
   predictiveControl: (payload: {
     building_id?: string; timestamp?: string; scenario_id?: string;
     horizon_steps?: number; top_k?: number;

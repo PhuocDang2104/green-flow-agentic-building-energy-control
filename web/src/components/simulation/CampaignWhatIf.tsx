@@ -9,11 +9,14 @@ import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
 
-type Campaign = Awaited<ReturnType<typeof api.campaign>>;
+type WhatIfData = Awaited<ReturnType<typeof api.campaign>> | Awaited<ReturnType<typeof api.whatifCache>>;
 type RangeMode = "period" | "month" | "custom";
+type AnalysisMode = "campaign" | "predictive";
 type DateRange = { start: string; end: string };
 
 const DELTAS = [1, 2, 3] as const;            // tree surrogate steps cleanly on integer °C
+const PREDICTIVE_HORIZON_STEPS = 8;
+const PREDICTIVE_TOP_K = 4;
 const METRICS = [
   { id: "energy", label: "Daily energy", unit: " kWh", base: "baseline_kwh", opt: "optimized_kwh" },
   { id: "peak", label: "Daily peak", unit: " kW", base: "peak_baseline_kw", opt: "peak_optimized_kw" },
@@ -183,6 +186,7 @@ function ImpactCard({ energySaved, costSaving, co2Avoided, comfortDelta, days, p
  * decision-maker actually cares about, not a single day.
  */
 export default function CampaignWhatIf() {
+  const [analysisMode, setAnalysisMode] = useState<AnalysisMode>("campaign");
   const [delta, setDelta] = useState<number>(1);
   const [metricId, setMetricId] = useState<string>("energy");
   const [rangeMode, setRangeMode] = useState<RangeMode>("period");
@@ -190,11 +194,11 @@ export default function CampaignWhatIf() {
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
   const [datasetRange, setDatasetRange] = useState<DateRange | null>(null);
-  const [data, setData] = useState<Campaign | null>(null);
+  const [data, setData] = useState<WhatIfData | null>(null);
   const [loading, setLoading] = useState(true);
-  const [error, setError] = useState(false);
+  const [error, setError] = useState<string | null>(null);
 
-  const query = useMemo(() => {
+  const campaignQuery = useMemo(() => {
     const payload: Parameters<typeof api.campaign>[0] = { setpoint_delta: delta };
     if (rangeMode === "month" && month) {
       payload.date_from = apiDate(`${month}-01`);
@@ -207,21 +211,50 @@ export default function CampaignWhatIf() {
     return payload;
   }, [dateFrom, dateTo, delta, month, rangeMode]);
 
+  const cacheQuery = useMemo(() => {
+    const payload: Parameters<typeof api.whatifCache>[0] = {
+      mode: "predictive_replay",
+      horizon_steps: PREDICTIVE_HORIZON_STEPS,
+      top_k: PREDICTIVE_TOP_K,
+    };
+    if (rangeMode === "period" && datasetRange) {
+      payload.date_from = datasetRange.start;
+      payload.date_to = nextDay(datasetRange.end);
+    }
+    if (rangeMode === "month" && month) {
+      payload.date_from = `${month}-01`;
+      payload.date_to = nextMonth(month);
+    }
+    if (rangeMode === "custom" && dateFrom && dateTo && dateFrom <= dateTo) {
+      payload.date_from = dateFrom;
+      payload.date_to = nextDay(dateTo);
+    }
+    return payload;
+  }, [datasetRange, dateFrom, dateTo, month, rangeMode]);
+
   const run = useCallback(() => {
-    setLoading(true); setError(false);
-    api.campaign(query)
+    setLoading(true); setError(null);
+    const request = analysisMode === "campaign"
+      ? api.campaign(campaignQuery)
+      : api.whatifCache(cacheQuery);
+    request
       .then((result) => {
         setData(result);
-        if (rangeMode === "period" && result.daily.length) {
+        if (result.daily.length) {
           setDatasetRange({
             start: result.daily[0].date,
             end: result.daily[result.daily.length - 1].date,
           });
         }
       })
-      .catch(() => setError(true))
+      .catch(() => {
+        setData(null);
+        setError(analysisMode === "predictive"
+          ? "Predictive replay cache is not available for this range. Run the cloud precompute job first."
+          : "Campaign model unavailable on this dataset.");
+      })
       .finally(() => setLoading(false));
-  }, [query, rangeMode]);
+  }, [analysisMode, cacheQuery, campaignQuery]);
 
   useEffect(() => { run(); }, [run]);
 
@@ -251,7 +284,20 @@ export default function CampaignWhatIf() {
         <Sparkles size={16} className="text-teal" />
         <h3 className="text-sm font-semibold tracking-tight">Period what-if &middot; building with AI vs without AI</h3>
         {loading && <Loader2 size={13} className="animate-spin text-text-muted" />}
-        <div className="ml-auto flex items-center gap-2">
+        <div className="ml-auto flex rounded-lg border border-border p-0.5 text-[12px]">
+          {([
+            ["campaign", "Campaign policy"],
+            ["predictive", "Predictive MPC replay"],
+          ] as const).map(([mode, label]) => (
+            <button key={mode} type="button" onClick={() => setAnalysisMode(mode)}
+                    className={`rounded-md px-2.5 py-0.5 font-medium transition ${
+                      analysisMode === mode ? "bg-teal text-white" : "text-text-secondary hover:bg-surface-muted"
+                    }`}>
+              {label}
+            </button>
+          ))}
+        </div>
+        <div className={`${analysisMode === "campaign" ? "flex" : "hidden"} items-center gap-2`}>
           <span className="text-[11.5px] text-text-secondary">AI policy: setpoint</span>
           <div className="flex rounded-lg border border-border p-0.5 text-[12px]">
             {DELTAS.map((d) => (
@@ -263,12 +309,21 @@ export default function CampaignWhatIf() {
             ))}
           </div>
         </div>
+        {analysisMode === "predictive" && (
+          <div className="rounded-full border border-teal/20 bg-teal-soft px-2.5 py-1 text-[11.5px] font-medium text-teal">
+            Precomputed MPC · horizon {PREDICTIVE_HORIZON_STEPS} steps · top {PREDICTIVE_TOP_K}
+          </div>
+        )}
       </div>
 
       <p className="mt-1 text-[11.5px] text-text-muted">
-        {data
+        {analysisMode === "campaign" && data
           ? `Raise cooling setpoint +${data.policy.setpoint_delta_c}°C during ${data.policy.peak_window} on weekdays, rolled across ${k?.days} days. Baseline = measured; with-AI via the ${data.policy.engine}.`
-          : "Rolling a fixed AI setpoint policy across the whole period."}
+          : analysisMode === "campaign"
+            ? "Rolling a fixed AI setpoint policy across the whole period."
+            : data
+              ? `Reading precomputed receding-horizon replay across ${k?.days} days. Baseline = E+ telemetry; with-AI = surrogate MPC branch.`
+              : "Reading precomputed predictive replay cache. Heavy MPC replay is not run in the browser request."}
       </p>
 
       <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl border border-border/60 bg-surface-muted/35 px-3 py-2.5">
@@ -328,7 +383,7 @@ export default function CampaignWhatIf() {
 
       {error ? (
         <div className="mt-4 grid h-[120px] place-items-center text-[12px] text-text-muted">
-          Campaign model unavailable on this dataset.
+          {error}
         </div>
       ) : (
         <>
@@ -400,7 +455,11 @@ export default function CampaignWhatIf() {
               </ResponsiveContainer>
             ) : (
               <div className="grid h-full place-items-center text-[12px] text-text-muted">
-                {loading ? "Running campaign across the period…" : "No data."}
+                {loading
+                  ? analysisMode === "campaign"
+                    ? "Running campaign across the period…"
+                    : "Loading precomputed predictive replay cache…"
+                  : "No data."}
               </div>
             )}
           </div>
@@ -408,10 +467,14 @@ export default function CampaignWhatIf() {
           <div className="mt-3 flex flex-wrap items-center gap-x-5 gap-y-1 text-[11px] text-text-muted">
             <span className="inline-flex items-center gap-1.5">
               <TrendingDown size={12} className="text-success" />
-              The teal band is the building running under the AI policy; the gap to the dashed line is the saving.
+              {analysisMode === "campaign"
+                ? "The teal band is the building running under the AI policy; the gap to the dashed line is the saving."
+                : "The teal band is the precomputed MPC replay; the gap to the dashed line is the predicted control impact."}
             </span>
             <span className="inline-flex items-center gap-1.5">
-              <Wind size={12} /> Same weather and occupancy; only the setpoint policy differs.
+              <Wind size={12} /> {analysisMode === "campaign"
+                ? "Same weather and occupancy; only the setpoint policy differs."
+                : "The page reads materialized cache; run the cloud precompute job to refresh long ranges."}
             </span>
           </div>
         </>
