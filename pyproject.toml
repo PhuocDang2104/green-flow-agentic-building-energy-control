@@ -29,7 +29,8 @@ llm = [
 ml = [
     # surrogate forecast (ml/forecast_service). Thiếu -> quick_estimate fallback rule.
     "lightgbm>=4.0",
-    "mlflow>=2.17",
+    # Keep client and tracking/model-registry server on the same API version.
+    "mlflow==2.17.2",
     "numpy>=1.26",
     "pandas>=2.0",
 ]
