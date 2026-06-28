@@ -10,7 +10,8 @@ def action_step(*, step: int, start: datetime, step_minutes: int,
                 action_type: str, target_zone_keys: list[str],
                 setpoint_delta_c: float = 0.0,
                 lighting_factor: float | None = None,
-                reason: str = "") -> dict:
+                reason: str = "",
+                metadata: dict | None = None) -> dict:
     return {
         "step": step,
         "start": start.isoformat(),
@@ -20,6 +21,7 @@ def action_step(*, step: int, start: datetime, step_minutes: int,
         "setpoint_delta_c": round(float(setpoint_delta_c), 3),
         "lighting_factor": lighting_factor,
         "reason": reason,
+        "metadata": metadata or {},
     }
 
 
@@ -35,4 +37,3 @@ def trajectory(name: str, horizon_start: datetime, horizon_steps: int,
         "actions": actions,
         "execute_step": 1,
     }
-

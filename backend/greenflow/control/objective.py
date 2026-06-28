@@ -9,6 +9,8 @@ from dataclasses import dataclass, asdict
 class ObjectiveWeights:
     energy_cost: float = 1.0
     peak_penalty: float = 6.0
+    peak_excess_penalty: float = 0.08
+    time_above_peak_penalty: float = 0.08
     comfort_penalty: float = 12.0
     ramp_penalty: float = 1.5
     action_change_penalty: float = 0.4
@@ -20,11 +22,16 @@ class ObjectiveWeights:
 
 def score_objective(*, energy_kwh: float, peak_kw: float, comfort_minutes: float,
                     ramp_kw: float, action_changes: int, policy_risk: float,
+                    peak_threshold_kw: float | None = None,
+                    time_above_threshold_min: float = 0.0,
                     weights: ObjectiveWeights | None = None) -> dict:
     w = weights or ObjectiveWeights()
+    peak_excess_kw = max(0.0, peak_kw - float(peak_threshold_kw or 0.0)) if peak_threshold_kw else 0.0
     parts = {
         "energy_cost": energy_kwh * w.energy_cost,
         "peak_penalty": peak_kw * w.peak_penalty,
+        "peak_excess_penalty": (peak_excess_kw ** 2) * w.peak_excess_penalty,
+        "time_above_peak_penalty": time_above_threshold_min * w.time_above_peak_penalty,
         "comfort_penalty": comfort_minutes * w.comfort_penalty,
         "ramp_penalty": ramp_kw * w.ramp_penalty,
         "action_change_penalty": float(action_changes) * w.action_change_penalty,
@@ -32,4 +39,3 @@ def score_objective(*, energy_kwh: float, peak_kw: float, comfort_minutes: float
     }
     parts["score"] = round(sum(parts.values()), 4)
     return {k: round(v, 4) for k, v in parts.items()}
-

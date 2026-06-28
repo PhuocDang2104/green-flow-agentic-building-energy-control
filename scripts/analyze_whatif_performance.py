@@ -93,7 +93,10 @@ def main() -> int:
         daily = fetch_all(conn, """
             SELECT d.date, d.baseline_kwh, d.ai_kwh, d.saving_kwh,
                    d.saving_percent, d.baseline_peak_kw, d.ai_peak_kw,
-                   d.action_count, d.comfort_violation_min
+                   d.action_count, d.baseline_comfort_violation_min,
+                   d.comfort_violation_min, d.ai_added_comfort_violation_min,
+                   d.lighting_saving_kwh, d.hvac_saving_kwh,
+                   d.policy_violation_count
             FROM whatif_cache_daily d
             JOIN whatif_cache_runs r ON r.id = d.run_id
             WHERE r.cache_key = :cache_key
@@ -105,7 +108,10 @@ def main() -> int:
         steps = fetch_all(conn, """
             SELECT t.timestamp, t.baseline_kw, t.ai_kw, t.baseline_kwh,
                    t.ai_kwh, t.saving_kwh, t.selected_trajectory,
-                   t.objective_score, t.action_json
+                   t.objective_score, t.baseline_comfort_violation_min,
+                   t.comfort_violation_min, t.ai_added_comfort_violation_min,
+                   t.lighting_saving_kwh, t.hvac_saving_kwh,
+                   t.policy_violation_count, t.action_json
             FROM whatif_cache_timestep t
             JOIN whatif_cache_runs r ON r.id = t.run_id
             WHERE r.cache_key = :cache_key
@@ -156,6 +162,12 @@ def main() -> int:
     total_baseline = sum(_f(r.get("baseline_kwh")) for r in steps)
     total_ai = sum(_f(r.get("ai_kwh")) for r in steps)
     total_saving = total_baseline - total_ai
+    total_lighting_saving = sum(_f(r.get("lighting_saving_kwh")) for r in steps)
+    total_hvac_saving = sum(_f(r.get("hvac_saving_kwh")) for r in steps)
+    baseline_comfort = sum(_f(r.get("baseline_comfort_violation_min")) for r in steps)
+    ai_comfort = sum(_f(r.get("comfort_violation_min")) for r in steps)
+    ai_added_comfort = sum(_f(r.get("ai_added_comfort_violation_min")) for r in steps)
+    policy_violations = int(sum(_f(r.get("policy_violation_count")) for r in steps))
     negative_steps = [r for r in steps if _f(r.get("saving_kwh")) < 0]
 
     best_days = sorted(daily, key=lambda r: _f(r.get("saving_kwh")), reverse=True)[:args.limit]
@@ -179,6 +191,15 @@ def main() -> int:
             "peak_reduction_percent": round((baseline_peak - ai_peak) / baseline_peak * 100.0, 3)
             if baseline_peak else 0.0,
             "negative_saving_steps": len(negative_steps),
+            "lighting_saving_kwh": round(total_lighting_saving, 3),
+            "hvac_saving_kwh": round(total_hvac_saving, 3),
+            "other_or_interaction_saving_kwh": round(
+                total_saving - total_lighting_saving - total_hvac_saving, 3
+            ),
+            "baseline_comfort_violation_min": round(baseline_comfort, 3),
+            "ai_comfort_violation_min": round(ai_comfort, 3),
+            "ai_added_comfort_violation_min": round(ai_added_comfort, 3),
+            "policy_violation_count": policy_violations,
         },
         "action_mix": {
             "action_records": action_records,
@@ -203,6 +224,8 @@ def main() -> int:
         "interpretation": [
             "Energy/Power come directly from precomputed replay baseline_kw/ai_kw.",
             "Comfort and setpoint are derived building averages from telemetry plus stored MPC action deltas.",
+            "lighting_saving_kwh and hvac_saving_kwh are first-step replay contribution estimates, not separately metered devices.",
+            "ai_added_comfort_violation_min is the comfort trade-off caused by AI beyond the baseline violation proxy.",
             "Electrical loading is normalized to selected-range baseline peak, not a measured MSB/DB rating.",
         ],
     }

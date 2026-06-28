@@ -115,6 +115,11 @@ def run_predictive_replay(building_id: str, *, date_from: str | None = None,
             baseline_kw = float(first.get("baseline_kw") or 0.0)
             ai_kw = float(first.get("optimized_kw") or baseline_kw)
             comfort_min = float(first.get("comfort_violation_min") or 0.0)
+            baseline_comfort_min = float(first.get("baseline_comfort_violation_min") or 0.0)
+            ai_added_comfort_min = float(first.get("ai_added_comfort_violation_min") or 0.0)
+            lighting_saving_kwh = float(first.get("lighting_saving_kwh") or 0.0)
+            hvac_saving_kwh = float(first.get("hvac_saving_kwh") or 0.0)
+            policy_violation_count = int(first.get("policy_violation_count") or 0)
             series.append({
                 "timestamp": ts.isoformat(),
                 "baseline_kw": round(baseline_kw, 4),
@@ -122,7 +127,12 @@ def run_predictive_replay(building_id: str, *, date_from: str | None = None,
                 "baseline_kwh": round(baseline_kw * step_h, 4),
                 "ai_kwh": round(ai_kw * step_h, 4),
                 "saving_kwh": round((baseline_kw - ai_kw) * step_h, 4),
+                "baseline_comfort_violation_min": round(baseline_comfort_min, 2),
                 "comfort_violation_min": round(comfort_min, 2),
+                "ai_added_comfort_violation_min": round(ai_added_comfort_min, 2),
+                "lighting_saving_kwh": round(lighting_saving_kwh, 4),
+                "hvac_saving_kwh": round(hvac_saving_kwh, 4),
+                "policy_violation_count": policy_violation_count,
                 "selected_trajectory": selected.get("trajectory_id") or selected.get("id"),
                 "objective_score": selected.get("objective", {}).get("score"),
             })
@@ -148,7 +158,12 @@ def run_predictive_replay(building_id: str, *, date_from: str | None = None,
         if baseline_kwh else 0.0,
         "baseline_peak_kw": round(max((r["baseline_kw"] for r in series), default=0.0), 3),
         "ai_peak_kw": round(max((r["ai_kw"] for r in series), default=0.0), 3),
+        "baseline_comfort_violation_min": round(sum(r["baseline_comfort_violation_min"] for r in series), 2),
         "comfort_violation_min": round(sum(r["comfort_violation_min"] for r in series), 2),
+        "ai_added_comfort_violation_min": round(sum(r["ai_added_comfort_violation_min"] for r in series), 2),
+        "lighting_saving_kwh": round(sum(r["lighting_saving_kwh"] for r in series), 3),
+        "hvac_saving_kwh": round(sum(r["hvac_saving_kwh"] for r in series), 3),
+        "policy_violation_count": int(sum(r["policy_violation_count"] for r in series)),
         "date_from": _iso(stamps[0]),
         "date_to": _iso(stamps[-1] + timedelta(minutes=ds.timestep_minutes)),
     }

@@ -23,8 +23,8 @@ from ..db import db_conn, fetch_all, fetch_one
 
 TZ = timezone(timedelta(hours=7))
 CONTROL_MODE = "predictive_replay"
-OBJECTIVE_VERSION = "v1"
-CONTROLLER_VERSION = "predictive_mpc_v3"
+OBJECTIVE_VERSION = "v2_policy_aware"
+CONTROLLER_VERSION = "predictive_mpc_v4"
 GRID_CO2_KG_PER_KWH = 0.6766
 DEFAULT_AVG_TARIFF_VND_PER_KWH = 1839
 
@@ -120,6 +120,11 @@ def ensure_schema(conn: Connection) -> None:
           PRIMARY KEY (run_id, date)
         )
     """))
+    conn.execute(text("ALTER TABLE whatif_cache_daily ADD COLUMN IF NOT EXISTS baseline_comfort_violation_min numeric"))
+    conn.execute(text("ALTER TABLE whatif_cache_daily ADD COLUMN IF NOT EXISTS ai_added_comfort_violation_min numeric"))
+    conn.execute(text("ALTER TABLE whatif_cache_daily ADD COLUMN IF NOT EXISTS lighting_saving_kwh numeric"))
+    conn.execute(text("ALTER TABLE whatif_cache_daily ADD COLUMN IF NOT EXISTS hvac_saving_kwh numeric"))
+    conn.execute(text("ALTER TABLE whatif_cache_daily ADD COLUMN IF NOT EXISTS policy_violation_count int"))
     conn.execute(text("""
         CREATE TABLE IF NOT EXISTS whatif_cache_timestep (
           run_id uuid REFERENCES whatif_cache_runs(id) ON DELETE CASCADE,
@@ -136,6 +141,11 @@ def ensure_schema(conn: Connection) -> None:
           PRIMARY KEY (run_id, timestamp)
         )
     """))
+    conn.execute(text("ALTER TABLE whatif_cache_timestep ADD COLUMN IF NOT EXISTS baseline_comfort_violation_min numeric"))
+    conn.execute(text("ALTER TABLE whatif_cache_timestep ADD COLUMN IF NOT EXISTS ai_added_comfort_violation_min numeric"))
+    conn.execute(text("ALTER TABLE whatif_cache_timestep ADD COLUMN IF NOT EXISTS lighting_saving_kwh numeric"))
+    conn.execute(text("ALTER TABLE whatif_cache_timestep ADD COLUMN IF NOT EXISTS hvac_saving_kwh numeric"))
+    conn.execute(text("ALTER TABLE whatif_cache_timestep ADD COLUMN IF NOT EXISTS policy_violation_count int"))
     conn.execute(text("""
         CREATE INDEX IF NOT EXISTS whatif_cache_runs_lookup_idx
           ON whatif_cache_runs(dataset_key, scenario_id, control_mode,
@@ -256,7 +266,12 @@ def _daily_from_series(series: list[dict], actions: list[dict]) -> list[dict]:
         "saving_kwh": 0.0,
         "baseline_peak_kw": 0.0,
         "ai_peak_kw": 0.0,
+        "baseline_comfort_violation_min": 0.0,
         "comfort_violation_min": 0.0,
+        "ai_added_comfort_violation_min": 0.0,
+        "lighting_saving_kwh": 0.0,
+        "hvac_saving_kwh": 0.0,
+        "policy_violation_count": 0,
         "action_count": 0,
     })
     for row in series:
@@ -268,7 +283,12 @@ def _daily_from_series(series: list[dict], actions: list[dict]) -> list[dict]:
         rec["saving_kwh"] += _f(row.get("saving_kwh"))
         rec["baseline_peak_kw"] = max(rec["baseline_peak_kw"], _f(row.get("baseline_kw")))
         rec["ai_peak_kw"] = max(rec["ai_peak_kw"], _f(row.get("ai_kw")))
+        rec["baseline_comfort_violation_min"] += _f(row.get("baseline_comfort_violation_min"))
         rec["comfort_violation_min"] += _f(row.get("comfort_violation_min"))
+        rec["ai_added_comfort_violation_min"] += _f(row.get("ai_added_comfort_violation_min"))
+        rec["lighting_saving_kwh"] += _f(row.get("lighting_saving_kwh"))
+        rec["hvac_saving_kwh"] += _f(row.get("hvac_saving_kwh"))
+        rec["policy_violation_count"] += int(_f(row.get("policy_violation_count")))
     for action in actions:
         ts_value = action.get("timestamp")
         if not ts_value:
@@ -288,7 +308,12 @@ def _daily_from_series(series: list[dict], actions: list[dict]) -> list[dict]:
             "saving_percent": round(saving / base * 100.0, 6) if base else 0.0,
             "baseline_peak_kw": round(rec["baseline_peak_kw"], 6),
             "ai_peak_kw": round(rec["ai_peak_kw"], 6),
+            "baseline_comfort_violation_min": round(rec["baseline_comfort_violation_min"], 6),
             "comfort_violation_min": round(rec["comfort_violation_min"], 6),
+            "ai_added_comfort_violation_min": round(rec["ai_added_comfort_violation_min"], 6),
+            "lighting_saving_kwh": round(rec["lighting_saving_kwh"], 6),
+            "hvac_saving_kwh": round(rec["hvac_saving_kwh"], 6),
+            "policy_violation_count": int(rec["policy_violation_count"]),
             "action_count": int(rec["action_count"]),
         })
     return out
@@ -361,10 +386,16 @@ def write_replay_result(conn: Connection, *, run_id: str, result: dict,
         conn.execute(text("""
             INSERT INTO whatif_cache_daily (
               run_id, date, baseline_kwh, ai_kwh, saving_kwh, saving_percent,
-              baseline_peak_kw, ai_peak_kw, comfort_violation_min, action_count
+              baseline_peak_kw, ai_peak_kw, baseline_comfort_violation_min,
+              comfort_violation_min, ai_added_comfort_violation_min,
+              lighting_saving_kwh, hvac_saving_kwh, policy_violation_count,
+              action_count
             )
             VALUES (:run_id, :date, :baseline_kwh, :ai_kwh, :saving_kwh, :saving_percent,
-                    :baseline_peak_kw, :ai_peak_kw, :comfort_violation_min, :action_count)
+                    :baseline_peak_kw, :ai_peak_kw, :baseline_comfort_violation_min,
+                    :comfort_violation_min, :ai_added_comfort_violation_min,
+                    :lighting_saving_kwh, :hvac_saving_kwh, :policy_violation_count,
+                    :action_count)
             ON CONFLICT (run_id, date) DO UPDATE SET
               baseline_kwh = EXCLUDED.baseline_kwh,
               ai_kwh = EXCLUDED.ai_kwh,
@@ -372,7 +403,12 @@ def write_replay_result(conn: Connection, *, run_id: str, result: dict,
               saving_percent = EXCLUDED.saving_percent,
               baseline_peak_kw = EXCLUDED.baseline_peak_kw,
               ai_peak_kw = EXCLUDED.ai_peak_kw,
+              baseline_comfort_violation_min = EXCLUDED.baseline_comfort_violation_min,
               comfort_violation_min = EXCLUDED.comfort_violation_min,
+              ai_added_comfort_violation_min = EXCLUDED.ai_added_comfort_violation_min,
+              lighting_saving_kwh = EXCLUDED.lighting_saving_kwh,
+              hvac_saving_kwh = EXCLUDED.hvac_saving_kwh,
+              policy_violation_count = EXCLUDED.policy_violation_count,
               action_count = EXCLUDED.action_count
         """), {"run_id": run_id, **day})
 
@@ -381,12 +417,15 @@ def write_replay_result(conn: Connection, *, run_id: str, result: dict,
         conn.execute(text("""
             INSERT INTO whatif_cache_timestep (
               run_id, timestamp, baseline_kw, ai_kw, baseline_kwh, ai_kwh,
-              saving_kwh, comfort_violation_min, selected_trajectory,
-              objective_score, action_json
+              saving_kwh, baseline_comfort_violation_min, comfort_violation_min,
+              ai_added_comfort_violation_min, lighting_saving_kwh, hvac_saving_kwh,
+              policy_violation_count, selected_trajectory, objective_score, action_json
             )
             VALUES (
               :run_id, CAST(:timestamp AS timestamptz), :baseline_kw, :ai_kw,
-              :baseline_kwh, :ai_kwh, :saving_kwh, :comfort_violation_min,
+              :baseline_kwh, :ai_kwh, :saving_kwh, :baseline_comfort_violation_min,
+              :comfort_violation_min, :ai_added_comfort_violation_min,
+              :lighting_saving_kwh, :hvac_saving_kwh, :policy_violation_count,
               :selected_trajectory, :objective_score, CAST(:action_json AS jsonb)
             )
             ON CONFLICT (run_id, timestamp) DO UPDATE SET
@@ -395,7 +434,12 @@ def write_replay_result(conn: Connection, *, run_id: str, result: dict,
               baseline_kwh = EXCLUDED.baseline_kwh,
               ai_kwh = EXCLUDED.ai_kwh,
               saving_kwh = EXCLUDED.saving_kwh,
+              baseline_comfort_violation_min = EXCLUDED.baseline_comfort_violation_min,
               comfort_violation_min = EXCLUDED.comfort_violation_min,
+              ai_added_comfort_violation_min = EXCLUDED.ai_added_comfort_violation_min,
+              lighting_saving_kwh = EXCLUDED.lighting_saving_kwh,
+              hvac_saving_kwh = EXCLUDED.hvac_saving_kwh,
+              policy_violation_count = EXCLUDED.policy_violation_count,
               selected_trajectory = EXCLUDED.selected_trajectory,
               objective_score = EXCLUDED.objective_score,
               action_json = EXCLUDED.action_json
@@ -407,7 +451,12 @@ def write_replay_result(conn: Connection, *, run_id: str, result: dict,
             "baseline_kwh": row.get("baseline_kwh"),
             "ai_kwh": row.get("ai_kwh"),
             "saving_kwh": row.get("saving_kwh"),
+            "baseline_comfort_violation_min": row.get("baseline_comfort_violation_min"),
             "comfort_violation_min": row.get("comfort_violation_min"),
+            "ai_added_comfort_violation_min": row.get("ai_added_comfort_violation_min"),
+            "lighting_saving_kwh": row.get("lighting_saving_kwh"),
+            "hvac_saving_kwh": row.get("hvac_saving_kwh"),
+            "policy_violation_count": row.get("policy_violation_count"),
             "selected_trajectory": row.get("selected_trajectory"),
             "objective_score": row.get("objective_score"),
             "action_json": _json(actions_by_ts.get(ts, [])),
@@ -603,6 +652,8 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
         rows = fetch_all(conn, """
             SELECT d.date, d.baseline_kwh, d.ai_kwh, d.saving_kwh, d.saving_percent,
                    d.baseline_peak_kw, d.ai_peak_kw, d.comfort_violation_min,
+                   d.baseline_comfort_violation_min, d.ai_added_comfort_violation_min,
+                   d.lighting_saving_kwh, d.hvac_saving_kwh, d.policy_violation_count,
                    d.action_count
             FROM whatif_cache_daily d
             JOIN whatif_cache_runs r ON r.id = d.run_id
@@ -623,6 +674,8 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
             step_rows = fetch_all(conn, """
                 SELECT t.timestamp, t.baseline_kw, t.ai_kw, t.baseline_kwh,
                        t.ai_kwh, t.saving_kwh, t.comfort_violation_min,
+                       t.baseline_comfort_violation_min, t.ai_added_comfort_violation_min,
+                       t.lighting_saving_kwh, t.hvac_saving_kwh, t.policy_violation_count,
                        t.selected_trajectory, t.action_json
                 FROM whatif_cache_timestep t
                 JOIN whatif_cache_runs r ON r.id = t.run_id
@@ -637,6 +690,8 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
             step_rows = fetch_all(conn, """
                 SELECT t.timestamp, t.baseline_kw, t.ai_kw, t.baseline_kwh,
                        t.ai_kwh, t.saving_kwh, t.comfort_violation_min,
+                       t.baseline_comfort_violation_min, t.ai_added_comfort_violation_min,
+                       t.lighting_saving_kwh, t.hvac_saving_kwh, t.policy_violation_count,
                        t.selected_trajectory, t.action_json
                 FROM whatif_cache_timestep t
                 JOIN whatif_cache_runs r ON r.id = t.run_id
@@ -693,7 +748,12 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
             "baseline_loading_pct": round(base_kw / denom * 100.0, 3) if denom else 0.0,
             "optimized_loading_pct": round(ai_kw / denom * 100.0, 3) if denom else 0.0,
             "saving_kwh": round(_f(r["saving_kwh"]), 4),
+            "baseline_comfort_violation_min": round(_f(r.get("baseline_comfort_violation_min")), 2),
             "comfort_violation_min": round(_f(r["comfort_violation_min"]), 2),
+            "ai_added_comfort_violation_min": round(_f(r.get("ai_added_comfort_violation_min")), 2),
+            "lighting_saving_kwh": round(_f(r.get("lighting_saving_kwh")), 4),
+            "hvac_saving_kwh": round(_f(r.get("hvac_saving_kwh")), 4),
+            "policy_violation_count": int(_f(r.get("policy_violation_count"))),
             "selected_trajectory": r.get("selected_trajectory"),
         })
 
@@ -705,6 +765,11 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
         "optimized_setpoint_c": 0.0,
         "baseline_loading_pct": 0.0,
         "optimized_loading_pct": 0.0,
+        "baseline_comfort_violation_min": 0.0,
+        "ai_added_comfort_violation_min": 0.0,
+        "lighting_saving_kwh": 0.0,
+        "hvac_saving_kwh": 0.0,
+        "policy_violation_count": 0,
     })
     for point in timestep_series:
         rec = by_day_extra[point["date"]]
@@ -714,6 +779,9 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
             rec[key] += _f(point[key])
         rec["baseline_loading_pct"] = max(rec["baseline_loading_pct"], _f(point["baseline_loading_pct"]))
         rec["optimized_loading_pct"] = max(rec["optimized_loading_pct"], _f(point["optimized_loading_pct"]))
+        for key in ("baseline_comfort_violation_min", "ai_added_comfort_violation_min",
+                    "lighting_saving_kwh", "hvac_saving_kwh", "policy_violation_count"):
+            rec[key] += _f(point.get(key))
 
     daily = []
     for r in rows:
@@ -731,6 +799,11 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
             "optimized_setpoint_c": round(_f(extras.get("optimized_setpoint_c")) / n, 2) if n else None,
             "baseline_loading_pct": round(_f(extras.get("baseline_loading_pct")), 1) if n else None,
             "optimized_loading_pct": round(_f(extras.get("optimized_loading_pct")), 1) if n else None,
+            "baseline_comfort_violation_min": round(_f(extras.get("baseline_comfort_violation_min")), 2),
+            "ai_added_comfort_violation_min": round(_f(extras.get("ai_added_comfort_violation_min")), 2),
+            "lighting_saving_kwh": round(_f(extras.get("lighting_saving_kwh")), 2),
+            "hvac_saving_kwh": round(_f(extras.get("hvac_saving_kwh")), 2),
+            "policy_violation_count": int(_f(extras.get("policy_violation_count"))),
         })
     baseline = sum(_f(r["baseline_kwh"]) for r in rows)
     optimized = sum(_f(r["ai_kwh"]) for r in rows)
@@ -739,6 +812,11 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
         _f(r["baseline_peak_kw"]) - _f(r["ai_peak_kw"]) for r in rows
     ]
     comfort = sum(_f(r["comfort_violation_min"]) for r in rows)
+    baseline_comfort = sum(_f(r.get("baseline_comfort_violation_min")) for r in rows)
+    ai_added_comfort = sum(_f(r.get("ai_added_comfort_violation_min")) for r in rows)
+    lighting_saving = sum(_f(r.get("lighting_saving_kwh")) for r in rows)
+    hvac_saving = sum(_f(r.get("hvac_saving_kwh")) for r in rows)
+    policy_violations = sum(int(_f(r.get("policy_violation_count"))) for r in rows)
     series = []
     if effective_resolution == "timestep":
         series = timestep_series
@@ -776,7 +854,12 @@ def read_cache_response(*, mode: str = CONTROL_MODE, date_from: str | None = Non
             "peak_reduction_kw": round(
                 sum(peak_reduction_values) / len(peak_reduction_values), 2
             ) if peak_reduction_values else 0.0,
+            "baseline_comfort_violation_min": round(baseline_comfort, 1),
             "comfort_violation_delta_min": round(comfort, 1),
+            "ai_added_comfort_violation_min": round(ai_added_comfort, 1),
+            "lighting_saving_kwh": round(lighting_saving, 1),
+            "hvac_saving_kwh": round(hvac_saving, 1),
+            "policy_violation_count": int(policy_violations),
             "co2_avoided_kg": round(saving * GRID_CO2_KG_PER_KWH, 1),
             "days": len(daily),
         },
@@ -834,7 +917,13 @@ def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | Non
             total_row = fetch_one(conn, """
                 SELECT COALESCE(sum(d.baseline_kwh), 0) AS baseline_kwh,
                        COALESCE(sum(d.ai_kwh), 0) AS ai_kwh,
-                       COALESCE(sum(d.saving_kwh), 0) AS saving_kwh
+                       COALESCE(sum(d.saving_kwh), 0) AS saving_kwh,
+                       COALESCE(sum(d.lighting_saving_kwh), 0) AS lighting_saving_kwh,
+                       COALESCE(sum(d.hvac_saving_kwh), 0) AS hvac_saving_kwh,
+                       COALESCE(sum(d.baseline_comfort_violation_min), 0) AS baseline_comfort_violation_min,
+                       COALESCE(sum(d.comfort_violation_min), 0) AS ai_comfort_violation_min,
+                       COALESCE(sum(d.ai_added_comfort_violation_min), 0) AS ai_added_comfort_violation_min,
+                       COALESCE(sum(d.policy_violation_count), 0) AS policy_violation_count
                 FROM whatif_cache_daily d
                 JOIN whatif_cache_runs r ON r.id = d.run_id
                 WHERE r.cache_key = :cache_key
@@ -858,6 +947,12 @@ def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | Non
     baseline_kwh = _f((total_row or {}).get("baseline_kwh"))
     ai_kwh = _f((total_row or {}).get("ai_kwh"))
     saving_kwh = _f((total_row or {}).get("saving_kwh"))
+    lighting_saving_kwh = _f((total_row or {}).get("lighting_saving_kwh"))
+    hvac_saving_kwh = _f((total_row or {}).get("hvac_saving_kwh"))
+    baseline_comfort_min = _f((total_row or {}).get("baseline_comfort_violation_min"))
+    ai_comfort_min = _f((total_row or {}).get("ai_comfort_violation_min"))
+    ai_added_comfort_min = _f((total_row or {}).get("ai_added_comfort_violation_min"))
+    policy_violation_count = int(_f((total_row or {}).get("policy_violation_count")))
     saving_percent = saving_kwh / baseline_kwh * 100.0 if baseline_kwh else 0.0
     summary = {
         "dataset_key": ds.key,
@@ -877,6 +972,12 @@ def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | Non
         "ai_kwh": round(ai_kwh, 3),
         "saving_kwh": round(saving_kwh, 3),
         "saving_percent": round(saving_percent, 3),
+        "lighting_saving_kwh": round(lighting_saving_kwh, 3),
+        "hvac_saving_kwh": round(hvac_saving_kwh, 3),
+        "baseline_comfort_violation_min": round(baseline_comfort_min, 3),
+        "ai_comfort_violation_min": round(ai_comfort_min, 3),
+        "ai_added_comfort_violation_min": round(ai_added_comfort_min, 3),
+        "policy_violation_count": policy_violation_count,
         "min_saving_percent": float(min_saving_percent),
         "source": "precomputed_cache" if cache_key else "missing",
     }
@@ -888,6 +989,8 @@ def validate_cache_range(*, date_from: str, date_to: str, scenario_id: str | Non
         "errors": len(error_rows) == 0,
         "saving_positive": saving_kwh > 0,
         "saving_threshold": saving_percent >= float(min_saving_percent),
+        "policy_ok": policy_violation_count == 0,
+        "comfort_tradeoff_ok": ai_added_comfort_min <= 1e-6,
     }
     summary["ok"] = all(summary["checks"].values())
     return summary
