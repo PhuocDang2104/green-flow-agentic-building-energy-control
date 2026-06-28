@@ -10,8 +10,10 @@ stable canonical names; everything unmapped is preserved verbatim in
 from __future__ import annotations
 
 import math
+import os
 from pathlib import Path
 
+from ..config import get_settings
 from ..datasets import active_dataset
 
 # repo root: backend/greenflow/electrical/config.py -> parents[3]
@@ -55,7 +57,16 @@ DUCKDB_FILE = ACTIVE_DATASET.duckdb_path
 
 # ----- outputs -----
 OUT_ELEC = ACTIVE_DATASET.electrical_out
-OUT_KG = DATA / "knowledge_graph_build"
+
+
+def _resolve_output(path: str | Path) -> Path:
+    p = Path(path)
+    return p if p.is_absolute() else ROOT / p
+
+
+OUT_KG = _resolve_output(
+    os.environ.get("GREENFLOW_KG_OUT") or (get_settings().storage_path / "knowledge_graph_build")
+)
 OUT_AUDIT = OUT_KG / "audit"
 OUT_MAPPING = OUT_KG / "mapping"
 OUT_ENERGY = OUT_KG / "energy"

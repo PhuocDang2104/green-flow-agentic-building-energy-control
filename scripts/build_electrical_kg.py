@@ -4,7 +4,8 @@
   python scripts/build_electrical_kg.py --phase ele --phase alloc --phase timeseries
   python scripts/build_electrical_kg.py --all --load-db     # + Postgres + pgvector
 
-Outputs land in data/electrical_distribution/ and data/knowledge_graph_build/.
+Outputs land in GREENFLOW_ELECTRICAL_OUT and GREENFLOW_KG_OUT. In Docker these
+should point at /app/storage/* because /app/data is mounted read-only.
 """
 from __future__ import annotations
 

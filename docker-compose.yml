@@ -49,6 +49,7 @@ services:
       GREENFLOW_DATASET: elnino_2024_mar_apr
       GREENFLOW_SCENARIO_ID: elnino_2024_mar_apr_baseline
       GREENFLOW_ELECTRICAL_OUT: /app/storage/electrical_distribution_elnino
+      GREENFLOW_KG_OUT: /app/storage/knowledge_graph_build
       MLFLOW_TRACKING_URI: http://mlflow:5000
       GREENFLOW_MODEL_SOURCE: mlflow
       IDF_PATH: /app/data/greenflow_archetype.idf
