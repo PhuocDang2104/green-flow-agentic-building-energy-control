@@ -1,4 +1,4 @@
-import { ArrowDown, ArrowRight } from "lucide-react";
+import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
 import Skeleton from "@/components/shared/Skeleton";
 import type { HealthDimension, HealthScore } from "@/lib/types";
 
@@ -49,14 +49,14 @@ function scoreFrom(dimension: HealthDimension | undefined, fallback = 0) {
   return clampScore(dimension?.score ?? fallback);
 }
 
-function TargetIcon({ score, target }: { score: number; target: number }) {
-  const isStable = score >= target;
-  const Icon = isStable ? ArrowRight : ArrowDown;
+function TrendIcon({ score, target }: { score: number; target: number }) {
+  const delta = score - target;
+  const Icon = delta >= 8 ? ArrowUp : delta >= -7 ? ArrowRight : ArrowDown;
   return (
     <Icon
       size={24}
       strokeWidth={2.2}
-      className={isStable ? "text-slate-500" : "text-rose-500"}
+      className={delta >= 8 ? "text-emerald-500" : delta >= -7 ? "text-slate-500" : "text-rose-500"}
       aria-hidden="true"
     />
   );
@@ -105,7 +105,7 @@ function ScoreGauge({ score, target }: { score: number; target: number }) {
       </svg>
       <div className="absolute inset-x-0 top-[46px] flex items-center justify-center gap-1">
         <span className="text-[38px] font-medium leading-none text-slate-700 tabular-nums">{score}</span>
-        <TargetIcon score={score} target={target} />
+        <TrendIcon score={score} target={target} />
       </div>
       <div className="absolute inset-x-0 top-[88px] text-center text-[14px] font-semibold text-slate-400">
         Target: {target}
@@ -127,7 +127,7 @@ function MetricRow({ row }: { row: ScoreRow }) {
       </div>
       <div className="flex items-center gap-3 text-[16px] font-semibold text-slate-500 tabular-nums">
         <span>{row.score}</span>
-        <TargetIcon score={row.score} target={75} />
+        <TrendIcon score={row.score} target={75} />
       </div>
     </div>
   );
@@ -249,9 +249,16 @@ export default function BuildingHealthCard({ health }: { health: HealthScore | n
 
   return (
     <section className="space-y-3" aria-label="Building Performance Index">
-      <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-slate-800">
-        Building Performance Index
-      </h2>
+      <div className="flex flex-wrap items-center justify-between gap-3">
+        <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-slate-800">
+          Building Performance Index
+        </h2>
+        <div className="flex flex-wrap items-center gap-4 text-[12px] font-semibold text-slate-500">
+          <span className="inline-flex items-center gap-1.5"><ArrowUp size={14} className="text-emerald-500" /> Up</span>
+          <span className="inline-flex items-center gap-1.5"><ArrowRight size={14} className="text-slate-500" /> Side</span>
+          <span className="inline-flex items-center gap-1.5"><ArrowDown size={14} className="text-rose-500" /> Down</span>
+        </div>
+      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
         {panels.map((panel) => (
           <ScorePanel key={panel.title} panel={panel} />

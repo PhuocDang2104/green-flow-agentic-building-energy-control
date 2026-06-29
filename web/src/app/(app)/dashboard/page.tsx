@@ -99,10 +99,9 @@ export default function DashboardPage() {
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <KpiCard title="Total Load" value={fmtKw(totalKw)} loading={!kpis}
-                 delta={kpis?.kwh != null ? `${Number(kpis.kwh).toFixed(0)} kWh today` : undefined}
                  status={energyBand.tone} statusLabel={health ? energyBand.label : undefined}
                  help={{
-                   summary: "The sum of current power across all zones. The secondary value is calendar-day energy consumed so far.",
+                   summary: "Current building-wide electrical demand.",
                    statusReason: energyHealth
                      ? `${energyBand.label}: Energy / demand score ${energyHealth.score}/100. ${energyHealth.detail}. The color follows demand risk, not the absolute kW alone.`
                      : "Demand-risk status is unavailable until the health score loads.",
@@ -110,10 +109,9 @@ export default function DashboardPage() {
                    timestamp: updatedAt,
                  }} />
         <KpiCard title="Peak Risk" value={kpis?.peak_high ? "High" : "Normal"} loading={!kpis}
-                 delta={`${kpis?.peak_high ?? 0} of ${zoneCount || "–"} zones at high risk`}
                  status={energyBand.tone} statusLabel={health ? energyBand.label : undefined}
                  help={{
-                   summary: "Shows how many zones are currently classified as high peak-demand risk.",
+                   summary: "How many zones are currently in high peak-demand risk.",
                    statusReason: energyHealth
                      ? `${energyBand.label}: ${energyHealth.detail}, producing the same ${energyHealth.score}/100 Energy / demand score shown above.`
                      : "Peak-risk status is unavailable until the health score loads.",
@@ -122,10 +120,9 @@ export default function DashboardPage() {
                  }} />
         <KpiCard title="Comfort" value={`${kpis?.comfort_high ?? 0} high risk`}
                  loading={!kpis}
-                 delta={`${kpis?.comfort_watch ?? 0} watch`}
                  status={comfortBand.tone} statusLabel={health ? comfortBand.label : undefined}
                  help={{
-                   summary: "Counts zones outside the thermal-comfort target. High-risk zones carry twice the penalty of watch zones.",
+                   summary: "Zones outside the thermal-comfort target, weighted by severity.",
                    statusReason: comfortHealth
                      ? `${comfortBand.label}: Thermal comfort score ${comfortHealth.score}/100. ${comfortHealth.detail}. This matches the score shown above.`
                      : "Comfort status is unavailable until the health score loads.",
@@ -133,10 +130,9 @@ export default function DashboardPage() {
                    timestamp: updatedAt,
                  }} />
         <KpiCard title="Occupancy" value={`${occupancy ?? "–"} people`} loading={!kpis}
-                 delta={kpis?.occ_conf != null ? `${fmtPct(kpis.occ_conf)} confidence` : undefined}
                  status={occupancyBand.tone} statusLabel={kpis?.occ_conf != null ? occupancyBand.label : undefined}
                  help={{
-                   summary: "Estimated people currently present across the building. Count quality is expressed by occupancy confidence.",
+                   summary: "Estimated people currently present across the building.",
                    statusReason: kpis?.occ_conf != null
                      ? `${occupancyBand.label}: current occupancy confidence is ${fmtPct(kpis.occ_conf)}.`
                      : "Occupancy confidence is not available.",
