@@ -620,8 +620,8 @@ function flyToStructurePresentationView(viewer: any, objectMap: Record<string, O
     .filter(([, entry]) => ["architecture", "structural", "fenestration"].includes(entry.layer))
     .map(([id]) => id)
     .filter((id) => viewer.scene.objects[id]);
-  const aabb = viewer.scene.getAABB(ids.length ? ids : viewer.scene.visibleObjectIds);
-  if (!aabb || aabb.some((v: number) => !Number.isFinite(v))) {
+  const aabb = normalizeAABB(viewer.scene.getAABB(ids.length ? ids : viewer.scene.visibleObjectIds));
+  if (!aabb) {
     viewer.cameraFlight.flyTo({
       eye: [72, 34, 86],
       look: [0, 8, 0],
@@ -873,7 +873,8 @@ function getBuildingAABB(
 ) {
   const modelAABBs = ["architecture", "structural", "fenestration"]
     .map((key) => models[key]?.aabb)
-    .filter((aabb) => Array.isArray(aabb) && aabb.length >= 6 && aabb.every((v: number) => Number.isFinite(v)));
+    .map(normalizeAABB)
+    .filter(Boolean) as number[][];
   if (modelAABBs.length) return unionAABBs(modelAABBs);
 
   const ids = Object.entries(objectMap)
@@ -881,12 +882,30 @@ function getBuildingAABB(
     .map(([id]) => id)
     .filter((id) => viewer.scene.objects[id]);
   const visible = viewer.scene.visibleObjectIds || [];
-  const aabb = viewer.scene.getAABB(ids.length ? ids : visible);
-  if (aabb && aabb.every((v: number) => Number.isFinite(v))) return aabb;
+  const aabb = normalizeAABB(viewer.scene.getAABB(ids.length ? ids : visible));
+  if (aabb) return aabb;
 
   // Conservative fallback: matches the default camera extents closely enough
   // to keep the site visible even before all XKT metadata resolves.
   return [-34, -2, -18, 34, 24, 18];
+}
+
+function normalizeAABB(aabb: any): number[] | null {
+  if (!aabb || aabb.length < 6) return null;
+  const values = Array.from(aabb as ArrayLike<number>).slice(0, 6);
+  if (values.some((v) => !Number.isFinite(v))) return null;
+  const [xmin, ymin, zmin, xmax, ymax, zmax] = values;
+  const dx = xmax - xmin;
+  const dy = ymax - ymin;
+  const dz = zmax - zmin;
+  if (dx <= 0 || dy <= 0 || dz <= 0) return null;
+  // xeokit returns +/- Number.MAX_SAFE_INTEGER sentinels before some model AABBs
+  // are initialized. Treat any absurd range as invalid and fall back.
+  if (Math.max(Math.abs(xmin), Math.abs(ymin), Math.abs(zmin), Math.abs(xmax), Math.abs(ymax), Math.abs(zmax)) > 1_000_000) {
+    return null;
+  }
+  if (Math.max(dx, dy, dz) > 10_000) return null;
+  return values;
 }
 
 function unionAABBs(aabbs: number[][]) {
@@ -908,8 +927,8 @@ function estimateGradeY(viewer: any, objectMap: Record<string, ObjectMapEntry>, 
   for (const [id, entry] of Object.entries(objectMap)) {
     if (!["architecture", "structural", "fenestration", "spaces"].includes(entry.layer)) continue;
     const entity = viewer.scene.objects[id];
-    const aabb = entity?.aabb;
-    if (!aabb || !Number.isFinite(aabb[1])) continue;
+    const aabb = normalizeAABB(entity?.aabb);
+    if (!aabb) continue;
     const floor = `${entry.floor_key || ""} ${entry.name || ""}`.toLowerCase();
     all.push(aabb[1]);
     const isBasement = floor.includes("basement") || floor.includes("kellari");
