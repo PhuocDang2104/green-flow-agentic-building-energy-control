@@ -57,6 +57,19 @@ const STRUCTURAL_DEFAULT_LAYERS: Record<string, boolean> = {
   electrical: false,
 };
 
+const STRUCTURE_LOADER_DEFAULTS = {
+  IfcWall: { colorize: [0.86, 0.84, 0.77], opacity: 1 },
+  IfcWallStandardCase: { colorize: [0.86, 0.84, 0.77], opacity: 1 },
+  IfcSlab: { colorize: [0.82, 0.81, 0.76], opacity: 1 },
+  IfcBuildingElementProxy: { colorize: [0.82, 0.8, 0.74], opacity: 1 },
+  IfcRoof: { colorize: [0.15, 0.25, 0.13], opacity: 1 },
+  IfcCovering: { colorize: [0.58, 0.42, 0.3], opacity: 1 },
+  IfcCurtainWall: { colorize: [0.45, 0.72, 0.78], opacity: 0.42 },
+  IfcWindow: { colorize: [0.45, 0.78, 0.84], opacity: 0.42 },
+  IfcBeam: { colorize: [0.38, 0.38, 0.35], opacity: 0.34 },
+  IfcColumn: { colorize: [0.36, 0.36, 0.33], opacity: 0.3 },
+};
+
 export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightClass?: string }) {
   const wrapRef = useRef<HTMLDivElement | null>(null);
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
@@ -68,6 +81,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const occupancyModelRef = useRef<any>(null);
   const alertModelRef = useRef<any>(null);
   const structureContextModelRef = useRef<any>(null);
+  const structureContextUsedFallbackRef = useRef(false);
   const wasStructuralOnRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [geometryVersion, setGeometryVersion] = useState(0);
@@ -140,6 +154,9 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
               saoEnabled: false,
               edges: true,
               renderOrder: LAYER_RENDER_ORDER[layerKey] ?? 0,
+              objectDefaults: ["architecture", "structural", "fenestration"].includes(layerKey)
+                ? STRUCTURE_LOADER_DEFAULTS
+                : undefined,
             } as any);
             (model as any).visible = asset.default_visible;
             (model as any).renderOrder = LAYER_RENDER_ORDER[layerKey] ?? 0;
@@ -152,9 +169,15 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
             model.on("loaded", () => {
               styleDefaults(viewer);
               setGeometryVersion((v) => v + 1);
+              window.setTimeout(() => {
+                if (useAppStore.getState().layers.structural) {
+                  forceStructureShellVisible(modelsRef.current, useAppStore.getState().layers.architecture);
+                  flyToStructurePresentationView(viewer, objectMapRef.current, modelsRef.current, 0.35);
+                }
+              }, 250);
               if (!firstLoaded) {
                 firstLoaded = true;
-                flyToStructurePresentationView(viewer, objectMapRef.current, 0.8);
+                flyToStructurePresentationView(viewer, objectMapRef.current, modelsRef.current, 0.8);
               }
             });
             model.on("error", (e: any) =>
@@ -249,6 +272,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       alertModelRef.current = null;
       structureContextModelRef.current?.destroy?.();
       structureContextModelRef.current = null;
+      structureContextUsedFallbackRef.current = false;
       viewerRef.current?.destroy?.();
       viewerRef.current = null;
       modelsRef.current = {};
@@ -301,6 +325,11 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     }
     if (structuralOn) {
       let contextCreated = false;
+      if (structureContextModelRef.current && structureContextUsedFallbackRef.current && geometryVersion > 1) {
+        structureContextModelRef.current.destroy?.();
+        structureContextModelRef.current = null;
+        structureContextUsedFallbackRef.current = false;
+      }
       if (!structureContextModelRef.current) {
         try {
           structureContextModelRef.current = createStructureContextModel(
@@ -309,9 +338,11 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
             objectMapRef.current,
             modelsRef.current,
           );
+          structureContextUsedFallbackRef.current = !!structureContextModelRef.current?.__greenflowFallbackAABB;
         } catch (err) {
           console.warn("Structure site context failed; keeping building geometry visible.", err);
           structureContextModelRef.current = null;
+          structureContextUsedFallbackRef.current = false;
         }
         contextCreated = !!structureContextModelRef.current;
       }
@@ -324,11 +355,12 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       }
       forceStructureShellVisible(modelsRef.current, architectureOn);
       if (!wasStructuralOnRef.current || contextCreated) {
-        flyToStructurePresentationView(viewer, objectMapRef.current, 0.7);
+        flyToStructurePresentationView(viewer, objectMapRef.current, modelsRef.current, 0.7);
       }
     } else {
       if (structureContextModelRef.current) structureContextModelRef.current.visible = false;
       resetStructurePresentationStyle(viewer, objectMapRef.current);
+      resetStructureModelStyle(modelsRef.current);
     }
     wasStructuralOnRef.current = structuralOn;
 
@@ -543,7 +575,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     const viewer = viewerRef.current;
     if (!viewer) return;
     if (layers.structural) {
-      flyToStructurePresentationView(viewer, objectMapRef.current, 0.6);
+      flyToStructurePresentationView(viewer, objectMapRef.current, modelsRef.current, 0.6);
     } else {
       flyToDefaultBuildingView(viewer, 0.6);
     }
@@ -615,21 +647,14 @@ function flyToDefaultBuildingView(viewer: any, duration = 0.8) {
   });
 }
 
-function flyToStructurePresentationView(viewer: any, objectMap: Record<string, ObjectMapEntry>, duration = 0.8) {
-  const ids = Object.entries(objectMap)
-    .filter(([, entry]) => ["architecture", "structural", "fenestration"].includes(entry.layer))
-    .map(([id]) => id)
-    .filter((id) => viewer.scene.objects[id]);
-  const aabb = normalizeAABB(viewer.scene.getAABB(ids.length ? ids : viewer.scene.visibleObjectIds));
-  if (!aabb) {
-    viewer.cameraFlight.flyTo({
-      eye: [72, 34, 86],
-      look: [0, 8, 0],
-      up: [0, 1, 0],
-      duration,
-    });
-    return;
-  }
+function flyToStructurePresentationView(
+  viewer: any,
+  objectMap: Record<string, ObjectMapEntry>,
+  models: Record<string, any>,
+  duration = 0.8,
+) {
+  const aabb = getBuildingAABB(viewer, objectMap, models);
+  if (!aabb) return;
 
   const [xmin, ymin, zmin, xmax, ymax, zmax] = aabb;
   const dx = Math.max(1, xmax - xmin);
@@ -641,8 +666,8 @@ function flyToStructurePresentationView(viewer: any, objectMap: Record<string, O
   const diag = Math.hypot(dx, dy, dz);
 
   viewer.cameraFlight.flyTo({
-    eye: [cx + diag * 0.72, cy + dy * 0.78, cz + diag * 1.02],
-    look: [cx, cy + dy * 0.12, cz],
+    eye: [cx + diag * 0.52, cy + Math.max(34, dy * 1.12), cz + diag * 0.72],
+    look: [cx + dx * 0.03, cy + dy * 0.1, cz],
     up: [0, 1, 0],
     duration,
   });
@@ -652,19 +677,33 @@ function forceStructureShellVisible(models: Record<string, any>, architectureOn:
   if (models.structural) {
     models.structural.visible = true;
     models.structural.xrayed = false;
-    models.structural.opacity = 0.42;
+    models.structural.colorize = [0.58, 0.57, 0.52];
+    models.structural.opacity = 0.26;
     models.structural.renderOrder = LAYER_RENDER_ORDER.structural;
   }
   if (models.fenestration) {
     models.fenestration.visible = true;
     models.fenestration.xrayed = false;
+    models.fenestration.colorize = [0.54, 0.84, 0.9];
+    models.fenestration.opacity = 0.46;
     models.fenestration.renderOrder = LAYER_RENDER_ORDER.fenestration;
   }
   if (!architectureOn && models.architecture) {
     models.architecture.visible = true;
     models.architecture.pickable = false;
+    models.architecture.colorize = [1.0, 0.92, 0.74];
     models.architecture.opacity = 1;
     models.architecture.renderOrder = LAYER_RENDER_ORDER.architecture;
+  }
+}
+
+function resetStructureModelStyle(models: Record<string, any>) {
+  for (const key of ["architecture", "structural", "fenestration"]) {
+    const model = models[key];
+    if (!model) continue;
+    model.colorize = null;
+    model.opacity = 1;
+    model.xrayed = false;
   }
 }
 
@@ -788,10 +827,11 @@ function createStructureContextModel(
   const dz = Math.max(20, zmax - zmin);
   const cx = (xmin + xmax) / 2;
   const cz = (zmin + zmax) / 2;
-  const isFallbackAABB = xmin === -34 && ymin === -2 && zmin === -18 && xmax === 34 && zmax === 18;
-  const gradeY = isFallbackAABB ? 0 : estimateGradeY(viewer, objectMap, ymin);
+  const isFallbackAABB = isStructureFallbackAABB(aabb);
+  const estimatedGradeY = isFallbackAABB ? 0 : estimateGradeY(viewer, objectMap, ymin);
+  const gradeY = isFallbackAABB ? 0 : chooseStructureGradeY(ymin, ymaxFromAABB(aabb), estimatedGradeY);
   const groundY = Math.abs(gradeY) > 1000 ? 0.02 : gradeY + 0.018;
-  const pad = Math.max(dx, dz) * 0.85;
+  const pad = Math.max(dx, dz) * 1.12;
   viewer.scene.models?.structure_site_context?.destroy?.();
   const model = new SceneModel(viewer.scene, {
     id: "structure_site_context",
@@ -813,14 +853,20 @@ function createStructureContextModel(
       xmax + Math.max(18, dx * 0.3),
       zmax + Math.max(12, dz * 0.34),
     ];
+    const footprint: [number, number, number, number] = [
+      xmin - Math.max(2.5, dx * 0.035),
+      zmin - Math.max(2.5, dz * 0.055),
+      xmax + Math.max(2.5, dx * 0.035),
+      zmax + Math.max(2.5, dz * 0.055),
+    ];
 
     // Base slabs are deliberately solid-color boxes. They are the reliability
     // layer: even if texture UVs/images fail on a deployment, Structure mode
     // still shows a complete site/context instead of reverting to white.
     createBox(model, "structure_context_grass_base", [outer[0], groundY - 0.05, outer[1]],
       [outer[2], groundY + 0.002, outer[3]], [0.3, 0.51, 0.31], 1, 0.92);
-    createBox(model, "structure_context_concrete_plaza_base", [plaza[0], groundY + 0.004, plaza[1]],
-      [plaza[2], groundY + 0.03, plaza[3]], [0.72, 0.72, 0.66], 1, 0.88);
+    createRingSlab(model, "structure_context_concrete_plaza_base", plaza, footprint,
+      groundY + 0.004, groundY + 0.03, [0.72, 0.72, 0.66], 1);
     createBox(model, "structure_context_road_main_base",
       [outer[0], groundY + 0.006, cz + dz / 2 + pad * 0.36],
       [outer[2], groundY + 0.04, cz + dz / 2 + pad * 0.54],
@@ -830,8 +876,9 @@ function createStructureContextModel(
       [cx - dx / 2 - pad * 0.72, groundY + 0.041, outer[3]],
       [0.23, 0.24, 0.25], 1, 0.95);
 
-    createTexturedPlane(model, "structure_context_grass", outer, groundY + 0.008, [0.32, 0.5, 0.3], textures.grass, 7);
-    createTexturedPlane(model, "structure_context_concrete_plaza", plaza, groundY + 0.034, [0.69, 0.69, 0.64], textures.concrete, 4);
+    createTexturedPlane(model, "structure_context_grass", outer, groundY + 0.008, [0.27, 0.43, 0.27], textures.grass, 7);
+    createRingSurface(model, "structure_context_concrete_plaza", plaza, footprint,
+      groundY + 0.034, [0.69, 0.69, 0.64], textures.concrete, 4);
     createContextTexturePatches(model, outer, plaza, groundY + 0.04);
 
     createTexturedPlane(model, "structure_context_road_main",
@@ -854,7 +901,7 @@ function createStructureContextModel(
         [bx + dx * sx, groundY + 2.2 + i * 0.7, bz + dz * sz], [0.72, 0.72, 0.68], 0.5, 0.9);
     });
 
-    for (let i = 0; i < 34; i++) {
+    for (let i = 0; i < 40; i++) {
       const side = i % 2 === 0 ? -1 : 1;
       const row = Math.floor(i / 10);
       const tx = cx - dx * 0.82 + (i % 10) * dx * 0.18;
@@ -871,11 +918,13 @@ function createStructureContextModel(
   model.finalize();
   model.pickable = false;
   model.renderOrder = LAYER_RENDER_ORDER.structure_context;
+  model.__greenflowFallbackAABB = isFallbackAABB;
   console.info("Structure site context ready", {
     aabb: aabb.map((v: number) => Number(v.toFixed(2))),
     groundY: Number(groundY.toFixed(2)),
     dx: Number(dx.toFixed(2)),
     dz: Number(dz.toFixed(2)),
+    fallback: isFallbackAABB,
   });
   return model;
 }
@@ -895,13 +944,19 @@ function getBuildingAABB(
     .filter(([, entry]) => ["architecture", "structural", "fenestration"].includes(entry.layer))
     .map(([id]) => id)
     .filter((id) => viewer.scene.objects[id]);
-  const visible = viewer.scene.visibleObjectIds || [];
+  const visible = (viewer.scene.visibleObjectIds || [])
+    .filter((id: string) => !id.startsWith("structure_context_"));
   const aabb = normalizeAABB(viewer.scene.getAABB(ids.length ? ids : visible));
   if (aabb) return aabb;
 
   // Conservative fallback: matches the default camera extents closely enough
   // to keep the site visible even before all XKT metadata resolves.
-  return [-34, -2, -18, 34, 24, 18];
+  return [-65, 0, -48, 85, 30, 58];
+}
+
+function isStructureFallbackAABB(aabb: number[]) {
+  return aabb[0] === -65 && aabb[1] === 0 && aabb[2] === -48
+    && aabb[3] === 85 && aabb[4] === 30 && aabb[5] === 58;
 }
 
 function normalizeAABB(aabb: any): number[] | null {
@@ -959,6 +1014,24 @@ function estimateGradeY(viewer: any, objectMap: Record<string, ObjectMapEntry>, 
   if (nonBasement.length) return Math.min(...nonBasement);
   const unique = Array.from(new Set(all.map((v) => Number(v.toFixed(2))))).sort((a, b) => a - b);
   return unique[1] ?? unique[0] ?? fallbackY;
+}
+
+function ymaxFromAABB(aabb: number[]) {
+  return aabb[4] ?? aabb[1];
+}
+
+function chooseStructureGradeY(ymin: number, ymax: number, candidate: number) {
+  const dy = Math.max(1, ymax - ymin);
+  const lowerDatum = ymin < -0.5 ? 0 : ymin;
+  if (!Number.isFinite(candidate)) return lowerDatum;
+  // Per-object AABBs in some generated XKT metadata report floor objects near
+  // roof height. Reject those; grade must live close to the lower quarter of the
+  // building, never near the roof.
+  if (candidate < ymin - 0.25 || candidate > ymin + Math.max(3, dy * 0.25)) {
+    return lowerDatum;
+  }
+  if (ymin < -0.5 && candidate < -0.25) return 0;
+  return candidate;
 }
 
 function createRingSlab(
@@ -1060,7 +1133,7 @@ function createContextTexturePatches(
 ) {
   const [ox0, oz0, ox1, oz1] = outer;
   const [hx0, hz0, hx1, hz1] = hole;
-  for (let i = 0; i < 34; i++) {
+  for (let i = 0; i < 28; i++) {
     const rnd = seededRandom(`context_patch_${i}`);
     let x = ox0 + rnd() * (ox1 - ox0);
     let z = oz0 + rnd() * (oz1 - oz0);
@@ -1069,9 +1142,9 @@ function createContextTexturePatches(
     }
     const sx = 2.5 + rnd() * 6;
     const sz = 1.5 + rnd() * 5;
-    const green = 0.42 + rnd() * 0.16;
+    const green = 0.32 + rnd() * 0.08;
     createTexturedPlane(model, `structure_context_grass_patch_${i}`, [x - sx, z - sz, x + sx, z + sz], y + i * 0.0004,
-      [0.24, green, 0.24], undefined, 3);
+      [0.22, green, 0.2], undefined, 3);
   }
 }
 

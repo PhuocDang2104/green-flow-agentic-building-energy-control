@@ -306,7 +306,7 @@ function flyToSemanticMep(viewer: any) {
   const cz = (zmin + zmax) / 2;
   const diag = Math.hypot(dx, dy, dz);
   viewer.cameraFlight.flyTo({
-    eye: [cx + diag * 0.25, cy + dy * 0.32, cz + diag * 1.08],
+    eye: [cx + diag * 0.18, cy + dy * 0.28, cz + diag * 0.72],
     look: [cx, cy + dy * 0.05, cz],
     up: [0, 1, 0],
     duration: 0.5,
