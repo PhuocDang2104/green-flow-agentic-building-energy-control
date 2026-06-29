@@ -199,13 +199,6 @@ function ScorePanel({ panel }: { panel: PerformancePanel }) {
           {panel.rows.map((row) => (
             <MetricRow key={row.label} row={row} />
           ))}
-          <button
-            type="button"
-            className="mx-auto mt-4 block text-[15px] font-semibold text-blue-700 transition hover:text-blue-900 hover:underline"
-            title={panel.detail}
-          >
-            View Details
-          </button>
         </div>
       ) : (
         <div className="border-t border-slate-200 px-9 pb-8 pt-6">
