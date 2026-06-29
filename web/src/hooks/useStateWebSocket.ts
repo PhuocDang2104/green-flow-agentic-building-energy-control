@@ -16,8 +16,10 @@ export function useStateWebSocket() {
     let closed = false;
 
     const connect = () => {
+      const url = wsUrl(buildingId);
+      if (!url) return;
       try {
-        ws = new WebSocket(wsUrl(buildingId));
+        ws = new WebSocket(url);
       } catch {
         return;
       }
@@ -37,7 +39,7 @@ export function useStateWebSocket() {
       };
       ws.onclose = () => {
         setWsConnected(false);
-        if (!closed && retryRef.current < 10) {
+        if (!closed && retryRef.current < 3) {
           retryRef.current += 1;
           setTimeout(connect, 2000 * retryRef.current);
         }

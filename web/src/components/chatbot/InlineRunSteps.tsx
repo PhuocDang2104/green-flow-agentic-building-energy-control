@@ -4,6 +4,7 @@ import { useCallback, useEffect, useRef, useState } from "react";
 import { Check, ChevronRight, Loader2, ShieldAlert, X } from "lucide-react";
 import { motion, useReducedMotion } from "motion/react";
 import { api } from "@/lib/api";
+import { MANIFEST_URL } from "@/lib/constants";
 import type { AgentLog, AgentRun, Approval } from "@/lib/types";
 
 /** Stored node label -> kind, so we can attach a rich block under that step. */
@@ -16,8 +17,6 @@ const DOT: Record<string, string> = {
   completed: "#16A34A", warning: "#F59E0B", failed: "#DC2626",
   running: "#0F766E", degraded: "#F59E0B", skipped: "#94A3B8",
 };
-
-const BIM_PREVIEW = "/assets/landing/chatbot/optimization_agents_logging.png";
 
 function latencyChip(ms?: number) {
   return (
@@ -143,16 +142,181 @@ function PredictionBlock({ st }: { st: any }) {
   );
 }
 
-function SemanticPreview() {
+function SemanticMiniViewer() {
+  const canvasRef = useRef<HTMLCanvasElement | null>(null);
+  const viewerRef = useRef<any>(null);
+  const modelsRef = useRef<Record<string, any>>({});
+  const objectMapRef = useRef<Record<string, any>>({});
+  const [showElec, setShowElec] = useState(true);
+  const [showHvac, setShowHvac] = useState(true);
+  const [heatmap, setHeatmap] = useState(true);
+  const [ready, setReady] = useState(false);
+
+  useEffect(() => {
+    let disposed = false;
+    (async () => {
+      try {
+        const [{ Viewer, XKTLoaderPlugin }, manifestRes] = await Promise.all([
+          import("@xeokit/xeokit-sdk"),
+          fetch(MANIFEST_URL),
+        ]);
+        if (disposed || !canvasRef.current) return;
+        const manifest = await manifestRes.json();
+        const objectMap: any[] = await (await fetch(manifest.object_map_src)).json();
+        objectMapRef.current = Object.fromEntries(objectMap.map((o) => [o.xeokit_object_id, o]));
+
+        const viewer = new Viewer({
+          canvasElement: canvasRef.current,
+          transparent: true,
+          antialias: true,
+        } as any);
+        viewer.scene.gammaOutput = true;
+        viewer.cameraControl.followPointer = true;
+        viewerRef.current = viewer;
+
+        const loader = new XKTLoaderPlugin(viewer);
+        let loadedCount = 0;
+        const wanted = new Set(["architecture", "fenestration", "electrical", "hvac"]);
+        for (const asset of manifest.assets) {
+          const layer = asset.layer === "thermal_zones" ? "spaces" : asset.layer;
+          if (!wanted.has(layer)) continue;
+          const model = loader.load({
+            id: `semantic_${asset.model_id}`,
+            src: asset.src,
+            metaModelSrc: asset.metadata_src,
+            saoEnabled: layer === "electrical" || layer === "hvac",
+            edges: layer === "architecture",
+          } as any);
+          model.visible = layer === "electrical" || layer === "hvac" || layer === "fenestration";
+          model.pickable = false;
+          modelsRef.current[layer] = model;
+          model.on("loaded", () => {
+            loadedCount += 1;
+            styleSemanticObjects(viewer, objectMapRef.current, heatmap);
+            applySemanticVisibility(modelsRef.current, showElec, showHvac);
+            if (loadedCount === 1) flyToSemanticMep(viewer);
+            setReady(true);
+          });
+        }
+      } catch (err) {
+        console.error("semantic mini viewer failed", err);
+      }
+    })();
+    return () => {
+      disposed = true;
+      viewerRef.current?.destroy?.();
+      viewerRef.current = null;
+      modelsRef.current = {};
+    };
+    // init once; button effects below update visibility/style.
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  useEffect(() => {
+    applySemanticVisibility(modelsRef.current, showElec, showHvac);
+  }, [showElec, showHvac]);
+
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (viewer) styleSemanticObjects(viewer, objectMapRef.current, heatmap);
+  }, [heatmap]);
+
   return (
-    <div className="mt-2 overflow-hidden rounded-xl border border-border bg-white p-1.5">
-      <img
-        src={BIM_PREVIEW}
-        alt="3D HVAC and electrical semantic preview"
-        className="h-32 w-full rounded-lg object-cover object-[50%_24%]"
-      />
+    <div className="mt-2 overflow-hidden rounded-xl border border-border bg-white">
+      <div className="flex items-center gap-1 border-b border-border/70 bg-surface-muted/40 px-2 py-1.5">
+        {[
+          ["ELEC", showElec, setShowElec],
+          ["HVAC", showHvac, setShowHvac],
+          ["Heatmap", heatmap, setHeatmap],
+        ].map(([label, on, setter]: any) => (
+          <button
+            key={label}
+            type="button"
+            onClick={() => setter(!on)}
+            className={`rounded-md px-2 py-1 text-[10px] font-semibold transition ${
+              on ? "bg-teal text-white" : "bg-white text-text-secondary ring-1 ring-border"
+            }`}
+          >
+            {label}
+          </button>
+        ))}
+        <span className="ml-auto text-[10px] text-text-muted">orbit / zoom</span>
+      </div>
+      <div className="relative h-40 bg-white">
+        <canvas ref={canvasRef} className="h-full w-full" />
+        {!ready && (
+          <div className="absolute inset-0 grid place-items-center text-[11px] text-text-muted">
+            loading 3D semantic systems...
+          </div>
+        )}
+      </div>
     </div>
   );
+}
+
+function applySemanticVisibility(models: Record<string, any>, showElec: boolean, showHvac: boolean) {
+  if (models.architecture) models.architecture.visible = false;
+  if (models.fenestration) models.fenestration.visible = true;
+  if (models.electrical) models.electrical.visible = showElec;
+  if (models.hvac) models.hvac.visible = showHvac;
+}
+
+function styleSemanticObjects(viewer: any, objectMap: Record<string, any>, heatmap: boolean) {
+  for (const [id, entry] of Object.entries(objectMap)) {
+    const entity = viewer.scene.objects[id] || viewer.scene.objects[`semantic_${id}`];
+    if (!entity) continue;
+    if (entry.layer === "electrical") {
+      const t = heatmap ? semanticStableUnit(id) : 0.35;
+      entity.colorize = t > 0.72 ? [0.95, 0.34, 0.12] : t > 0.42 ? [0.95, 0.63, 0.12] : [0.1, 0.45, 0.9];
+      entity.opacity = 1;
+      entity.xrayed = false;
+      entity.edges = false;
+    } else if (entry.layer === "hvac") {
+      const t = heatmap ? semanticStableUnit(`${id}:hvac`) : 0.25;
+      entity.colorize = t > 0.68 ? [0.03, 0.5, 0.95] : [0.18, 0.72, 0.88];
+      entity.opacity = 0.88;
+      entity.xrayed = false;
+      entity.edges = false;
+    } else if (entry.layer === "fenestration") {
+      entity.colorize = [0.55, 0.82, 0.9];
+      entity.opacity = 0.16;
+      entity.pickable = false;
+    } else if (entry.layer === "architecture") {
+      entity.colorize = [0.74, 0.77, 0.78];
+      entity.opacity = 0.08;
+      entity.pickable = false;
+    }
+  }
+  if (viewer.scene?.sao) {
+    viewer.scene.sao.enabled = true;
+    viewer.scene.sao.intensity = 0.1;
+  }
+}
+
+function flyToSemanticMep(viewer: any) {
+  const ids = viewer.scene.visibleObjectIds;
+  const aabb = viewer.scene.getAABB(ids);
+  if (!aabb || aabb.some((v: number) => !Number.isFinite(v))) return;
+  const [xmin, ymin, zmin, xmax, ymax, zmax] = aabb;
+  const dx = Math.max(1, xmax - xmin);
+  const dy = Math.max(1, ymax - ymin);
+  const dz = Math.max(1, zmax - zmin);
+  const cx = (xmin + xmax) / 2;
+  const cy = (ymin + ymax) / 2;
+  const cz = (zmin + zmax) / 2;
+  const diag = Math.hypot(dx, dy, dz);
+  viewer.cameraFlight.flyTo({
+    eye: [cx + diag * 0.25, cy + dy * 0.32, cz + diag * 1.08],
+    look: [cx, cy + dy * 0.05, cz],
+    up: [0, 1, 0],
+    duration: 0.5,
+  });
+}
+
+function semanticStableUnit(seed: string): number {
+  let h = 2166136261;
+  for (let i = 0; i < seed.length; i++) h = Math.imul(h ^ seed.charCodeAt(i), 16777619);
+  return ((h >>> 0) % 1000) / 1000;
 }
 
 /** Control node -> selected actions with policy verdicts and approval controls. */
@@ -325,7 +489,7 @@ export default function InlineRunSteps({ runId, action }: { runId: string; actio
                   </div>
                   {latencyChip(l.duration_ms)}
                 </div>
-                {l.node === "Building Semantic Agent" && <SemanticPreview />}
+                {l.node === "Building Semantic Agent" && <SemanticMiniViewer />}
                 {kind === "prediction" && <PredictionBlock st={st} />}
                 {kind === "control" && (
                   <ControlBlock st={st} approvals={approvals} busyId={busyId} onDecide={decide} />

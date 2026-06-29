@@ -9,15 +9,28 @@ import type {
 } from "./types";
 
 const BASE = process.env.NEXT_PUBLIC_API_BASE || "/api";
+const FALLBACK_REMOTE_API_BASE =
+  process.env.NEXT_PUBLIC_FALLBACK_API_BASE || "https://greenflow-api.duckdns.org/api";
+const EXPLICIT_WS_BASE = process.env.NEXT_PUBLIC_WS_BASE || "";
+
+function runtimeApiBase(): string {
+  if (typeof window === "undefined") return BASE;
+  if (BASE !== "/api") return BASE;
+  // Vercel cannot proxy backend WebSockets through the static app host. The
+  // GreenFlow cloud API is the stable runtime fallback when env vars are not
+  // injected during the frontend build.
+  if (window.location.hostname.endsWith(".vercel.app")) return FALLBACK_REMOTE_API_BASE;
+  return BASE;
+}
 
 async function get<T>(path: string): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, { cache: "no-store" });
+  const res = await fetch(`${runtimeApiBase()}${path}`, { cache: "no-store" });
   if (!res.ok) throw new Error(`GET ${path} -> ${res.status}`);
   return res.json();
 }
 
 async function post<T>(path: string, body: unknown = {}): Promise<T> {
-  const res = await fetch(`${BASE}${path}`, {
+  const res = await fetch(`${runtimeApiBase()}${path}`, {
     method: "POST",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(body),
@@ -31,12 +44,12 @@ export const api = {
   transcribe: async (blob: Blob): Promise<{ text: string }> => {
     const fd = new FormData();
     fd.append("file", blob, "audio.webm");
-    const res = await fetch(`${BASE}/voice/transcribe`, { method: "POST", body: fd });
+    const res = await fetch(`${runtimeApiBase()}/voice/transcribe`, { method: "POST", body: fd });
     if (!res.ok) throw new Error(`transcribe -> ${res.status}`);
     return res.json();
   },
   speak: async (text: string): Promise<Blob> => {
-    const res = await fetch(`${BASE}/voice/speak`, {
+    const res = await fetch(`${runtimeApiBase()}/voice/speak`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ text }),
@@ -80,7 +93,7 @@ export const api = {
   modelInfo: () => get<any>("/ml/model-info"),
   chatSessions: () => get<ChatSessionSummary[]>("/chat/sessions"),
   deleteSession: async (id: string): Promise<void> => {
-    const res = await fetch(`${BASE}/chat/sessions/${id}`, { method: "DELETE" });
+    const res = await fetch(`${runtimeApiBase()}/chat/sessions/${id}`, { method: "DELETE" });
     if (!res.ok) throw new Error(`delete session -> ${res.status}`);
   },
   chatSessionMessages: (sessionId: string) =>
@@ -122,7 +135,7 @@ export const api = {
     apply_ai: boolean; strategy?: string; horizon_minutes?: number; label?: string;
   }) => post<{ run_id: string; status: string; mode: string }>("/simulations/scenario", payload),
   deleteSimulation: async (id: string): Promise<void> => {
-    const res = await fetch(`${BASE}/simulations/${id}`, { method: "DELETE" });
+    const res = await fetch(`${runtimeApiBase()}/simulations/${id}`, { method: "DELETE" });
     if (!res.ok) throw new Error(`delete simulation -> ${res.status}`);
   },
   // period (campaign) what-if: building WITHOUT AI vs WITH a fixed policy
@@ -227,18 +240,28 @@ export const api = {
 // `/media/...` is under the API's /api prefix; legacy `/storage/...` is at the
 // API root. Works same-origin (BASE="/api") and cross-origin on Vercel
 // (BASE="https://host/api").
-const API_ORIGIN = BASE.replace(/\/api\/?$/, "");
 export function mediaUrl(path: string | null | undefined): string {
   if (!path) return "";
   if (/^https?:\/\//.test(path)) return path;
-  if (path.startsWith("/media")) return `${BASE}${path}`;
-  return `${API_ORIGIN}${path.startsWith("/") ? path : "/" + path}`;
+  const base = runtimeApiBase();
+  const apiOrigin = base.replace(/\/api\/?$/, "");
+  if (path.startsWith("/media")) return `${base}${path}`;
+  return `${apiOrigin}${path.startsWith("/") ? path : "/" + path}`;
 }
 
 export function wsUrl(buildingId: string): string {
   if (typeof window === "undefined") return "";
+  const explicit = EXPLICIT_WS_BASE.trim().replace(/\/$/, "");
+  if (explicit) return `${explicit}/ws/building/${buildingId}/state`;
+
+  const base = runtimeApiBase();
+  if (/^https?:\/\//.test(base)) {
+    const url = new URL(base);
+    const proto = url.protocol === "https:" ? "wss" : "ws";
+    return `${proto}://${url.host}/ws/building/${buildingId}/state`;
+  }
+
   const proto = window.location.protocol === "https:" ? "wss" : "ws";
-  // next dev runs on :3000 without ws proxying; talk to the API directly
   const host = window.location.port === "3000"
     ? `${window.location.hostname}:8000`
     : window.location.host;
