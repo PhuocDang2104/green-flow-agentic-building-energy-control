@@ -222,59 +222,73 @@ export default function ChatThread({
             ))}
           </div>
         )}
-        {messages.map((m, i) => (
-          <motion.div
-            key={i}
-            initial={reduce ? false : { opacity: 0, y: 8, scale: 0.99 }}
-            animate={{ opacity: 1, y: 0, scale: 1 }}
-            transition={{ type: "spring", stiffness: 360, damping: 28 }}
-            className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
-          >
-            <div
-              className={`max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed
-              ${m.role === "user" ? "bg-teal text-white" : "bg-surface-muted text-text-primary"}`}
+        {messages.map((m, i) => {
+          const runTools = m.meta?.tools_used
+            ?.filter((t) => t.name === "trigger_agent_action" && t.result?.run_id) || [];
+          const otherTools = m.meta?.tools_used
+            ?.filter((t) => t.name !== "trigger_agent_action") || [];
+          const hasRunTrace = m.role === "assistant" && runTools.length > 0;
+
+          return (
+            <motion.div
+              key={i}
+              initial={reduce ? false : { opacity: 0, y: 8, scale: 0.99 }}
+              animate={{ opacity: 1, y: 0, scale: 1 }}
+              transition={{ type: "spring", stiffness: 360, damping: 28 }}
+              className={m.role === "user" ? "flex justify-end" : "flex justify-start"}
             >
-              {m.role === "assistant" ? (
-                <Markdown>{m.text}</Markdown>
-              ) : (
-                <span className="whitespace-pre-wrap">{m.text}</span>
-              )}
-              {m.meta?.tools_used &&
-                m.meta.tools_used.filter((t) => t.name !== "trigger_agent_action").length > 0 && (
+              <div
+                className={hasRunTrace
+                  ? "w-full max-w-full text-[12px] leading-relaxed text-text-primary"
+                  : `max-w-[85%] rounded-2xl px-3.5 py-2.5 text-[13px] leading-relaxed ${
+                    m.role === "user" ? "bg-teal text-white" : "bg-surface-muted text-text-primary"
+                  }`
+                }
+              >
+                {hasRunTrace && m.text.trim() && (
+                  <p className="mb-1.5 px-1 text-[11px] font-medium text-text-muted">
+                    {displayPromptInEnglish(m.text)}
+                  </p>
+                )}
+                {!hasRunTrace && (
+                  m.role === "assistant" ? (
+                    <Markdown>{m.text}</Markdown>
+                  ) : (
+                    <span className="whitespace-pre-wrap">{m.text}</span>
+                  )
+                )}
+                {otherTools.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1.5">
-                    {m.meta.tools_used
-                      .filter((t) => t.name !== "trigger_agent_action")
-                      .map((t, ti) => (
-                        <span
-                          key={ti}
-                          className="rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-text-muted shadow-sm"
-                        >
-                          {t.name}
-                        </span>
-                      ))}
+                    {otherTools.map((t, ti) => (
+                      <span
+                        key={ti}
+                        className="rounded-full bg-white px-2 py-0.5 text-[10px] font-medium text-text-muted shadow-sm"
+                      >
+                        {t.name}
+                      </span>
+                    ))}
                   </div>
                 )}
-              {m.meta?.tools_used
-                ?.filter((t) => t.name === "trigger_agent_action" && t.result?.run_id)
-                .map((t, ti) => (
+                {runTools.map((t, ti) => (
                   <InlineRunSteps key={ti} runId={t.result.run_id} action={t.result.action} />
                 ))}
-              {m.role === "assistant" && m.meta?.sources && m.meta.sources.length > 0 && (
-                <div className="mt-2 flex flex-wrap items-center gap-1.5">
-                  <BookOpen size={11} className="text-text-muted" />
-                  {m.meta.sources.map((s, si) => (
-                    <span
-                      key={si}
-                      className="rounded-full bg-teal-soft px-2 py-0.5 text-[10px] font-medium text-teal"
-                    >
-                      {s}
-                    </span>
-                  ))}
-                </div>
-              )}
-            </div>
-          </motion.div>
-        ))}
+                {m.role === "assistant" && m.meta?.sources && m.meta.sources.length > 0 && (
+                  <div className="mt-2 flex flex-wrap items-center gap-1.5">
+                    <BookOpen size={11} className="text-text-muted" />
+                    {m.meta.sources.map((s, si) => (
+                      <span
+                        key={si}
+                        className="rounded-full bg-teal-soft px-2 py-0.5 text-[10px] font-medium text-teal"
+                      >
+                        {s}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </motion.div>
+          );
+        })}
         {busy && (
           <div className="flex justify-start">
             <div className="w-[85%] max-w-[85%]">

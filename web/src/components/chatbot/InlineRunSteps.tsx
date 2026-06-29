@@ -17,7 +17,7 @@ const DOT: Record<string, string> = {
   running: "#0F766E", degraded: "#F59E0B", skipped: "#94A3B8",
 };
 
-const BIM_PREVIEW = "/assets/landing/greenflow_product_element.png";
+const BIM_PREVIEW = "/assets/landing/chatbot/optimization_agents_logging.png";
 
 function latencyChip(ms?: number) {
   return (
@@ -60,7 +60,7 @@ function ForecastChart({ points, threshold }: { points: { label: string; value: 
         <span className="font-medium text-text-primary">Forecasted building load (kW)</span>
         {thresholdY != null && <span className="text-danger">Peak risk threshold</span>}
       </div>
-      <svg viewBox={`0 0 ${width} ${height}`} className="h-[118px] w-full overflow-visible rounded-lg bg-white">
+      <svg viewBox={`0 0 ${width} ${height}`} className="h-[96px] w-full overflow-visible rounded-lg bg-white">
         <line x1="22" y1={height - 18} x2={width - 16} y2={height - 18} stroke="#CBD5E1" />
         {[0, 1, 2].map((i) => {
           const v = min + ((max - min) * i) / 2;
@@ -106,14 +106,14 @@ function PredictionBlock({ st }: { st: any }) {
   const threshold = Number(st?.peak_risk?.contracted_demand_kw || 0) || Math.max(nowKw, nextKw) * 1.06;
   const points = forecastSeries(st, nowKw, nextKw);
   return (
-    <div className="mt-3 rounded-xl border border-border/70 bg-white p-3 text-[12px] shadow-[0_12px_30px_-28px_rgba(15,23,42,0.45)]">
+    <div className="mt-2 rounded-xl border border-border/70 bg-white p-2.5 text-[11px] shadow-[0_12px_30px_-28px_rgba(15,23,42,0.45)]">
       <p className="text-[11px] font-medium text-text-secondary">Building load</p>
       <div className="mt-1 flex flex-wrap items-center gap-3">
-        <span className="text-[22px] font-semibold tabular-nums text-text-primary">{nowKw.toFixed(2)} <span className="text-[15px] font-medium">kW</span></span>
-        <ChevronRight size={18} className="text-text-muted" />
-        <span className="text-[22px] font-semibold tabular-nums text-teal">{nextKw.toFixed(2)} <span className="text-[15px] font-medium">kW</span></span>
+        <span className="text-[19px] font-semibold tabular-nums text-text-primary">{nowKw.toFixed(2)} <span className="text-[13px] font-medium">kW</span></span>
+        <ChevronRight size={16} className="text-text-muted" />
+        <span className="text-[19px] font-semibold tabular-nums text-teal">{nextKw.toFixed(2)} <span className="text-[13px] font-medium">kW</span></span>
         {peak && (
-          <span className={`ml-auto rounded-lg px-3 py-1 text-[12px] font-semibold ${
+          <span className={`ml-auto rounded-lg px-2.5 py-0.5 text-[11px] font-semibold ${
             peak === "high" ? "bg-danger/10 text-danger ring-1 ring-danger/20" : peak === "watch" ? "bg-warning/15 text-warning" : "bg-success/10 text-success"
           }`}>
             peak {peak}
@@ -121,7 +121,7 @@ function PredictionBlock({ st }: { st: any }) {
         )}
       </div>
       {zones.length > 0 && (
-        <div className="mt-3 space-y-2">
+        <div className="mt-2 space-y-1.5">
           <p className="text-[11px] font-medium text-text-primary">Top affected zones / devices</p>
           {zones.map(([z, v]: any) => {
             const now = v.now_kw || 0, next = v.forecast_kw || 0, max = Math.max(now, next, 0.1);
@@ -145,8 +145,12 @@ function PredictionBlock({ st }: { st: any }) {
 
 function SemanticPreview() {
   return (
-    <div className="mt-3 overflow-hidden rounded-xl border border-border bg-white p-2">
-      <img src={BIM_PREVIEW} alt="Building semantic preview" className="h-44 w-full rounded-lg object-contain" />
+    <div className="mt-2 overflow-hidden rounded-xl border border-border bg-white p-1.5">
+      <img
+        src={BIM_PREVIEW}
+        alt="3D HVAC and electrical semantic preview"
+        className="h-32 w-full rounded-lg object-cover object-[50%_24%]"
+      />
     </div>
   );
 }
@@ -274,9 +278,9 @@ export default function InlineRunSteps({ runId, action }: { runId: string; actio
     : run?.status === "failed" ? "text-danger" : "text-teal";
 
   return (
-    <div className="mt-3 rounded-2xl border border-border/70 bg-white px-4 py-4 shadow-[0_18px_45px_-35px_rgba(15,23,42,0.45)]">
-      <div className="mb-3 flex items-center justify-between">
-        <p className="text-[16px] font-semibold tracking-tight text-text-primary">Execution timeline</p>
+    <div className="mt-2 rounded-2xl border border-border/70 bg-white px-3 py-3 shadow-[0_18px_45px_-36px_rgba(15,23,42,0.42)]">
+      <div className="mb-2.5 flex items-center justify-between">
+        <p className="text-[14px] font-semibold tracking-tight text-text-primary">Execution timeline</p>
         <span className={`rounded-full bg-surface-muted px-2.5 py-1 text-[11px] font-semibold ${statusColor}`}>
           {running ? "running..." : run?.status}
         </span>
@@ -291,7 +295,7 @@ export default function InlineRunSteps({ runId, action }: { runId: string; actio
           return (
             <motion.div key={`${l.step}-${l.node}`}
               initial={reduce ? false : { opacity: 0, y: 5 }} animate={{ opacity: 1, y: 0 }}
-              transition={{ duration: 0.22 }} className={`relative pl-10 ${compact ? "mb-2" : "mb-3"}`}>
+              transition={{ duration: 0.22 }} className={`relative pl-9 ${compact ? "mb-1.5" : "mb-2.5"}`}>
               <span
                 className={`absolute left-0 top-1 z-10 grid place-items-center rounded-full ${
                   active
@@ -305,17 +309,17 @@ export default function InlineRunSteps({ runId, action }: { runId: string; actio
                 {!compact && (active ? <span className="h-2.5 w-2.5 rounded-full bg-teal" /> : <Check size={16} />)}
               </span>
               <div className={active
-                ? "rounded-2xl border border-teal/25 bg-teal-soft/45 p-4 shadow-[0_18px_36px_-34px_rgba(15,118,110,0.65)]"
+                ? "rounded-2xl border border-teal/25 bg-teal-soft/45 p-3 shadow-[0_18px_36px_-34px_rgba(15,118,110,0.65)]"
                 : compact
                   ? "py-0.5"
                   : "rounded-xl bg-white"
               }>
                 <div className="flex items-start gap-3">
                   <div className="min-w-0 flex-1">
-                    <p className={`${compact ? "text-[13px]" : "text-[16px]"} font-semibold leading-tight text-text-primary`}>
+                    <p className={`${compact ? "text-[12px]" : "text-[14px]"} font-semibold leading-tight text-text-primary`}>
                       {l.node}
                     </p>
-                    <p className={`${compact ? "mt-0.5 text-[12px]" : "mt-1 text-[14px]"} leading-relaxed text-text-secondary`}>
+                    <p className={`${compact ? "mt-0.5 text-[11px]" : "mt-0.5 text-[12px]"} leading-relaxed text-text-secondary`}>
                       {l.message}
                     </p>
                   </div>
@@ -334,7 +338,7 @@ export default function InlineRunSteps({ runId, action }: { runId: string; actio
           );
         })}
         {running && (
-          <div className="relative flex items-center gap-2 pl-10 text-[12px] text-text-muted">
+          <div className="relative flex items-center gap-2 pl-9 text-[11px] text-text-muted">
             <span className="absolute left-1 top-0.5 grid h-6 w-6 place-items-center rounded-full bg-white text-teal ring-1 ring-teal/25">
               <Loader2 className="h-3.5 w-3.5 animate-spin" />
             </span>
@@ -343,7 +347,7 @@ export default function InlineRunSteps({ runId, action }: { runId: string; actio
         )}
       </div>
       {run?.final_answer && !running && (
-        <p className="mt-4 rounded-xl border border-teal/25 bg-teal-soft/55 px-3.5 py-3 text-[13px] leading-relaxed text-text-primary">
+        <p className="mt-3 rounded-xl border border-teal/25 bg-teal-soft/55 px-3 py-2.5 text-[12px] leading-relaxed text-text-primary">
           {run.final_answer}
         </p>
       )}

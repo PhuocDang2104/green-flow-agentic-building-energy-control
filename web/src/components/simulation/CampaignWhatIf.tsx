@@ -5,7 +5,7 @@ import {
   Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { BarChart3, CalendarDays, Info, Loader2, Sparkles, Zap } from "lucide-react";
+import { BarChart3, CalendarDays, Info, Loader2, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
@@ -474,13 +474,14 @@ export default function CampaignWhatIf() {
 
   return (
     <div className="card-elevated px-5 py-4">
-      <div className="flex flex-wrap items-center gap-2">
-        <Sparkles size={16} className="text-teal" />
-        <h3 className="text-sm font-semibold tracking-tight">Validated MPC replay results</h3>
-        {loading && <Loader2 size={13} className="animate-spin text-text-muted" />}
-      </div>
+      {loading && (
+        <div className="mb-2 flex items-center gap-2 text-[11px] font-medium text-text-muted">
+          <Loader2 size={13} className="animate-spin text-teal" />
+          Loading validation data
+        </div>
+      )}
 
-      <div className="mt-3 flex flex-wrap items-center gap-2.5 rounded-xl border border-border/60 bg-surface-muted/35 px-3 py-2.5">
+      <div className="flex flex-wrap items-center gap-2.5 rounded-xl border border-border/60 bg-surface-muted/35 px-3 py-2.5">
         <CalendarDays size={15} className="text-teal" />
         <div>
           <p className="text-[10.5px] font-medium uppercase tracking-wide text-text-muted">Recorded period</p>
