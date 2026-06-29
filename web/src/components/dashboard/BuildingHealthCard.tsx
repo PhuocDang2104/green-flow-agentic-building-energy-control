@@ -71,11 +71,13 @@ function trendFrom(score: number, target: number): Trend {
 function TrendIcon({ score, target }: { score: number; target: number }) {
   const trend = trendFrom(score, target);
   const Icon = trend === "up" ? ArrowUp : trend === "side" ? ArrowRight : ArrowDown;
+  const band = performanceBand(score);
+  const color = trend === "side" ? "#64748B" : BAND_STYLES[band].color;
   return (
     <Icon
       size={25}
       strokeWidth={2.2}
-      className={trend === "up" ? "text-[#04783F]" : trend === "side" ? "text-slate-500" : "text-[#C87500]"}
+      style={{ color }}
       aria-hidden="true"
     />
   );
@@ -129,7 +131,7 @@ function ScoreGauge({ score, target }: { score: number; target: number }) {
         />
       </svg>
       <div className="absolute inset-x-0 top-[50px] flex items-center justify-center gap-1">
-        <span className="text-[36px] font-bold leading-none text-[#006D38] tabular-nums">{score}</span>
+        <span className="text-[36px] font-bold leading-none tabular-nums" style={{ color }}>{score}</span>
         <TrendIcon score={score} target={target} />
       </div>
       <div className="absolute inset-x-0 top-[94px] text-center text-[12px] font-medium text-slate-500">
