@@ -129,10 +129,10 @@ function ScoreGauge({ score, target }: { score: number; target: number }) {
         />
       </svg>
       <div className="absolute inset-x-0 top-[50px] flex items-center justify-center gap-1">
-        <span className="text-[44px] font-bold leading-none text-[#006D38] tabular-nums">{score}</span>
+        <span className="text-[36px] font-bold leading-none text-[#006D38] tabular-nums">{score}</span>
         <TrendIcon score={score} target={target} />
       </div>
-      <div className="absolute inset-x-0 top-[96px] text-center text-[15px] font-medium text-slate-500">
+      <div className="absolute inset-x-0 top-[94px] text-center text-[12px] font-medium text-slate-500">
         Target: {target}
       </div>
     </div>
@@ -163,11 +163,11 @@ function MetricRow({ row }: { row: MetricRowData }) {
           <Icon size={22} strokeWidth={2.2} aria-hidden="true" />
         </span>
         <span className="min-w-0">
-          <span className="block truncate text-[15px] font-semibold text-[#166534]">{row.label}</span>
-          {row.note && <span className="block truncate text-[12px] font-medium text-slate-500">{row.note}</span>}
+          <span className="block truncate text-[13px] font-semibold text-[#166534]">{row.label}</span>
+          {row.note && <span className="block truncate text-[10px] font-medium text-slate-500">{row.note}</span>}
         </span>
       </div>
-      <div className="text-right text-[16px] font-bold leading-tight text-slate-900 tabular-nums">
+      <div className="text-right text-[13px] font-bold leading-tight text-slate-900 tabular-nums">
         {row.value}
       </div>
       <div className="pointer-events-none invisible absolute left-4 right-4 top-[calc(100%-5px)] z-40 translate-y-1 rounded-xl border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] leading-relaxed text-white opacity-0 shadow-xl transition group-hover/metric:visible group-hover/metric:translate-y-0 group-hover/metric:opacity-100 group-focus/metric:visible group-focus/metric:translate-y-0 group-focus/metric:opacity-100">
@@ -182,8 +182,8 @@ function ScorePanel({ panel }: { panel: PerformancePanel }) {
   return (
     <article className="group/card relative overflow-visible rounded-[6px] bg-white shadow-[0_2px_9px_rgba(15,23,42,0.16)] ring-1 ring-slate-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.18)]">
       <div className="h-[7px] rounded-t-[6px]" style={{ backgroundColor: panel.accent }} />
-      <header className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-4">
-        <h3 className="text-[19px] font-bold leading-tight text-[#0F172A]">{panel.title}</h3>
+      <header className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-3">
+        <h3 className="text-[16px] font-bold leading-tight text-[#0F172A]">{panel.title}</h3>
         <span className="relative text-slate-400 transition group-hover/card:text-teal">
           <CircleHelp size={16} aria-hidden="true" />
           <span className="pointer-events-none invisible absolute right-0 top-6 z-50 w-64 rounded-xl border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] font-medium leading-relaxed text-white opacity-0 shadow-xl transition group-hover/card:visible group-hover/card:opacity-100">
@@ -202,21 +202,21 @@ function ScorePanel({ panel }: { panel: PerformancePanel }) {
         </div>
       ) : (
         <div className="border-t border-slate-200 px-9 pb-8 pt-6">
-          <div className="mb-5 text-center text-[13px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+          <div className="mb-5 text-center text-[11px] font-semibold uppercase tracking-[0.24em] text-slate-500">
             SCORING KEY
           </div>
           <div className="space-y-4">
             <div className="flex items-center gap-4">
               <BandMark band="critical" />
-              <span className="text-[15px] font-medium text-slate-700">Critical 0-59</span>
+              <span className="text-[13px] font-medium text-slate-700">Critical 0-59</span>
             </div>
             <div className="flex items-center gap-4">
               <BandMark band="watch" />
-              <span className="text-[15px] font-medium text-slate-700">Watch 60-79</span>
+              <span className="text-[13px] font-medium text-slate-700">Watch 60-79</span>
             </div>
             <div className="flex items-center gap-4">
               <BandMark band="good" />
-              <span className="text-[15px] font-medium text-slate-700">Good 80+</span>
+              <span className="text-[13px] font-medium text-slate-700">Good 80+</span>
             </div>
           </div>
           <span className="sr-only">Current band: {band}</span>
@@ -382,8 +382,8 @@ export default function BuildingHealthCard({
   return (
     <section className="space-y-6" aria-label="GreenFlow Building Performance Index">
       <div className="flex flex-wrap items-center gap-4">
-        <Leaf size={34} fill="#0BAE27" strokeWidth={1.8} className="text-[#087A3E]" aria-hidden="true" />
-        <h2 className="text-[28px] font-bold tracking-[-0.03em] text-[#0F172A] md:text-[32px]">
+        <Leaf size={28} fill="#0BAE27" strokeWidth={1.8} className="text-[#087A3E]" aria-hidden="true" />
+        <h2 className="text-[23px] font-bold tracking-[-0.03em] text-[#0F172A] md:text-[26px]">
           <span className="mr-3 text-[#087A3E]">GreenFlow</span>
           Building Performance Index
         </h2>
