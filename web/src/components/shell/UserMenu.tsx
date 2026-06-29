@@ -21,19 +21,19 @@ export default function UserMenu() {
     <div ref={ref} className="relative">
       <button
         onClick={() => setOpen((v) => !v)}
-        className="grid h-9 w-9 place-items-center rounded-full bg-teal text-sm font-semibold text-white"
+        className="grid h-9 w-9 place-items-center overflow-hidden rounded-full border border-border bg-white"
       >
-        DM
+        <img src="/assets/landing/user_logo.png" alt="Facility Manager" className="h-full w-full object-cover" />
       </button>
       {open && (
         <div className="absolute right-0 top-full z-50 mt-2 w-60 overflow-hidden rounded-2xl border border-border bg-white shadow-floating">
           <div className="flex items-center gap-3 border-b border-border px-4 py-3">
-            <span className="grid h-10 w-10 place-items-center rounded-full bg-teal text-sm font-semibold text-white">
-              DM
+            <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-full border border-border bg-white">
+              <img src="/assets/landing/user_logo.png" alt="Facility Manager" className="h-full w-full object-cover" />
             </span>
             <div className="min-w-0">
-              <p className="truncate text-[13px] font-semibold">Demo Manager</p>
-              <p className="truncate text-[11px] text-text-muted">orangeangiang@gmail.com</p>
+              <p className="truncate text-[13px] font-semibold">Facility Manager</p>
+              <p className="truncate text-[11px] text-text-muted">vituonglaixanh@vingroup.net</p>
             </div>
           </div>
           <div className="p-1.5">

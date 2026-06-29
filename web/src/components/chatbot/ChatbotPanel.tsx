@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { History, Plus, Sparkles, X } from "lucide-react";
+import { History, Plus, X } from "lucide-react";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/stores/appStore";
 import type { ChatSessionSummary } from "@/lib/types";
@@ -87,11 +87,13 @@ export default function ChatbotPanel() {
     <div className="fixed bottom-5 right-5 z-50 flex h-[600px] w-[400px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-card border border-border bg-white shadow-floating">
       <div className="flex items-center justify-between border-b border-border bg-teal-soft px-4 py-3">
         <div className="flex items-center gap-2">
-          <span className="grid h-7 w-7 place-items-center rounded-full bg-teal text-white">
-            <Sparkles size={13} />
-          </span>
+          <img
+            src="/assets/landing/AI-greenflow_logo.png"
+            alt="GreenFlow AI"
+            className="h-8 w-8 shrink-0 rounded-full object-contain"
+          />
           <div>
-            <p className="text-sm font-semibold leading-tight">Building Copilot</p>
+            <p className="text-sm font-semibold leading-tight">GreenFlow AI Copilot</p>
             <p className="text-[11px] text-text-muted">Ask, or talk with the mic</p>
           </div>
         </div>

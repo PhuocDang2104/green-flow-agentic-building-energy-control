@@ -476,7 +476,7 @@ export default function CampaignWhatIf() {
     <div className="card-elevated px-5 py-4">
       <div className="flex flex-wrap items-center gap-2">
         <Sparkles size={16} className="text-teal" />
-        <h3 className="text-sm font-semibold tracking-tight">Predictive MPC replay &middot; building with AI vs without AI</h3>
+        <h3 className="text-sm font-semibold tracking-tight">Validated MPC replay results</h3>
         {loading && <Loader2 size={13} className="animate-spin text-text-muted" />}
       </div>
 

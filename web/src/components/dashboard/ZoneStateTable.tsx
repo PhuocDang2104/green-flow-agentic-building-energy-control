@@ -142,7 +142,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
 
   return (
     <section className="card overflow-hidden" aria-labelledby="zone-state-heading">
-      <div className="border-b border-border px-5 py-3.5">
+      <div className="border-b border-border px-5 py-2.5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>
             <h3 id="zone-state-heading" className="text-sm font-semibold">Zone state</h3>
@@ -158,12 +158,12 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
               <Search size={14} className="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
               <input value={query} onChange={(event) => setQuery(event.target.value)}
                 placeholder="Search zone or type…"
-                className="h-9 w-full rounded-lg border border-border bg-white pl-9 pr-3 text-[12px] outline-none transition focus:border-teal/50 focus:ring-2 focus:ring-teal/10" />
+                className="h-8 w-full rounded-lg border border-border bg-white pl-9 pr-3 text-[12px] outline-none transition focus:border-teal/50 focus:ring-2 focus:ring-teal/10" />
             </label>
             <label>
               <span className="sr-only">Filter by zone type</span>
               <select value={typeFilter} onChange={(event) => setTypeFilter(event.target.value)}
-                className="h-9 rounded-lg border border-border bg-white px-3 text-[12px] text-text-secondary outline-none transition focus:border-teal/50 focus:ring-2 focus:ring-teal/10">
+                className="h-8 rounded-lg border border-border bg-white px-3 text-[12px] text-text-secondary outline-none transition focus:border-teal/50 focus:ring-2 focus:ring-teal/10">
                 <option value="all">All types</option>
                 {roomTypes.map((roomType) => (
                   <option key={roomType} value={roomType}>{titleCase(roomType)}</option>
@@ -174,7 +174,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
               <span className="sr-only">Filter by comfort status</span>
               <select value={comfortFilter}
                 onChange={(event) => setComfortFilter(event.target.value as RiskFilter)}
-                className="h-9 rounded-lg border border-border bg-white px-3 text-[12px] text-text-secondary outline-none transition focus:border-teal/50 focus:ring-2 focus:ring-teal/10">
+                className="h-8 rounded-lg border border-border bg-white px-3 text-[12px] text-text-secondary outline-none transition focus:border-teal/50 focus:ring-2 focus:ring-teal/10">
                 <option value="all">All comfort</option>
                 <option value="normal">Comfort: normal</option>
                 <option value="watch">Comfort: watch</option>
@@ -184,7 +184,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
             <label>
               <span className="sr-only">Filter by peak status</span>
               <select value={peakFilter} onChange={(event) => setPeakFilter(event.target.value as RiskFilter)}
-                className="h-9 rounded-lg border border-border bg-white px-3 text-[12px] text-text-secondary outline-none transition focus:border-teal/50 focus:ring-2 focus:ring-teal/10">
+                className="h-8 rounded-lg border border-border bg-white px-3 text-[12px] text-text-secondary outline-none transition focus:border-teal/50 focus:ring-2 focus:ring-teal/10">
                 <option value="all">All peak risk</option>
                 <option value="normal">Peak: normal</option>
                 <option value="watch">Peak: watch</option>
@@ -193,7 +193,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
             </label>
             {filtered && (
               <button type="button" onClick={resetFilters}
-                className="inline-flex h-9 items-center gap-1.5 rounded-lg px-2.5 text-[11px] font-medium text-text-muted transition hover:bg-surface-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/40">
+                className="inline-flex h-8 items-center gap-1.5 rounded-lg px-2.5 text-[11px] font-medium text-text-muted transition hover:bg-surface-muted hover:text-text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-teal/40">
                 <RotateCcw size={13} /> Reset
               </button>
             )}
@@ -201,7 +201,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
         </div>
       </div>
 
-      <div className="max-h-[520px] overflow-auto overscroll-contain">
+      <div className="max-h-[300px] overflow-auto overscroll-contain">
         <table className="w-full min-w-[920px] text-[13px]">
           <thead className="sticky top-0 z-10 bg-white/95 shadow-[0_1px_0_rgba(226,232,240,0.95)] backdrop-blur">
             <tr className="text-left text-xs">
@@ -225,7 +225,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
             {zones.length === 0 && Array.from({ length: 8 }).map((_, rowIndex) => (
               <tr key={`sk-${rowIndex}`} className="border-t border-border/60">
                 {Array.from({ length: 7 }).map((_, columnIndex) => (
-                  <td key={columnIndex} className="px-5 py-2.5"><Skeleton className="h-4 w-16" /></td>
+                  <td key={columnIndex} className="px-5 py-2"><Skeleton className="h-4 w-16" /></td>
                 ))}
               </tr>
             ))}
@@ -250,15 +250,15 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
                   className={`cursor-pointer border-t border-border/60 transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-inset focus-visible:ring-teal/40 ${
                     active ? "bg-teal-soft" : "hover:bg-surface-muted/60"
                   }`}>
-                  <td className="px-5 py-2.5 font-medium">{zone.name}</td>
-                  <td className="px-5 py-2.5 text-text-secondary">{titleCase(roomType)}</td>
-                  <td className="px-5 py-2.5 tabular-nums">
+                  <td className="px-5 py-2 font-medium">{zone.name}</td>
+                  <td className="px-5 py-2 text-text-secondary">{titleCase(roomType)}</td>
+                  <td className="px-5 py-2 tabular-nums">
                     {state?.occupancy_count == null ? "–" : `${state.occupancy_count} ppl`}
                   </td>
-                  <td className="px-5 py-2.5 tabular-nums">{fmtTemp(state?.temperature_c)}</td>
-                  <td className="px-5 py-2.5 tabular-nums">{fmtKw(state?.total_power_kw)}</td>
-                  <td className="px-5 py-2.5"><StatusPill status={state?.comfort_risk} /></td>
-                  <td className="px-5 py-2.5"><StatusPill status={state?.peak_risk} /></td>
+                  <td className="px-5 py-2 tabular-nums">{fmtTemp(state?.temperature_c)}</td>
+                  <td className="px-5 py-2 tabular-nums">{fmtKw(state?.total_power_kw)}</td>
+                  <td className="px-5 py-2"><StatusPill status={state?.comfort_risk} /></td>
+                  <td className="px-5 py-2"><StatusPill status={state?.peak_risk} /></td>
                 </tr>
               );
             })}

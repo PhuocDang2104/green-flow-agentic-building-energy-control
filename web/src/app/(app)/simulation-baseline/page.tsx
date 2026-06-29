@@ -5,8 +5,8 @@ export default function SimulationBaselinePage() {
   return (
     <div data-wide-page className="pb-4">
       <PageHeader
-        title="What-if Analysis"
-        subtitle="Compare measured baseline with the precomputed predictive MPC replay."
+        title="Validation Experiment"
+        subtitle="El Nino 2024 - Hanoi: EnergyPlus baseline compared with the validated predictive MPC replay."
       />
       <CampaignWhatIf />
     </div>

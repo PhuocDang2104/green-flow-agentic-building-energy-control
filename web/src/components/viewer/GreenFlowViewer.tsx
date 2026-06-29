@@ -28,6 +28,7 @@ type XeokitViewer = any;
 type AlertSeverity = "critical" | "warning" | "info";
 
 const ZONE_BASE_COLOR: [number, number, number] = [0.06, 0.46, 0.43];
+const STRUCTURE_COMPANION_LAYERS = ["architecture", "fenestration"] as const;
 
 // Fault overlay palette (matches FaultsPanel / MetricLegend severity colors).
 const ALERT_COLOR: Record<AlertSeverity, [number, number, number]> = {
@@ -39,6 +40,7 @@ const ALERT_RANK: Record<AlertSeverity, number> = { info: 0, warning: 1, critica
 
 const LAYER_RENDER_ORDER: Record<string, number> = {
   architecture: 0,
+  structure_context: -5,
   structural: 8,
   fenestration: 12,
   spaces: 18,
@@ -52,9 +54,12 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const viewerRef = useRef<XeokitViewer | null>(null);
   const modelsRef = useRef<Record<string, any>>({});
   const objectMapRef = useRef<Record<string, ObjectMapEntry>>({});
+  const metaTypeByObjectRef = useRef<Record<string, string>>({});
   const xeokitRef = useRef<{ SceneModel: any; buildSphereGeometry: any } | null>(null);
   const occupancyModelRef = useRef<any>(null);
   const alertModelRef = useRef<any>(null);
+  const structureContextModelRef = useRef<any>(null);
+  const wasStructuralOnRef = useRef(false);
   const [ready, setReady] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null);
@@ -92,6 +97,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
         ).json();
         objectMapRef.current = Object.fromEntries(
           objectMap.map((o) => [o.xeokit_object_id, o]));
+        metaTypeByObjectRef.current = await loadMetaTypes(manifest.assets);
 
         const viewer = new Viewer({
           canvasElement: canvasRef.current,
@@ -113,21 +119,22 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
           const loader = new XKTLoaderPlugin(viewer);
           let firstLoaded = false;
           for (const asset of manifest.assets) {
+            const layerKey = normalizeLayer(asset.layer);
             const model = loader.load({
               id: asset.model_id,
               src: asset.src,
               metaModelSrc: asset.metadata_src,
               saoEnabled: false,
               edges: true,
-              renderOrder: LAYER_RENDER_ORDER[asset.layer] ?? 0,
+              renderOrder: LAYER_RENDER_ORDER[layerKey] ?? 0,
             } as any);
             (model as any).visible = asset.default_visible;
-            (model as any).renderOrder = LAYER_RENDER_ORDER[asset.layer] ?? 0;
+            (model as any).renderOrder = LAYER_RENDER_ORDER[layerKey] ?? 0;
             // Only spaces are pickable so clicks fall through the shell to the
             // zone behind; other layers are visual context.
             (model as any).pickable = asset.pickable === true;
-            modelsRef.current[asset.layer] = model;
-            initialLayers[asset.layer] = asset.default_visible;
+            modelsRef.current[layerKey] = model;
+            initialLayers[layerKey] = asset.default_visible;
             // style/refit progressively; never block the UI on load events
             model.on("loaded", () => {
               styleDefaults(viewer);
@@ -137,7 +144,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
               }
             });
             model.on("error", (e: any) =>
-              console.error(`XKT load failed for ${asset.layer}:`, e));
+              console.error(`XKT load failed for ${layerKey}:`, e));
           }
         } else {
           // SceneModel fallback from geometry.json
@@ -226,6 +233,8 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       cleanups.forEach((fn) => fn());
       occupancyModelRef.current = null;
       alertModelRef.current = null;
+      structureContextModelRef.current?.destroy?.();
+      structureContextModelRef.current = null;
       viewerRef.current?.destroy?.();
       viewerRef.current = null;
       modelsRef.current = {};
@@ -263,12 +272,37 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   useEffect(() => {
     const viewer = viewerRef.current;
     if (!viewer || !ready) return;
+    const structuralOn = !!layers.structural;
+    const architectureOn = !!layers.architecture;
     for (const [layer, model] of Object.entries(modelsRef.current)) {
       if (model) {
-        model.visible = layers[layer] !== false;
+        const companionVisible =
+          structuralOn &&
+          STRUCTURE_COMPANION_LAYERS.includes(layer as typeof STRUCTURE_COMPANION_LAYERS[number]) &&
+          (!architectureOn || layer === "fenestration");
+        model.visible = companionVisible || layers[layer] !== false;
         model.renderOrder = LAYER_RENDER_ORDER[layer] ?? 0;
+        if (companionVisible) model.pickable = false;
       }
     }
+    if (structuralOn) {
+      if (!structureContextModelRef.current) {
+        structureContextModelRef.current = createStructureContextModel(
+          viewer,
+          xeokitRef.current?.SceneModel,
+          objectMapRef.current,
+        );
+      }
+      if (structureContextModelRef.current) structureContextModelRef.current.visible = true;
+      applyStructurePresentationStyle(viewer, objectMapRef.current, metaTypeByObjectRef.current);
+      enablePresentationRendering(viewer);
+      if (!wasStructuralOnRef.current) flyToStructurePresentationView(viewer, objectMapRef.current, 0.7);
+    } else {
+      if (structureContextModelRef.current) structureContextModelRef.current.visible = false;
+      resetStructurePresentationStyle(viewer, objectMapRef.current);
+    }
+    wasStructuralOnRef.current = structuralOn;
+
     // Electrical & HVAC must always read FULLY even when stacked under other
     // layers: when either MEP layer is on, x-ray the opaque shell and spaces so
     // MEP stays visually above architecture / zones. MEP itself is never x-rayed.
@@ -276,7 +310,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     const xrayShell = mep || activeMetric !== "none";
     for (const shell of ["architecture", "structural", "fenestration"]) {
       const m = modelsRef.current[shell];
-      if (m) m.xrayed = xrayShell;
+      if (m) m.xrayed = structuralOn ? false : xrayShell;
     }
     const spaces = modelsRef.current.spaces;
     if (spaces) spaces.xrayed = mep;
@@ -545,6 +579,221 @@ function flyToDefaultBuildingView(viewer: any, duration = 0.8) {
     up: [0, 1, 0],
     duration,
   });
+}
+
+function flyToStructurePresentationView(viewer: any, objectMap: Record<string, ObjectMapEntry>, duration = 0.8) {
+  const ids = Object.entries(objectMap)
+    .filter(([, entry]) => ["architecture", "structural", "fenestration"].includes(entry.layer))
+    .map(([id]) => id)
+    .filter((id) => viewer.scene.objects[id]);
+  const aabb = viewer.scene.getAABB(ids.length ? ids : viewer.scene.visibleObjectIds);
+  if (!aabb || aabb.some((v: number) => !Number.isFinite(v))) return;
+
+  const [xmin, ymin, zmin, xmax, ymax, zmax] = aabb;
+  const dx = Math.max(1, xmax - xmin);
+  const dy = Math.max(1, ymax - ymin);
+  const dz = Math.max(1, zmax - zmin);
+  const cx = (xmin + xmax) / 2;
+  const cy = (ymin + ymax) / 2;
+  const cz = (zmin + zmax) / 2;
+  const diag = Math.hypot(dx, dy, dz);
+
+  viewer.cameraFlight.flyTo({
+    eye: [cx + diag * 0.62, cy + dy * 0.78, cz + diag * 0.78],
+    look: [cx, cy + dy * 0.12, cz],
+    up: [0, 1, 0],
+    duration,
+  });
+}
+
+function normalizeLayer(layer: string) {
+  return layer === "thermal_zones" ? "spaces" : layer;
+}
+
+async function loadMetaTypes(assets: Array<{ metadata_src?: string }>) {
+  const metaTypes: Record<string, string> = {};
+  await Promise.all(assets.map(async (asset) => {
+    if (!asset.metadata_src) return;
+    try {
+      const data = await (await fetch(asset.metadata_src)).json();
+      for (const obj of data?.metaObjects || []) {
+        if (obj?.id && obj?.type) metaTypes[obj.id] = obj.type;
+      }
+    } catch {
+      // Presentation styling falls back to object-map layer defaults.
+    }
+  }));
+  return metaTypes;
+}
+
+const STRUCTURE_STYLE_MAP: Record<string, { color?: [number, number, number]; opacity?: number; visible?: boolean }> = {
+  IfcSite: { color: [0.45, 0.45, 0.42], opacity: 1.0 },
+  IfcBuildingElementProxy: { color: [0.72, 0.72, 0.68], opacity: 1.0 },
+  IfcSlab: { color: [0.72, 0.72, 0.68], opacity: 1.0 },
+  IfcWall: { color: [0.8, 0.8, 0.76], opacity: 1.0 },
+  IfcWallStandardCase: { color: [0.8, 0.8, 0.76], opacity: 1.0 },
+  IfcCurtainWall: { color: [0.45, 0.72, 0.78], opacity: 0.38 },
+  IfcWindow: { color: [0.45, 0.78, 0.84], opacity: 0.38 },
+  IfcDoor: { color: [0.12, 0.12, 0.12], opacity: 1.0 },
+  IfcRoof: { color: [0.16, 0.24, 0.12], opacity: 1.0 },
+  IfcCovering: { color: [0.62, 0.34, 0.2], opacity: 1.0 },
+  IfcBeam: { color: [0.38, 0.38, 0.38], opacity: 0.9 },
+  IfcColumn: { color: [0.34, 0.34, 0.34], opacity: 0.9 },
+  IfcPlate: { color: [0.68, 0.7, 0.68], opacity: 1.0 },
+  IfcRailing: { color: [0.18, 0.18, 0.18], opacity: 1.0 },
+  IfcStair: { color: [0.64, 0.64, 0.6], opacity: 1.0 },
+  IfcSpace: { visible: false },
+  IfcDuctSegment: { visible: false },
+  IfcPipeSegment: { visible: false },
+  IfcCableCarrierSegment: { visible: false },
+  IfcLightFixture: { visible: false },
+};
+
+function styleForPresentation(entry: ObjectMapEntry, ifcType?: string) {
+  if (!["architecture", "structural", "fenestration"].includes(entry.layer)) return null;
+  if (ifcType && STRUCTURE_STYLE_MAP[ifcType]) return STRUCTURE_STYLE_MAP[ifcType];
+  if (entry.layer === "fenestration") return STRUCTURE_STYLE_MAP.IfcWindow;
+  if (entry.layer === "structural") return STRUCTURE_STYLE_MAP.IfcColumn;
+  if (entry.layer === "architecture") {
+    const floor = String(entry.floor_key || entry.name || "").toLowerCase();
+    if (floor.includes("roof") || floor.includes("vesikatto")) return STRUCTURE_STYLE_MAP.IfcRoof;
+    return STRUCTURE_STYLE_MAP.IfcWall;
+  }
+  return null;
+}
+
+function applyStructurePresentationStyle(
+  viewer: any,
+  objectMap: Record<string, ObjectMapEntry>,
+  metaTypes: Record<string, string>,
+) {
+  for (const [id, entry] of Object.entries(objectMap)) {
+    const entity = viewer.scene.objects[id];
+    if (!entity) continue;
+    const ifcType = metaTypes[id];
+    const style = styleForPresentation(entry, ifcType);
+    if (!style) continue;
+    if (style.visible === false) {
+      entity.visible = false;
+      continue;
+    }
+    if (style.color) entity.colorize = style.color;
+    if (style.opacity != null) entity.opacity = style.opacity;
+    entity.xrayed = false;
+    entity.pickable = entry.layer === "spaces" ? !!entry.live : false;
+  }
+}
+
+function resetStructurePresentationStyle(viewer: any, objectMap: Record<string, ObjectMapEntry>) {
+  for (const [id, entry] of Object.entries(objectMap)) {
+    if (!["architecture", "structural", "fenestration"].includes(entry.layer)) continue;
+    const entity = viewer.scene.objects[id];
+    if (!entity) continue;
+    entity.colorize = null;
+    entity.opacity = 1;
+    entity.xrayed = false;
+  }
+}
+
+function enablePresentationRendering(viewer: any) {
+  if (viewer.scene?.sao) {
+    viewer.scene.sao.enabled = true;
+    viewer.scene.sao.intensity = 0.08;
+    viewer.scene.sao.bias = 0.45;
+    viewer.scene.sao.scale = 360;
+  }
+  if (viewer.scene?.edgeMaterial) {
+    viewer.scene.edgeMaterial.edgeAlpha = 0.18;
+    viewer.scene.edgeMaterial.edgeColor = [0.2, 0.25, 0.28];
+  }
+}
+
+function createStructureContextModel(
+  viewer: any,
+  SceneModel: any,
+  objectMap: Record<string, ObjectMapEntry>,
+) {
+  if (!SceneModel) return null;
+  const ids = Object.entries(objectMap)
+    .filter(([, entry]) => ["architecture", "structural", "fenestration"].includes(entry.layer))
+    .map(([id]) => id)
+    .filter((id) => viewer.scene.objects[id]);
+  const aabb = viewer.scene.getAABB(ids.length ? ids : viewer.scene.visibleObjectIds);
+  if (!aabb || aabb.some((v: number) => !Number.isFinite(v))) return null;
+
+  const [xmin, ymin, zmin, xmax, , zmax] = aabb;
+  const dx = Math.max(20, xmax - xmin);
+  const dz = Math.max(20, zmax - zmin);
+  const cx = (xmin + xmax) / 2;
+  const cz = (zmin + zmax) / 2;
+  const groundY = ymin - 0.18;
+  const pad = Math.max(dx, dz) * 0.45;
+  const model = new SceneModel(viewer.scene, {
+    id: "structure_site_context",
+    isModel: true,
+    visible: true,
+  });
+
+  createBox(model, "structure_context_ground", [cx - dx / 2 - pad, groundY - 0.08, cz - dz / 2 - pad],
+    [cx + dx / 2 + pad, groundY, cz + dz / 2 + pad], [0.62, 0.64, 0.62], 1);
+  createBox(model, "structure_context_road_main", [cx - dx / 2 - pad, groundY, cz + dz / 2 + pad * 0.32],
+    [cx + dx / 2 + pad, groundY + 0.025, cz + dz / 2 + pad * 0.48], [0.3, 0.32, 0.34], 1);
+  createBox(model, "structure_context_road_side", [cx + dx / 2 + pad * 0.22, groundY, cz - dz / 2 - pad],
+    [cx + dx / 2 + pad * 0.36, groundY + 0.025, cz + dz / 2 + pad], [0.34, 0.35, 0.36], 1);
+  createBox(model, "structure_context_walkway", [cx - dx / 2 - pad, groundY + 0.02, cz - dz / 2 - pad * 0.22],
+    [cx + dx / 2 + pad, groundY + 0.04, cz - dz / 2 - pad * 0.12], [0.74, 0.74, 0.7], 1);
+
+  const blocks = [
+    [cx - dx * 0.75, cz - dz * 0.7, 0.18, 0.2],
+    [cx + dx * 0.72, cz - dz * 0.55, 0.2, 0.18],
+    [cx - dx * 0.62, cz + dz * 0.68, 0.16, 0.18],
+  ];
+  blocks.forEach(([bx, bz, sx, sz], i) => {
+    createBox(model, `structure_context_block_${i}`, [bx - dx * sx, groundY, bz - dz * sz],
+      [bx + dx * sx, groundY + 2.2 + i * 0.7, bz + dz * sz], [0.72, 0.72, 0.68], 0.55);
+  });
+
+  for (let i = 0; i < 10; i++) {
+    const side = i % 2 === 0 ? -1 : 1;
+    const tx = cx - dx * 0.55 + (i % 5) * dx * 0.28;
+    const tz = cz + side * (dz * 0.72 + pad * 0.18);
+    createBox(model, `structure_context_tree_trunk_${i}`, [tx - 0.18, groundY, tz - 0.18],
+      [tx + 0.18, groundY + 1.0, tz + 0.18], [0.38, 0.24, 0.14], 1);
+    createBox(model, `structure_context_tree_canopy_${i}`, [tx - 0.75, groundY + 0.85, tz - 0.75],
+      [tx + 0.75, groundY + 2.2, tz + 0.75], [0.2, 0.42, 0.22], 0.82);
+  }
+
+  model.finalize();
+  model.pickable = false;
+  model.renderOrder = LAYER_RENDER_ORDER.structure_context;
+  return model;
+}
+
+function createBox(
+  model: any,
+  id: string,
+  min: [number, number, number],
+  max: [number, number, number],
+  color: [number, number, number],
+  opacity = 1,
+) {
+  const [x0, y0, z0] = min;
+  const [x1, y1, z1] = max;
+  const positions = [
+    x0, y0, z0, x1, y0, z0, x1, y1, z0, x0, y1, z0,
+    x0, y0, z1, x1, y0, z1, x1, y1, z1, x0, y1, z1,
+  ];
+  const indices = [
+    0, 1, 2, 0, 2, 3,
+    4, 6, 5, 4, 7, 6,
+    0, 4, 5, 0, 5, 1,
+    3, 2, 6, 3, 6, 7,
+    1, 5, 6, 1, 6, 2,
+    0, 3, 7, 0, 7, 4,
+  ];
+  const meshId = `${id}_mesh`;
+  model.createMesh({ id: meshId, primitive: "triangles", positions, indices, color, opacity } as any);
+  model.createEntity({ id, meshIds: [meshId], isObject: false, pickable: false });
 }
 
 function applyMetricColor(entity: any, st: any, metric: string): boolean {
