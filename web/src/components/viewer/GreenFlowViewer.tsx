@@ -652,6 +652,7 @@ function forceStructureShellVisible(models: Record<string, any>, architectureOn:
   if (models.structural) {
     models.structural.visible = true;
     models.structural.xrayed = false;
+    models.structural.opacity = 0.42;
     models.structural.renderOrder = LAYER_RENDER_ORDER.structural;
   }
   if (models.fenestration) {
@@ -662,6 +663,7 @@ function forceStructureShellVisible(models: Record<string, any>, architectureOn:
   if (!architectureOn && models.architecture) {
     models.architecture.visible = true;
     models.architecture.pickable = false;
+    models.architecture.opacity = 1;
     models.architecture.renderOrder = LAYER_RENDER_ORDER.architecture;
   }
 }
@@ -688,17 +690,17 @@ async function loadMetaTypes(assets: Array<{ metadata_src?: string }>) {
 
 const STRUCTURE_STYLE_MAP: Record<string, { color?: [number, number, number]; opacity?: number; visible?: boolean }> = {
   IfcSite: { color: [0.45, 0.45, 0.42], opacity: 1.0 },
-  IfcBuildingElementProxy: { color: [0.72, 0.72, 0.68], opacity: 1.0 },
-  IfcSlab: { color: [0.72, 0.72, 0.68], opacity: 1.0 },
-  IfcWall: { color: [0.78, 0.78, 0.74], opacity: 1.0 },
-  IfcWallStandardCase: { color: [0.78, 0.78, 0.74], opacity: 1.0 },
+  IfcBuildingElementProxy: { color: [0.82, 0.8, 0.74], opacity: 1.0 },
+  IfcSlab: { color: [0.82, 0.81, 0.76], opacity: 1.0 },
+  IfcWall: { color: [0.86, 0.84, 0.77], opacity: 1.0 },
+  IfcWallStandardCase: { color: [0.86, 0.84, 0.77], opacity: 1.0 },
   IfcCurtainWall: { color: [0.45, 0.72, 0.78], opacity: 0.38 },
   IfcWindow: { color: [0.45, 0.78, 0.84], opacity: 0.38 },
   IfcDoor: { color: [0.12, 0.12, 0.12], opacity: 1.0 },
-  IfcRoof: { color: [0.16, 0.24, 0.12], opacity: 1.0 },
-  IfcCovering: { color: [0.62, 0.34, 0.2], opacity: 1.0 },
-  IfcBeam: { color: [0.42, 0.42, 0.4], opacity: 0.58 },
-  IfcColumn: { color: [0.38, 0.38, 0.36], opacity: 0.5 },
+  IfcRoof: { color: [0.15, 0.25, 0.13], opacity: 1.0 },
+  IfcCovering: { color: [0.58, 0.42, 0.3], opacity: 1.0 },
+  IfcBeam: { color: [0.38, 0.38, 0.35], opacity: 0.34 },
+  IfcColumn: { color: [0.36, 0.36, 0.33], opacity: 0.3 },
   IfcPlate: { color: [0.68, 0.7, 0.68], opacity: 1.0 },
   IfcRailing: { color: [0.18, 0.18, 0.18], opacity: 1.0 },
   IfcStair: { color: [0.64, 0.64, 0.6], opacity: 1.0 },
@@ -786,9 +788,10 @@ function createStructureContextModel(
   const dz = Math.max(20, zmax - zmin);
   const cx = (xmin + xmax) / 2;
   const cz = (zmin + zmax) / 2;
-  const gradeY = estimateGradeY(viewer, objectMap, ymin);
-  const groundY = gradeY + 0.018;
-  const pad = Math.max(dx, dz) * 0.45;
+  const isFallbackAABB = xmin === -34 && ymin === -2 && zmin === -18 && xmax === 34 && zmax === 18;
+  const gradeY = isFallbackAABB ? 0 : estimateGradeY(viewer, objectMap, ymin);
+  const groundY = Math.abs(gradeY) > 1000 ? 0.02 : gradeY + 0.018;
+  const pad = Math.max(dx, dz) * 0.85;
   viewer.scene.models?.structure_site_context?.destroy?.();
   const model = new SceneModel(viewer.scene, {
     id: "structure_site_context",
@@ -798,36 +801,47 @@ function createStructureContextModel(
 
   try {
     const textures = createSiteTextureSets(model);
-    const outer: [number, number, number, number] = [cx - dx / 2 - pad, cz - dz / 2 - pad, cx + dx / 2 + pad, cz + dz / 2 + pad];
-    const apronOuter: [number, number, number, number] = [xmin - 8, zmin - 8, xmax + 8, zmax + 8];
-    const footprint: [number, number, number, number] = [xmin - 0.6, zmin - 0.6, xmax + 0.6, zmax + 0.6];
+    const outer: [number, number, number, number] = [
+      cx - dx / 2 - pad * 1.25,
+      cz - dz / 2 - pad,
+      cx + dx / 2 + pad * 1.25,
+      cz + dz / 2 + pad,
+    ];
+    const plaza: [number, number, number, number] = [
+      xmin - Math.max(12, dx * 0.22),
+      zmin - Math.max(10, dz * 0.28),
+      xmax + Math.max(18, dx * 0.3),
+      zmax + Math.max(12, dz * 0.34),
+    ];
 
     // Base slabs are deliberately solid-color boxes. They are the reliability
     // layer: even if texture UVs/images fail on a deployment, Structure mode
     // still shows a complete site/context instead of reverting to white.
-    createRingSlab(model, "structure_context_grass_base", outer, apronOuter, groundY - 0.04, groundY + 0.004, [0.34, 0.56, 0.34], 1);
-    createRingSlab(model, "structure_context_concrete_base", apronOuter, footprint, groundY - 0.025, groundY + 0.012, [0.68, 0.68, 0.63], 1);
+    createBox(model, "structure_context_grass_base", [outer[0], groundY - 0.05, outer[1]],
+      [outer[2], groundY + 0.002, outer[3]], [0.3, 0.51, 0.31], 1, 0.92);
+    createBox(model, "structure_context_concrete_plaza_base", [plaza[0], groundY + 0.004, plaza[1]],
+      [plaza[2], groundY + 0.03, plaza[3]], [0.72, 0.72, 0.66], 1, 0.88);
     createBox(model, "structure_context_road_main_base",
-      [cx - dx / 2 - pad, groundY + 0.005, cz + dz / 2 + pad * 0.28],
-      [cx + dx / 2 + pad, groundY + 0.035, cz + dz / 2 + pad * 0.48],
+      [outer[0], groundY + 0.006, cz + dz / 2 + pad * 0.36],
+      [outer[2], groundY + 0.04, cz + dz / 2 + pad * 0.54],
       [0.22, 0.24, 0.25], 1, 0.95);
     createBox(model, "structure_context_road_side_base",
-      [cx + dx / 2 + pad * 0.18, groundY + 0.006, cz - dz / 2 - pad],
-      [cx + dx / 2 + pad * 0.38, groundY + 0.036, cz + dz / 2 + pad],
+      [cx - dx / 2 - pad * 0.92, groundY + 0.007, outer[1]],
+      [cx - dx / 2 - pad * 0.72, groundY + 0.041, outer[3]],
       [0.23, 0.24, 0.25], 1, 0.95);
 
-    createRingSurface(model, "structure_context_grass", outer, apronOuter, groundY + 0.01, [0.32, 0.5, 0.3], textures.grass, 7);
-    createRingSurface(model, "structure_context_concrete_apron", apronOuter, footprint, groundY + 0.026, [0.66, 0.66, 0.61], textures.concrete, 4);
-    createContextTexturePatches(model, outer, apronOuter, groundY + 0.024);
+    createTexturedPlane(model, "structure_context_grass", outer, groundY + 0.008, [0.32, 0.5, 0.3], textures.grass, 7);
+    createTexturedPlane(model, "structure_context_concrete_plaza", plaza, groundY + 0.034, [0.69, 0.69, 0.64], textures.concrete, 4);
+    createContextTexturePatches(model, outer, plaza, groundY + 0.04);
 
     createTexturedPlane(model, "structure_context_road_main",
-      [cx - dx / 2 - pad, cz + dz / 2 + pad * 0.28, cx + dx / 2 + pad, cz + dz / 2 + pad * 0.48],
+      [outer[0], cz + dz / 2 + pad * 0.36, outer[2], cz + dz / 2 + pad * 0.54],
       groundY + 0.045, [0.22, 0.24, 0.25], textures.asphalt, 3.5);
     createTexturedPlane(model, "structure_context_road_side",
-      [cx + dx / 2 + pad * 0.18, cz - dz / 2 - pad, cx + dx / 2 + pad * 0.38, cz + dz / 2 + pad],
+      [cx - dx / 2 - pad * 0.92, outer[1], cx - dx / 2 - pad * 0.72, outer[3]],
       groundY + 0.046, [0.23, 0.24, 0.25], textures.asphalt, 3.5);
     createTexturedPlane(model, "structure_context_walkway",
-      [cx - dx / 2 - pad, cz - dz / 2 - pad * 0.24, cx + dx / 2 + pad, cz - dz / 2 - pad * 0.12],
+      [plaza[0] - 8, zmin - Math.max(8, dz * 0.3), plaza[2] + 10, zmin - Math.max(5, dz * 0.16)],
       groundY + 0.058, [0.74, 0.74, 0.68], textures.concrete, 3);
 
     const blocks = [

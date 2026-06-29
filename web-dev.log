@@ -1,0 +1,14 @@
+
+> greenflow-web@0.1.0 dev
+> next dev -p 3000
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+
+ ✓ Starting...
+ ✓ Ready in 41.9s
+ ○ Compiling /dashboard ...
+ ✓ Compiled /dashboard in 56.5s (2106 modules)
+ ✓ Compiled in 9.1s (1044 modules)
+ ✓ Compiled in 610ms (1044 modules)
+ ✓ Compiled in 558ms (1044 modules)
