@@ -3,17 +3,21 @@
 from __future__ import annotations
 
 from ...db import db_conn, fetch_all, fetch_one
+from ...energy_scope import counted_zone_sql, effective_counts_toward_energy
 
 
 def get_building_summary(building_id: str) -> dict:
     with db_conn() as conn:
         b = fetch_one(conn, "SELECT * FROM buildings WHERE id = :b", b=building_id) or {}
-        counts = fetch_one(conn, """
+        counts = fetch_one(conn, f"""
             SELECT
               (SELECT count(*) FROM floors WHERE building_id = :b)  AS floor_count,
               (SELECT count(*) FROM zones WHERE building_id = :b)   AS zone_count,
+              (SELECT count(*) FROM zones z WHERE building_id = :b AND {counted_zone_sql('z')})
+                  AS energy_zone_count,
               (SELECT count(*) FROM devices WHERE building_id = :b) AS device_count,
-              (SELECT coalesce(sum(area_m2), 0) FROM zones WHERE building_id = :b)
+              (SELECT coalesce(sum(area_m2), 0) FROM zones
+               WHERE building_id = :b AND {counted_zone_sql('zones')})
                   AS total_area_m2
         """, b=building_id) or {}
         return {**_clean(b), **_clean(counts)}
@@ -31,7 +35,9 @@ def get_zones(building_id: str, floor_id: str | None = None) -> list[dict]:
     with db_conn() as conn:
         sql = """
             SELECT z.id, z.name, z.entity_key, z.room_type, z.area_m2, z.volume_m3,
-                   z.comfort_profile, z.floor_id, f.name AS floor_name
+                   z.comfort_profile, z.floor_id, f.name AS floor_name,
+                   z.energy_scope, z.counts_toward_energy,
+                   z.scope_confidence, z.scope_reason
             FROM zones z LEFT JOIN floors f ON f.id = z.floor_id
             WHERE z.building_id = :b
         """
@@ -39,7 +45,12 @@ def get_zones(building_id: str, floor_id: str | None = None) -> list[dict]:
         if floor_id:
             sql += " AND z.floor_id = :f"
             params["f"] = floor_id
-        return [_clean(r) for r in fetch_all(conn, sql + " ORDER BY z.name", **params)]
+        rows = [_clean(r) for r in fetch_all(conn, sql + " ORDER BY z.name", **params)]
+        for row in rows:
+            row["is_energy_counted"] = effective_counts_toward_energy(
+                row.get("counts_toward_energy", True)
+            )
+        return rows
 
 
 def get_devices(building_id: str, zone_id: str | None = None) -> list[dict]:

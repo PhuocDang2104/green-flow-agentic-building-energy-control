@@ -79,9 +79,10 @@ export default function EnergyAnalyticsSection() {
   }, [pollMs]);
 
   const ready = !!series && !!kpi && zones.length > 0;
+  const energyZones = zones.filter((z) => z.is_energy_counted !== false);
 
   // ---- derived metrics -----------------------------------------------------
-  const totalArea = zones.reduce((s, z) => s + (z.area_m2 || 0), 0);
+  const totalArea = energyZones.reduce((s, z) => s + (z.area_m2 || 0), 0);
   const kwh = kpi?.kwh || 0;
   const cost = kpi?.cost || 0;
   const peakKw = series?.length ? Math.max(...series.map((p) => p.total_power_kw || 0)) : 0;
@@ -103,7 +104,7 @@ export default function EnergyAnalyticsSection() {
     name: k, value: sums[k], pct: Math.round((sums[k] / mixTotal) * 100),
   }));
 
-  const topZones = [...zones]
+  const topZones = [...energyZones]
     .sort((a, b) => ((b.latest_state?.total_power_kw) || 0) - ((a.latest_state?.total_power_kw) || 0))
     .slice(0, 6)
     .map((z) => ({ name: z.name, kw: Number(((z.latest_state?.total_power_kw) || 0).toFixed(2)) }));

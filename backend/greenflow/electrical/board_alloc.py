@@ -26,6 +26,7 @@ from . import canonical as C
 from . import config as cfg
 from . import gold
 from .provenance import Confidence, ValueClass
+from ..energy_scope import counts_toward_energy, dedup_enabled
 
 _CONF_RANK = {Confidence.MANUAL_REVIEW: 0, Confidence.LOW: 1, Confidence.MEDIUM: 2,
               Confidence.HIGH: 3, Confidence.EXACT: 4}
@@ -102,8 +103,6 @@ def run() -> dict[str, int]:
     load_to_circuit: list[dict] = []
     lp_by_zone_cat: dict[tuple, list] = defaultdict(list)
     floor_cat_counter: dict[tuple, Counter] = defaultdict(Counter)
-    lp_index = {lp["load_point_id"]: lp for lp in lps}
-
     for lp in lps:
         if lp.get("load_kind") == "alarm":
             continue
@@ -183,7 +182,10 @@ def run() -> dict[str, int]:
                 "notes": "" if bid != cfg.UNMAPPED_BOARD_ID else "no board evidence",
             })
 
-    for z in zones:
+    counted_zones = (zones if not dedup_enabled() else [
+        z for z in zones if counts_toward_energy(z.get("counts_toward_energy", True))
+    ])
+    for z in counted_zones:
         zid, floor = z["zone_id"], z["floor_id"]
         ez = zone_eplus.get(zid, z.get("eplus_zone_name", ""))
         for cat in (cfg.CAT_LIGHTS, cfg.CAT_EQUIPMENT):

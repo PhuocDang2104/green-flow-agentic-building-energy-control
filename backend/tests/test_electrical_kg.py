@@ -16,6 +16,7 @@ import pytest
 
 from greenflow.electrical import canonical as C
 from greenflow.electrical import config as cfg
+from greenflow.energy_scope import dedup_enabled
 
 pytestmark = pytest.mark.skipif(
     not (cfg.OUT_ELEC / "board_annual_summary.csv").exists(),
@@ -47,6 +48,18 @@ def test_allocation_weights_sum_to_one():
     assert not bad, f"weights must sum to 1 per (zone,category); offenders: {list(bad)[:5]}"
 
 
+def test_aggregate_context_zones_are_not_allocated_to_boards():
+    if not dedup_enabled():
+        pytest.skip("aggregate allocation is preserved in audit mode")
+    zones = C.read_rows_csv(cfg.OUT_MAPPING / "zones.csv")
+    excluded = {z["zone_id"] for z in zones if z.get("counts_toward_energy") == "False"}
+    allocated = {a["zone_id"] for a in C.read_rows_csv(
+        cfg.OUT_ELEC / "zone_load_to_board_allocation.csv"
+    )}
+    assert excluded
+    assert excluded.isdisjoint(allocated)
+
+
 def test_no_double_count_and_validation_passes():
     report = json.loads((cfg.OUT_ELEC / "electrical_validation_report.json").read_text("utf-8"))
     assert report["summary"]["fail"] == 0, report["summary"]
@@ -66,7 +79,6 @@ def test_boards_are_not_consuming_loads():
 
 
 def test_current_formula_matches_convention():
-    boards = {b["board_id"]: b for b in C.read_rows_csv(cfg.OUT_ELEC / "electrical_boards.csv")}
     checked = 0
     for a in C.read_rows_csv(cfg.OUT_ELEC / "board_annual_summary.csv"):
         cur = _f(a.get("estimated_peak_current_a"))

@@ -13,8 +13,9 @@ from collections import Counter
 from . import canonical as C
 from . import config as cfg
 from . import gold
-from .board_timeseries import BOARD_TS, _zone_timeseries_projection
+from .board_timeseries import BOARD_TS, _alloc_wide, _zone_timeseries_projection
 from .provenance import Confidence, ManualReviewItem
+from ..energy_scope import counts_toward_energy
 
 TOL_PCT = 0.5    # board-vs-zone energy must match within this %
 
@@ -37,10 +38,32 @@ def run() -> dict[str, int]:
 
     # ---- energy reconciliation (DuckDB) ----
     con = gold.duckdb_con()
-    zt = con.execute(f"""
+    con.register("alloc_wide", _alloc_wide())
+    import pyarrow as pa
+
+    scope_ids = [
+        z["zone_id"] for z in C.read_rows_csv(cfg.OUT_MAPPING / "zones.csv")
+        if counts_toward_energy(z.get("counts_toward_energy", True))
+    ]
+    con.register("scope_counted", pa.table({"zone_id": scope_ids}))
+    raw_zt = con.execute(f"""
         SELECT sum(lights_electricity_kwh_interval) l, sum(equipment_electricity_kwh_interval) e,
                sum(final_hvac_electricity_kwh_interval) h, sum(final_total_zone_electricity_kwh_interval) t
         FROM ({_zone_timeseries_projection()}) WHERE scenario_id='{cfg.SCENARIO_ID}'
+    """).fetchone()
+    scoped_zt = con.execute(f"""
+        SELECT sum(lights_electricity_kwh_interval) l, sum(equipment_electricity_kwh_interval) e,
+               sum(final_hvac_electricity_kwh_interval) h, sum(final_total_zone_electricity_kwh_interval) t
+        FROM ({_zone_timeseries_projection()})
+        WHERE scenario_id='{cfg.SCENARIO_ID}'
+          AND zone_id IN (SELECT zone_id FROM scope_counted)
+    """).fetchone()
+    zt = con.execute(f"""
+        SELECT sum(lights_electricity_kwh_interval) l, sum(equipment_electricity_kwh_interval) e,
+               sum(final_hvac_electricity_kwh_interval) h, sum(final_total_zone_electricity_kwh_interval) t
+        FROM ({_zone_timeseries_projection()})
+        WHERE scenario_id='{cfg.SCENARIO_ID}'
+          AND zone_id IN (SELECT DISTINCT zone_id FROM alloc_wide)
     """).fetchone()
     bt = con.execute(f"""
         SELECT sum(board_lights_kwh_interval), sum(board_equipment_kwh_interval),
@@ -79,19 +102,32 @@ def run() -> dict[str, int]:
         worst = max(worst, dpct)
         meter_name = cfg.METER_FOR_CATEGORY[cat]
         mval = meters.get(meter_name)
-        recon.append({"category": cat, "zone_allocated_kwh": round(z, 1),
+        raw = {cfg.CAT_LIGHTS: raw_zt[0] or 0, cfg.CAT_EQUIPMENT: raw_zt[1] or 0,
+               cfg.CAT_HVAC: raw_zt[2] or 0}[cat]
+        scoped = {cfg.CAT_LIGHTS: scoped_zt[0] or 0,
+                  cfg.CAT_EQUIPMENT: scoped_zt[1] or 0,
+                  cfg.CAT_HVAC: scoped_zt[2] or 0}[cat]
+        recon.append({"category": cat, "raw_zone_kwh": round(raw, 1),
+                      "excluded_aggregate_kwh": round(raw - scoped, 1),
+                      "deduped_zone_kwh": round(scoped, 1),
+                      "zone_allocated_kwh": round(z, 1),
                       "board_allocated_kwh": round(b, 1), "diff_kwh": round(diff, 3),
                       "diff_pct": round(dpct, 4), "building_meter_name": meter_name,
                       "building_meter_kwh": round(mval, 1) if mval else None,
                       "board_vs_meter_pct": round(b / mval * 100, 2) if mval else None,
-                      "note": "board layer redistributes zone energy (no double count)"})
-    chk("no_double_count_by_category",
+                      "note": "board layer redistributes counted atomic/review zone energy"})
+    chk("board_does_not_duplicate_counted_zones",
         "pass" if worst <= TOL_PCT else "fail",
         f"max board-vs-zone category mismatch {worst:.4f}% (tol {TOL_PCT}%)", round(worst, 4))
     tot_z, tot_b = zt[3] or 0, bt[3] or 0
+    raw_total = raw_zt[3] or 0
+    scoped_total = scoped_zt[3] or 0
+    chk("aggregate_zone_energy_identified", "pass" if raw_total >= scoped_total else "fail",
+        f"raw zone total {raw_total:.0f} kWh; potential deduped total {scoped_total:.0f} kWh; "
+        f"aggregate scope {raw_total - scoped_total:.0f} kWh")
     chk("board_total_equals_allocated_zone_total",
         "pass" if (tot_z and abs(tot_b - tot_z) / tot_z * 100 <= TOL_PCT) else "warn",
-        f"zone total {tot_z:.0f} kWh vs board total {tot_b:.0f} kWh "
+        f"deduped zone total {tot_z:.0f} kWh vs board total {tot_b:.0f} kWh "
         f"(only allocated categories are summed; boards are not added to zone totals)")
     fac = meters.get(cfg.METER_TOTAL)
     chk("building_meter_facility_present", "pass" if fac else "warn",
@@ -182,9 +218,12 @@ def run() -> dict[str, int]:
     for c in checks:
         md.append(f"- [{c['status'].upper()}] **{c['check']}** — {c['detail']}")
     md += ["", "## Energy reconciliation (annual kWh)",
-           "| category | zone | board | Δ% | meter | board/meter % |", "|---|---|---|---|---|---|"]
+           "| category | raw zone | excluded | deduped zone | allocated zone | board | Δ% | meter | board/meter % |",
+           "|---|---|---|---|---|---|---|---|---|"]
     for r in recon:
-        md.append(f"| {r['category']} | {r['zone_allocated_kwh']} | {r['board_allocated_kwh']} | "
+        md.append(f"| {r['category']} | {r['raw_zone_kwh']} | {r['excluded_aggregate_kwh']} | "
+                  f"{r['deduped_zone_kwh']} | {r['zone_allocated_kwh']} | "
+                  f"{r['board_allocated_kwh']} | "
                   f"{r['diff_pct']} | {r['building_meter_kwh']} | {r['board_vs_meter_pct']} |")
     md += ["", "Boards are distribution assets; their demand is the redistribution of "
            "EnergyPlus-simulated zone energy, never additional consumption. Overload is "

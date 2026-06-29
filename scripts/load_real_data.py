@@ -34,6 +34,7 @@ from sqlalchemy import text  # noqa: E402
 
 from greenflow.datasets import active_dataset  # noqa: E402
 from greenflow.db import db_conn, fetch_all  # noqa: E402
+from greenflow.energy_scope import effective_counts_toward_energy  # noqa: E402
 
 BUILDING_ID = uuid.UUID("b0000000-0000-0000-0000-000000000001")
 TZ = timezone(timedelta(hours=7))  # Hà Nội; timestamp trong data là local naive
@@ -132,7 +133,7 @@ def main() -> None:
     # 1) zones trong Postgres: entity_key -> (uuid, floor_id, room_type, area)
     with db_conn() as conn:
         zrows = fetch_all(conn, """
-            SELECT entity_key, id, floor_id, room_type, area_m2
+            SELECT entity_key, id, floor_id, room_type, area_m2, counts_toward_energy
             FROM zones WHERE building_id = :b""", b=BUILDING_ID)
     zmap = {r["entity_key"]: r for r in zrows}
 
@@ -177,9 +178,15 @@ def main() -> None:
     # 3) tải toà nhà theo timestamp -> ngưỡng peak_risk (so với đỉnh năm)
     bt: dict = {}
     for r in rows:
-        bt[r[0]] = bt.get(r[0], 0.0) + (r[8] or 0.0)
+        key = tz_to_key[r[1]]
+        if effective_counts_toward_energy(zmap[key]["counts_toward_energy"]):
+            bt[r[0]] = bt.get(r[0], 0.0) + (r[8] or 0.0)
     bpeak = max(bt.values()) if bt else 1.0
-    print(f"building peak ({len(tz_ids)} zones): {bpeak:.1f} kW")
+    counted_count = sum(
+        effective_counts_toward_energy(zmap[k]["counts_toward_energy"])
+        for k in target_keys
+    )
+    print(f"building peak ({counted_count}/{len(tz_ids)} counted zones): {bpeak:.1f} kW")
 
     # 4) transform -> tuples
     records = []

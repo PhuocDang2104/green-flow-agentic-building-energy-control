@@ -12,6 +12,7 @@ The script is idempotent and does not delete existing zones.
 from __future__ import annotations
 
 import argparse
+import csv
 import sys
 import uuid
 from pathlib import Path
@@ -25,6 +26,8 @@ from sqlalchemy import text  # noqa: E402
 from greenflow.cctv import camera_profile  # noqa: E402
 from greenflow.datasets import active_dataset  # noqa: E402
 from greenflow.db import db_conn, fetch_all  # noqa: E402
+from greenflow.energy_scope import classify_energy_scope  # noqa: E402
+from greenflow.electrical import config as electrical_cfg  # noqa: E402
 
 BUILDING_ID = uuid.UUID("b0000000-0000-0000-0000-000000000001")
 NS = uuid.uuid5(uuid.NAMESPACE_URL, "greenflow/true-building/elnino-2024")
@@ -72,6 +75,22 @@ def read_zone_metadata(duckdb_path: Path) -> list[dict]:
         "area_m2_final", "volume_m3_final", "height_m_final",
     ]
     return [dict(zip(cols, r, strict=True)) for r in rows]
+
+
+def read_scope_map() -> dict[str, dict]:
+    """Use the IFC-derived scope map so Postgres and Electrical agree by zone_id."""
+    path = electrical_cfg.OUT_MAPPING / "zones.csv"
+    if not path.exists():
+        print(f"scope map not found, using metadata-only fallback: {path}")
+        return {}
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        rows = list(csv.DictReader(handle))
+    required = {"zone_id", "energy_scope", "counts_toward_energy",
+                "scope_confidence", "scope_reason"}
+    if not rows or not required.issubset(rows[0]):
+        print(f"scope map has no energy-scope columns, using fallback: {path}")
+        return {}
+    return {row["zone_id"]: row for row in rows}
 
 
 def sync_cameras(conn) -> int:
@@ -129,6 +148,7 @@ def main() -> int:
     ds = active_dataset()
     duckdb_path = Path(args.duckdb_path) if args.duckdb_path else ds.duckdb_path
     zones = read_zone_metadata(duckdb_path)
+    scope_map = read_scope_map()
     if not zones:
         raise SystemExit(f"no zones found in {duckdb_path}")
 
@@ -136,6 +156,18 @@ def main() -> int:
     floor_ids: dict[str, uuid.UUID] = {}
 
     with db_conn() as conn:
+        alterations = [
+            "ALTER TABLE zones ADD COLUMN IF NOT EXISTS energy_scope text "
+            "NOT NULL DEFAULT 'atomic_energy_zone'",
+            "ALTER TABLE zones ADD COLUMN IF NOT EXISTS counts_toward_energy boolean "
+            "NOT NULL DEFAULT true",
+            "ALTER TABLE zones ADD COLUMN IF NOT EXISTS scope_confidence text "
+            "NOT NULL DEFAULT 'high'",
+            "ALTER TABLE zones ADD COLUMN IF NOT EXISTS scope_reason text "
+            "NOT NULL DEFAULT 'default_atomic_space'",
+        ]
+        for statement in alterations:
+            conn.execute(text(statement))
         conn.execute(text("""
             INSERT INTO buildings (id, name, location_name, timezone, building_type, source_dataset)
             VALUES (:id, 'GreenFlow', 'Hanoi / VinUniversity Area',
@@ -166,6 +198,13 @@ def main() -> int:
         for z in zones:
             key = entity_key(z["zone_id"])
             name = z["room_name"] or z["eplus_zone_name"] or key
+            scope = classify_energy_scope(
+                name,
+                area_m2=z["area_m2_final"],
+                volume_m3=z["volume_m3_final"],
+                height_m=z["height_m_final"],
+            )
+            mapped_scope = scope_map.get(z["zone_id"])
             zone_records.append({
                 "id": stable_uuid("zone", key),
                 "b": BUILDING_ID,
@@ -177,14 +216,22 @@ def main() -> int:
                 "volume": z["volume_m3_final"],
                 "guid": z["zone_id"],
                 "src": z["eplus_zone_name"] or z["room_id"] or z["zone_id"],
+                "scope": mapped_scope["energy_scope"] if mapped_scope else scope.scope,
+                "counted": (mapped_scope["counts_toward_energy"].lower() == "true"
+                            if mapped_scope else scope.counts_toward_energy),
+                "scope_conf": (mapped_scope["scope_confidence"]
+                               if mapped_scope else scope.confidence),
+                "scope_reason": mapped_scope["scope_reason"] if mapped_scope else scope.reason,
             })
 
         upsert_zone = text("""
             INSERT INTO zones (id, building_id, floor_id, name, entity_key, room_type,
                                area_m2, volume_m3, comfort_profile, risk_level,
-                               raw_ifc_guid, source_space_name)
+                               raw_ifc_guid, source_space_name, energy_scope,
+                               counts_toward_energy, scope_confidence, scope_reason)
             VALUES (:id, :b, :f, :name, :key, :rt, :area, :volume,
-                    'office_standard', 'normal', :guid, :src)
+                    'office_standard', 'normal', :guid, :src, :scope,
+                    :counted, :scope_conf, :scope_reason)
             ON CONFLICT (building_id, entity_key) DO UPDATE SET
                 floor_id = EXCLUDED.floor_id,
                 name = EXCLUDED.name,
@@ -192,7 +239,11 @@ def main() -> int:
                 area_m2 = EXCLUDED.area_m2,
                 volume_m3 = EXCLUDED.volume_m3,
                 raw_ifc_guid = EXCLUDED.raw_ifc_guid,
-                source_space_name = EXCLUDED.source_space_name
+                source_space_name = EXCLUDED.source_space_name,
+                energy_scope = EXCLUDED.energy_scope,
+                counts_toward_energy = EXCLUDED.counts_toward_energy,
+                scope_confidence = EXCLUDED.scope_confidence,
+                scope_reason = EXCLUDED.scope_reason
         """)
         for i in range(0, len(zone_records), 1000):
             conn.execute(upsert_zone, zone_records[i:i + 1000])

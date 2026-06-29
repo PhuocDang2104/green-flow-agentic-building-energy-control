@@ -19,6 +19,7 @@ from functools import lru_cache
 
 from . import canonical as C
 from . import config as cfg
+from ..energy_scope import effective_counts_toward_energy
 
 ZONE_ENERGY_CSV = cfg.OUT_ELEC / "zone_annual_energy.csv"
 
@@ -126,11 +127,15 @@ def build_scene(include_loads: bool = True, max_lights: int = 800) -> dict:
     for b in boards_raw.values():
         x, y, z = _f(b["x"]), _f(b["y"]), _f(b["z"])
         if None not in (x, y, z):
-            xs.append(x); ys.append(y); zs.append(z)
+            xs.append(x)
+            ys.append(y)
+            zs.append(z)
     for bx in boxes.values():
         x, y, z = bx["center"]
         if None not in (x, y, z):
-            xs.append(x); ys.append(y); zs.append(z)
+            xs.append(x)
+            ys.append(y)
+            zs.append(z)
     cx = sum(xs) / len(xs) if xs else 0.0
     cy = sum(ys) / len(ys) if ys else 0.0
     # ground = lowest real storey elevation (ignore the sea-level origin marker)
@@ -187,18 +192,22 @@ def build_scene(include_loads: bool = True, max_lights: int = 800) -> dict:
         size = [round(sx, 2), round(sz, 2), round(sy, 2)]
         m = zmeta.get(zid, {})
         e = zenergy.get(zid, {})
+        is_counted = effective_counts_toward_energy(m.get("counts_toward_energy", True))
         feeder = dominant.get(zid)
         kwh = _f(e.get("total_kwh"), 0.0)
         zones.append({
             "id": zid, "name": m.get("eplus_zone_name") or m.get("long_name") or zid,
             "pos": pos, "size": size, "floor_id": m.get("floor_id"), "room_type": m.get("room_type"),
             "area_m2": _f(m.get("area_m2")), "total_kwh": round(kwh, 1),
+            "energy_scope": m.get("energy_scope") or "atomic_energy_zone",
+            "counts_toward_energy": is_counted,
+            "scope_reason": m.get("scope_reason") or "default_atomic_space",
             "lights_kwh": round(_f(e.get("lights_kwh"), 0.0), 1),
             "equipment_kwh": round(_f(e.get("equipment_kwh"), 0.0), 1),
             "hvac_kwh": round(_f(e.get("hvac_kwh"), 0.0), 1),
             "peak_kw": round(_f(e.get("peak_kw"), 0.0), 2),
             "feeder_board": feeder, "color_idx": color_idx.get(feeder, -1),
-            "intensity": round(kwh / zmax, 4),
+            "intensity": round(kwh / zmax, 4) if is_counted else 0.0,
         })
 
     bpos = {b["id"]: b["pos"] for b in boards}

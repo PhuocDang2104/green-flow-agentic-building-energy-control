@@ -19,6 +19,7 @@ import threading
 
 from greenflow.agent import service as agent_service
 from greenflow.db import fetch_all, fetch_one
+from greenflow.energy_scope import counted_zone_sql
 
 WINDOW_INTERVAL = {"day": "1 day", "week": "7 days", "month": "30 days"}
 ZONE_METRICS = {"total_power_kw", "hvac_power_kw", "lighting_power_kw",
@@ -66,8 +67,9 @@ def get_building_kpi(conn, building_id, window: str = "day") -> dict:
         window_sql = "timestamp > :now - interval '" + iv + "' AND timestamp <= :now"
 
     row = fetch_one(conn, f"""
-        WITH w AS (SELECT * FROM telemetry_zone_15m
-                   WHERE building_id = :b AND {window_sql}),
+        WITH w AS (SELECT t.* FROM telemetry_zone_15m t
+                   JOIN zones z ON z.id = t.zone_id
+                   WHERE t.building_id = :b AND {counted_zone_sql('z')} AND {window_sql}),
              peak AS (SELECT timestamp, sum(total_power_kw) kw FROM w GROUP BY 1)
         SELECT round(sum(energy_kwh)::numeric,1) energy_kwh,
                round(sum(cost_vnd)::numeric,0) cost_vnd,
@@ -110,7 +112,7 @@ def get_top_consumers(conn, building_id, window: str = "day", limit: int = 5) ->
         SELECT z.entity_key, z.name, round(sum(t.energy_kwh)::numeric,1) energy_kwh
         FROM telemetry_zone_15m t JOIN zones z ON z.id = t.zone_id
         WHERE t.building_id = :b AND t.timestamp > :now - interval '{iv}'
-          AND t.timestamp <= :now
+          AND t.timestamp <= :now AND {counted_zone_sql('z')}
         GROUP BY z.entity_key, z.name ORDER BY energy_kwh DESC LIMIT :lim""",
         b=building_id, now=now, lim=int(limit))
     return {"window": window, "top": [dict(r) | {"energy_kwh": float(r["energy_kwh"])}
@@ -132,7 +134,8 @@ def get_alerts(conn, building_id, status: str = "open") -> dict:
 
 def list_zones(conn, building_id) -> dict:
     rows = fetch_all(conn, """
-        SELECT entity_key, name, room_type, round(area_m2::numeric,1) area_m2
+        SELECT entity_key, name, room_type, round(area_m2::numeric,1) area_m2,
+               energy_scope, counts_toward_energy, scope_reason
         FROM zones WHERE building_id = :b ORDER BY name""", b=building_id)
     return {"zones": [dict(r) for r in rows]}
 

@@ -1,0 +1,478 @@
+{
+  "classification_rule": {
+    "aggregate_context_if_name_matches": [
+      "VOLUME /",
+      "GFA",
+      "GFA 250mm",
+      "HEATED NETAREA",
+      "NETAREA",
+      "GROSS",
+      "Turning Free Space",
+      "SHAFT",
+      "CHASE",
+      "VENT"
+    ],
+    "aggregate_context_if_area_m2_gte": 1500,
+    "aggregate_context_if_volume_area_height_gt": 5,
+    "note": "Audit classification, needs team review before production."
+  },
+  "raw_total_kwh": 350597.0689636115,
+  "raw_zone_count": 308,
+  "scopes": {
+    "atomic_energy_zone": {
+      "zone_count": 210,
+      "area_m2": 13815.35672,
+      "volume_m3": 47443.75116,
+      "total_kwh": 124460.35214048634,
+      "lights_kwh": 28767.118881798273,
+      "equipment_kwh": 67129.71677135197,
+      "hvac_kwh": 28563.51648733581,
+      "avg_kw": null,
+      "sum_zone_peak_kw": 341.1713965240513,
+      "max_single_zone_peak_kw": 31.26001431881121,
+      "eui_kwh_m2": 9.008841006639338,
+      "top_zones": [
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax503K",
+          "eplus_zone_name": "ZN_0249_66A29656",
+          "name": "OFFICE",
+          "number": "TSTO1",
+          "storey": "Level_02",
+          "area_m2": 1145.48,
+          "total_kwh": 11854.206371632827,
+          "peak_kw": 31.26001431881121,
+          "avg_kw": 8.097135499749198,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax50vA",
+          "eplus_zone_name": "ZN_0252_046FBA35",
+          "name": "OFFICE",
+          "number": "TSTO6",
+          "storey": "Level_03",
+          "area_m2": 876.064,
+          "total_kwh": 9066.574675067108,
+          "peak_kw": 23.905662916710547,
+          "avg_kw": 6.193015488433817,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax50dk",
+          "eplus_zone_name": "ZN_0256_61C1CDEF",
+          "name": "OFFICE",
+          "number": "TSTO10",
+          "storey": "Level_04",
+          "area_m2": 876.064,
+          "total_kwh": 9065.389768023644,
+          "peak_kw": 23.906651026520535,
+          "avg_kw": 6.192206125699211,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax5039",
+          "eplus_zone_name": "ZN_0248_B5DAE375",
+          "name": "OFFICE",
+          "number": "TSTO2",
+          "storey": "Level_02",
+          "area_m2": 876.064,
+          "total_kwh": 9064.227992480413,
+          "peak_kw": 23.90508776081487,
+          "avg_kw": 6.191412563169681,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax50vF",
+          "eplus_zone_name": "ZN_0251_D0166AAF",
+          "name": "OFFICE",
+          "number": "TSTO5",
+          "storey": "Level_03",
+          "area_m2": 643.703,
+          "total_kwh": 6661.663642598824,
+          "peak_kw": 17.5643506779126,
+          "avg_kw": 4.550316695764224,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax50dZ",
+          "eplus_zone_name": "ZN_0255_0788E1C8",
+          "name": "OFFICE",
+          "number": "TSTO9",
+          "storey": "Level_04",
+          "area_m2": 643.703,
+          "total_kwh": 6661.417480142812,
+          "peak_kw": 17.564707296775637,
+          "avg_kw": 4.550148552010117,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax50v9",
+          "eplus_zone_name": "ZN_0253_99BEC91D",
+          "name": "OFFICE",
+          "number": "TSTO7",
+          "storey": "Level_03",
+          "area_m2": 447.856,
+          "total_kwh": 4637.655968094133,
+          "peak_kw": 12.221415691903605,
+          "avg_kw": 3.1677977924140253,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax50dj",
+          "eplus_zone_name": "ZN_0257_4AF0C1CC",
+          "name": "OFFICE",
+          "number": "TSTO11",
+          "storey": "Level_04",
+          "area_m2": 447.856,
+          "total_kwh": 4636.292130886723,
+          "peak_kw": 12.221297562521148,
+          "avg_kw": 3.166866209622078,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax50v0",
+          "eplus_zone_name": "ZN_0250_68A4A910",
+          "name": "OFFICE",
+          "number": "TSTO4",
+          "storey": "Level_03",
+          "area_m2": 447.856,
+          "total_kwh": 4635.167968823049,
+          "peak_kw": 12.220979275778046,
+          "avg_kw": 3.166098339360006,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax50dd",
+          "eplus_zone_name": "ZN_0254_CE9D4782",
+          "name": "OFFICE",
+          "number": "TSTO8",
+          "storey": "Level_04",
+          "area_m2": 447.856,
+          "total_kwh": 4635.032229337981,
+          "peak_kw": 12.221181289596256,
+          "avg_kw": 3.1660056211325007,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax53gA",
+          "eplus_zone_name": "ZN_0247_F1E62B86",
+          "name": "OFFICE",
+          "number": "TSTO3",
+          "storey": "Level_02",
+          "area_m2": 447.856,
+          "total_kwh": 4633.825511400075,
+          "peak_kw": 12.220491060749499,
+          "avg_kw": 3.1651813602459526,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3PHN3kec17q9UkUqax52g0",
+          "eplus_zone_name": "ZN_0246_2E760192",
+          "name": "BUSINESS SPACE",
+          "number": "LIIK1",
+          "storey": "Level_01",
+          "area_m2": 418.131,
+          "total_kwh": 4329.1794365258065,
+          "peak_kw": 11.409844698092904,
+          "avg_kw": 2.957089779047682,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3xtnrBUgHBCwRh_xfyB4IZ",
+          "eplus_zone_name": "ZN_0036_E3B484D9",
+          "name": "OPEN OFFICE",
+          "number": "220",
+          "storey": "Level_02",
+          "area_m2": 354.736,
+          "total_kwh": 2785.926376123246,
+          "peak_kw": 8.11350176507427,
+          "avg_kw": 1.9029551749475724,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_3xtnrBUgHBCwRh_xfyB1VR",
+          "eplus_zone_name": "ZN_0037_D1EA7236",
+          "name": "OPEN OFFICE",
+          "number": "230",
+          "storey": "Level_02",
+          "area_m2": 302.851,
+          "total_kwh": 2461.471102084851,
+          "peak_kw": 7.072044085820122,
+          "avg_kw": 1.6813327200033135,
+          "reasons": []
+        },
+        {
+          "zone_id": "tz_0Q4MSUQx531vKL_w06AgFH",
+          "eplus_zone_name": "ZN_0066_A3FC4101",
+          "name": "OPEN OFFICE",
+          "number": "430",
+          "storey": "Level_04",
+          "area_m2": 286.223,
+          "total_kwh": 2380.80171723474,
+          "peak_kw": 6.776289718673209,
+          "avg_kw": 1.6262306811712706,
+          "reasons": []
+        }
+      ],
+      "kwh_pct_raw": 35.49954154163339,
+      "area_pct_raw": 18.035705400997205,
+      "lights_pct_of_scope": 23.113480226479666,
+      "equipment_pct_of_scope": 53.9366277025943,
+      "hvac_pct_of_scope": 22.949892070925806
+    },
+    "aggregate_context": {
+      "zone_count": 98,
+      "area_m2": 62784.67867,
+      "volume_m3": 217211.6699,
+      "total_kwh": 226136.71682312517,
+      "lights_kwh": 114441.02913868784,
+      "equipment_kwh": 85055.60061873608,
+      "hvac_kwh": 26640.08706569985,
+      "avg_kw": null,
+      "sum_zone_peak_kw": 552.2450535264998,
+      "max_single_zone_peak_kw": 103.43180064559215,
+      "eui_kwh_m2": 3.6017818616499286,
+      "top_zones": [
+        {
+          "zone_id": "tz_2yC6uZ1Mj3WfWcT4GmORMG",
+          "eplus_zone_name": "ZN_0265_925E8FE2",
+          "name": "VOLUME / OFFICE:VOLUME / OFFICE:2646424",
+          "number": "VOLUME / OFFICE:VOLUME / OFFICE:2646424",
+          "storey": "Foundation",
+          "area_m2": 3712.13,
+          "total_kwh": 39580.56048827823,
+          "peak_kw": 103.43180064559215,
+          "avg_kw": 27.03590197286764,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area",
+            "abnormal_height"
+          ]
+        },
+        {
+          "zone_id": "tz_1VG1As2i9CNAES2YSNmu8x",
+          "eplus_zone_name": "ZN_0071_763C5296",
+          "name": "VENT",
+          "number": "510",
+          "storey": "Level_05",
+          "area_m2": 882.541,
+          "total_kwh": 11866.64440780614,
+          "peak_kw": 25.40934181606641,
+          "avg_kw": 8.105631426097089,
+          "reasons": [
+            "context_name"
+          ]
+        },
+        {
+          "zone_id": "tz_2zhoehGLvBbwmT_FUY8B3p",
+          "eplus_zone_name": "ZN_0240_1F18C60A",
+          "name": "GFA",
+          "number": "1",
+          "storey": "Level_01",
+          "area_m2": 3712.13,
+          "total_kwh": 11081.792498364397,
+          "peak_kw": 27.04999225076974,
+          "avg_kw": 7.569530395057648,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_2zhoehGLvBbwmT_FUY8B0L",
+          "eplus_zone_name": "ZN_0241_30D90A96",
+          "name": "GFA",
+          "number": "2",
+          "storey": "Level_02",
+          "area_m2": 3712.13,
+          "total_kwh": 11061.727483714427,
+          "peak_kw": 26.94283237275723,
+          "avg_kw": 7.5558247839579415,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_2zhoehGLvBbwmT_FUY8B0q",
+          "eplus_zone_name": "ZN_0242_131CC093",
+          "name": "GFA",
+          "number": "3",
+          "storey": "Level_03",
+          "area_m2": 3712.13,
+          "total_kwh": 11035.968231506495,
+          "peak_kw": 26.79798804886282,
+          "avg_kw": 7.538229666329573,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_2zhoehGLvBbwmT_FUY8C_x",
+          "eplus_zone_name": "ZN_0244_93D59450",
+          "name": "GFA",
+          "number": "4",
+          "storey": "Level_04",
+          "area_m2": 3712.13,
+          "total_kwh": 11006.485649409547,
+          "peak_kw": 26.633638993177076,
+          "avg_kw": 7.518091290580292,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_2zhoehGLvBbwmT_FUY8BB4",
+          "eplus_zone_name": "ZN_0239_5247F99E",
+          "name": "GFA",
+          "number": "K",
+          "storey": "Basement",
+          "area_m2": 3704.39,
+          "total_kwh": 11006.34673791511,
+          "peak_kw": 26.665247571655392,
+          "avg_kw": 7.51799640567972,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_1VG1As2i9CNAES2YSNmuIZ",
+          "eplus_zone_name": "ZN_0235_C2AAAF37",
+          "name": "GFA 250mm",
+          "number": "1",
+          "storey": "Level_01",
+          "area_m2": 3647.89,
+          "total_kwh": 10857.112727728794,
+          "peak_kw": 26.3795609206544,
+          "avg_kw": 7.4160606063721275,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_1VG1As2i9CNAES2YSNmuJU",
+          "eplus_zone_name": "ZN_0236_5018E57E",
+          "name": "GFA 250mm",
+          "number": "2",
+          "storey": "Level_02",
+          "area_m2": 3647.96,
+          "total_kwh": 10846.810436088757,
+          "peak_kw": 26.322911359934892,
+          "avg_kw": 7.4090235219185505,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_1VG1As2i9CNAES2YSNmuK1",
+          "eplus_zone_name": "ZN_0237_BB6659AA",
+          "name": "GFA 250mm",
+          "number": "3",
+          "storey": "Level_03",
+          "area_m2": 3648.79,
+          "total_kwh": 10846.301232945438,
+          "peak_kw": 26.332217145686762,
+          "avg_kw": 7.408675705563824,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_1VG1As2i9CNAES2YSNmuLw",
+          "eplus_zone_name": "ZN_0238_A439495B",
+          "name": "GFA 250mm",
+          "number": "4",
+          "storey": "Level_04",
+          "area_m2": 3648.79,
+          "total_kwh": 10812.241923660336,
+          "peak_kw": 26.140068574671925,
+          "avg_kw": 7.385411150041214,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_1rU_t3tkDF9h1LzFTQbFc3",
+          "eplus_zone_name": "ZN_0260_14562137",
+          "name": "HEATED NETAREA",
+          "number": "2",
+          "storey": "Level_02",
+          "area_m2": 3564.05,
+          "total_kwh": 10643.545001520912,
+          "peak_kw": 26.02128354562139,
+          "avg_kw": 7.270181011967836,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_1rU_t3tkDF9h1LzFTQbFdr",
+          "eplus_zone_name": "ZN_0259_6F72C06C",
+          "name": "HEATED NETAREA",
+          "number": "1",
+          "storey": "Level_01",
+          "area_m2": 3564.05,
+          "total_kwh": 10632.302016963193,
+          "peak_kw": 25.942555893775904,
+          "avg_kw": 7.262501377707099,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_1rU_t3tkDF9h1LzFTQbFcg",
+          "eplus_zone_name": "ZN_0261_1BCBFE75",
+          "name": "HEATED NETAREA",
+          "number": "3",
+          "storey": "Level_03",
+          "area_m2": 3564.05,
+          "total_kwh": 10610.025247448111,
+          "peak_kw": 25.822738201807137,
+          "avg_kw": 7.247285005087508,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        },
+        {
+          "zone_id": "tz_1rU_t3tkDF9h1LzFTQbFvn",
+          "eplus_zone_name": "ZN_0262_9F618C37",
+          "name": "HEATED NETAREA",
+          "number": "4",
+          "storey": "Level_04",
+          "area_m2": 3564.05,
+          "total_kwh": 10573.774368872708,
+          "peak_kw": 25.613032574092795,
+          "avg_kw": 7.222523476005948,
+          "reasons": [
+            "aggregate_name",
+            "very_large_area"
+          ]
+        }
+      ],
+      "kwh_pct_raw": 64.50045845836661,
+      "area_pct_raw": 81.9642945990028,
+      "lights_pct_of_scope": 50.60700922274329,
+      "equipment_pct_of_scope": 37.61246816246256,
+      "hvac_pct_of_scope": 11.780522614793522
+    }
+  },
+  "coincident_peak": {
+    "raw_total_peak_ts": "2024-04-29 16:00:00",
+    "raw_total_peak_kw": 893.3579111726274,
+    "aggregate_kw_at_raw_peak": 552.2450535264996,
+    "atomic_kw_at_raw_peak": 341.11285764612757,
+    "aggregate_peak_ts": "2024-04-29 16:00:00",
+    "aggregate_peak_kw": 552.2450535264996,
+    "atomic_peak_ts": "2024-04-29 16:00:00",
+    "atomic_peak_kw": 341.11285764612757
+  }
+}
