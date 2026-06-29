@@ -8,7 +8,6 @@ interface ScoreRow {
   label: string;
   score: number;
   detail?: string;
-  target?: number;
 }
 
 interface PerformancePanel {
@@ -50,8 +49,8 @@ function scoreFrom(dimension: HealthDimension | undefined, fallback = 0) {
   return clampScore(dimension?.score ?? fallback);
 }
 
-function TrendIcon({ score, target }: { score: number; target: number }) {
-  const isStable = score >= target + 8 || score >= 90;
+function TargetIcon({ score, target }: { score: number; target: number }) {
+  const isStable = score >= target;
   const Icon = isStable ? ArrowRight : ArrowDown;
   return (
     <Icon
@@ -106,7 +105,7 @@ function ScoreGauge({ score, target }: { score: number; target: number }) {
       </svg>
       <div className="absolute inset-x-0 top-[46px] flex items-center justify-center gap-1">
         <span className="text-[38px] font-medium leading-none text-slate-700 tabular-nums">{score}</span>
-        <TrendIcon score={score} target={target} />
+        <TargetIcon score={score} target={target} />
       </div>
       <div className="absolute inset-x-0 top-[88px] text-center text-[14px] font-semibold text-slate-400">
         Target: {target}
@@ -117,7 +116,6 @@ function ScoreGauge({ score, target }: { score: number; target: number }) {
 
 function MetricRow({ row }: { row: ScoreRow }) {
   const band = performanceBand(row.score);
-  const target = row.target ?? 80;
 
   return (
     <div className="grid min-h-[50px] grid-cols-[1fr_auto] items-center border-t border-slate-200 px-4">
@@ -129,7 +127,7 @@ function MetricRow({ row }: { row: ScoreRow }) {
       </div>
       <div className="flex items-center gap-3 text-[16px] font-semibold text-slate-500 tabular-nums">
         <span>{row.score}</span>
-        <TrendIcon score={row.score} target={target} />
+        <TargetIcon score={row.score} target={75} />
       </div>
     </div>
   );
@@ -150,14 +148,6 @@ function ScorePanel({ panel }: { panel: PerformancePanel }) {
           {panel.rows.map((row) => (
             <MetricRow key={row.label} row={row} />
           ))}
-          <div className="px-4 pt-4 text-center">
-            <a
-              href="#zone-state-table"
-              className="inline-flex rounded-[4px] px-3 py-1.5 text-[15px] font-semibold text-[#355D8B] transition hover:bg-slate-100 focus:outline-none focus:ring-2 focus:ring-[#355D8B]/30"
-            >
-              View Details
-            </a>
-          </div>
         </div>
       ) : (
         <div className="px-9 pb-8 pt-1">
@@ -210,47 +200,43 @@ function buildPanels(health: HealthScore): PerformancePanel[] {
   const energyScore = scoreFrom(energy, overall);
   const reliabilityScore = scoreFrom(reliability, overall);
   const peopleScore = average([comfortScore, airScore]);
-  const placesScore = average([reliabilityScore, energyScore, overall]);
-  const planetScore = average([energyScore, airScore, overall]);
+  const placesScore = average([reliabilityScore, energyScore]);
+  const planetScore = energyScore;
 
   return [
     {
       title: "Overall Score",
       score: overall,
-      target: 65,
+      target: 75,
       accent: "#0F2D52",
     },
     {
       title: "People",
       score: peopleScore,
-      target: 73,
+      target: 75,
       accent: "#0B6FA4",
       rows: [
-        { label: "Wellness", score: comfortScore, target: 85, detail: comfort?.detail },
-        { label: "Air", score: airScore, target: 80, detail: air?.detail },
-        { label: "Productivity", score: average([comfortScore, airScore, overall]), target: 82 },
+        { label: comfort?.label ?? "Thermal comfort", score: comfortScore, detail: comfort?.detail },
+        { label: air?.label ?? "Air quality", score: airScore, detail: air?.detail },
       ],
     },
     {
       title: "Places",
       score: placesScore,
-      target: 80,
+      target: 75,
       accent: "#0EA5E9",
       rows: [
-        { label: "Safety", score: reliabilityScore, target: 82, detail: reliability?.detail },
-        { label: "Systems", score: energyScore, target: 84, detail: energy?.detail },
-        { label: "Operations", score: overall, target: 88 },
+        { label: reliability?.label ?? "Equipment reliability", score: reliabilityScore, detail: reliability?.detail },
+        { label: energy?.label ?? "Energy / demand", score: energyScore, detail: energy?.detail },
       ],
     },
     {
       title: "Planet",
       score: planetScore,
-      target: 70,
+      target: 75,
       accent: "#16A34A",
       rows: [
-        { label: "Sustainability", score: energyScore, target: 78, detail: energy?.detail },
-        { label: "Emissions", score: average([energyScore, airScore]), target: 80 },
-        { label: "Community", score: average([overall, comfortScore]), target: 86 },
+        { label: energy?.label ?? "Energy / demand", score: energyScore, detail: energy?.detail },
       ],
     },
   ];
