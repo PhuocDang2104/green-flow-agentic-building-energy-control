@@ -302,16 +302,26 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     if (structuralOn) {
       let contextCreated = false;
       if (!structureContextModelRef.current) {
-        structureContextModelRef.current = createStructureContextModel(
-          viewer,
-          xeokitRef.current?.SceneModel,
-          objectMapRef.current,
-        );
+        try {
+          structureContextModelRef.current = createStructureContextModel(
+            viewer,
+            xeokitRef.current?.SceneModel,
+            objectMapRef.current,
+          );
+        } catch (err) {
+          console.warn("Structure site context failed; keeping building geometry visible.", err);
+          structureContextModelRef.current = null;
+        }
         contextCreated = !!structureContextModelRef.current;
       }
       if (structureContextModelRef.current) structureContextModelRef.current.visible = true;
-      applyStructurePresentationStyle(viewer, objectMapRef.current, metaTypeByObjectRef.current);
-      enablePresentationRendering(viewer);
+      try {
+        applyStructurePresentationStyle(viewer, objectMapRef.current, metaTypeByObjectRef.current);
+        enablePresentationRendering(viewer);
+      } catch (err) {
+        console.warn("Structure presentation styling failed; using raw model visibility.", err);
+      }
+      forceStructureShellVisible(modelsRef.current, architectureOn);
       if (!wasStructuralOnRef.current || contextCreated) {
         flyToStructurePresentationView(viewer, objectMapRef.current, 0.7);
       }
@@ -610,7 +620,15 @@ function flyToStructurePresentationView(viewer: any, objectMap: Record<string, O
     .map(([id]) => id)
     .filter((id) => viewer.scene.objects[id]);
   const aabb = viewer.scene.getAABB(ids.length ? ids : viewer.scene.visibleObjectIds);
-  if (!aabb || aabb.some((v: number) => !Number.isFinite(v))) return;
+  if (!aabb || aabb.some((v: number) => !Number.isFinite(v))) {
+    viewer.cameraFlight.flyTo({
+      eye: [72, 34, 86],
+      look: [0, 8, 0],
+      up: [0, 1, 0],
+      duration,
+    });
+    return;
+  }
 
   const [xmin, ymin, zmin, xmax, ymax, zmax] = aabb;
   const dx = Math.max(1, xmax - xmin);
@@ -622,11 +640,29 @@ function flyToStructurePresentationView(viewer: any, objectMap: Record<string, O
   const diag = Math.hypot(dx, dy, dz);
 
   viewer.cameraFlight.flyTo({
-    eye: [cx + diag * 0.62, cy + dy * 0.78, cz + diag * 0.78],
+    eye: [cx + diag * 0.72, cy + dy * 0.78, cz + diag * 1.02],
     look: [cx, cy + dy * 0.12, cz],
     up: [0, 1, 0],
     duration,
   });
+}
+
+function forceStructureShellVisible(models: Record<string, any>, architectureOn: boolean) {
+  if (models.structural) {
+    models.structural.visible = true;
+    models.structural.xrayed = false;
+    models.structural.renderOrder = LAYER_RENDER_ORDER.structural;
+  }
+  if (models.fenestration) {
+    models.fenestration.visible = true;
+    models.fenestration.xrayed = false;
+    models.fenestration.renderOrder = LAYER_RENDER_ORDER.fenestration;
+  }
+  if (!architectureOn && models.architecture) {
+    models.architecture.visible = true;
+    models.architecture.pickable = false;
+    models.architecture.renderOrder = LAYER_RENDER_ORDER.architecture;
+  }
 }
 
 function normalizeLayer(layer: string) {
@@ -755,49 +791,55 @@ function createStructureContextModel(
   const gradeY = estimateGradeY(viewer, objectMap, ymin);
   const groundY = gradeY + 0.018;
   const pad = Math.max(dx, dz) * 0.45;
+  viewer.scene.models?.structure_site_context?.destroy?.();
   const model = new SceneModel(viewer.scene, {
     id: "structure_site_context",
     isModel: true,
     visible: true,
   });
-  const textures = createSiteTextureSets(model);
 
-  const outer: [number, number, number, number] = [cx - dx / 2 - pad, cz - dz / 2 - pad, cx + dx / 2 + pad, cz + dz / 2 + pad];
-  const apronOuter: [number, number, number, number] = [xmin - 8, zmin - 8, xmax + 8, zmax + 8];
-  const footprint: [number, number, number, number] = [xmin - 0.6, zmin - 0.6, xmax + 0.6, zmax + 0.6];
+  try {
+    const textures = createSiteTextureSets(model);
+    const outer: [number, number, number, number] = [cx - dx / 2 - pad, cz - dz / 2 - pad, cx + dx / 2 + pad, cz + dz / 2 + pad];
+    const apronOuter: [number, number, number, number] = [xmin - 8, zmin - 8, xmax + 8, zmax + 8];
+    const footprint: [number, number, number, number] = [xmin - 0.6, zmin - 0.6, xmax + 0.6, zmax + 0.6];
 
-  createRingSurface(model, "structure_context_grass", outer, apronOuter, groundY, [0.32, 0.5, 0.3], textures.grass, 7);
-  createRingSurface(model, "structure_context_concrete_apron", apronOuter, footprint, groundY + 0.018, [0.66, 0.66, 0.61], textures.concrete, 4);
-  createContextTexturePatches(model, outer, apronOuter, groundY + 0.024);
+    createRingSurface(model, "structure_context_grass", outer, apronOuter, groundY, [0.32, 0.5, 0.3], textures.grass, 7);
+    createRingSurface(model, "structure_context_concrete_apron", apronOuter, footprint, groundY + 0.018, [0.66, 0.66, 0.61], textures.concrete, 4);
+    createContextTexturePatches(model, outer, apronOuter, groundY + 0.024);
 
-  createTexturedPlane(model, "structure_context_road_main",
-    [cx - dx / 2 - pad, cz + dz / 2 + pad * 0.28, cx + dx / 2 + pad, cz + dz / 2 + pad * 0.48],
-    groundY + 0.035, [0.22, 0.24, 0.25], textures.asphalt, 3.5);
-  createTexturedPlane(model, "structure_context_road_side",
-    [cx + dx / 2 + pad * 0.18, cz - dz / 2 - pad, cx + dx / 2 + pad * 0.38, cz + dz / 2 + pad],
-    groundY + 0.036, [0.23, 0.24, 0.25], textures.asphalt, 3.5);
-  createTexturedPlane(model, "structure_context_walkway",
-    [cx - dx / 2 - pad, cz - dz / 2 - pad * 0.24, cx + dx / 2 + pad, cz - dz / 2 - pad * 0.12],
-    groundY + 0.048, [0.74, 0.74, 0.68], textures.concrete, 3);
+    createTexturedPlane(model, "structure_context_road_main",
+      [cx - dx / 2 - pad, cz + dz / 2 + pad * 0.28, cx + dx / 2 + pad, cz + dz / 2 + pad * 0.48],
+      groundY + 0.035, [0.22, 0.24, 0.25], textures.asphalt, 3.5);
+    createTexturedPlane(model, "structure_context_road_side",
+      [cx + dx / 2 + pad * 0.18, cz - dz / 2 - pad, cx + dx / 2 + pad * 0.38, cz + dz / 2 + pad],
+      groundY + 0.036, [0.23, 0.24, 0.25], textures.asphalt, 3.5);
+    createTexturedPlane(model, "structure_context_walkway",
+      [cx - dx / 2 - pad, cz - dz / 2 - pad * 0.24, cx + dx / 2 + pad, cz - dz / 2 - pad * 0.12],
+      groundY + 0.048, [0.74, 0.74, 0.68], textures.concrete, 3);
 
-  const blocks = [
-    [cx - dx * 0.75, cz - dz * 0.7, 0.18, 0.2],
-    [cx + dx * 0.72, cz - dz * 0.55, 0.2, 0.18],
-    [cx - dx * 0.62, cz + dz * 0.68, 0.16, 0.18],
-  ];
-  blocks.forEach(([bx, bz, sx, sz], i) => {
-    createBox(model, `structure_context_block_${i}`, [bx - dx * sx, groundY, bz - dz * sz],
-      [bx + dx * sx, groundY + 2.2 + i * 0.7, bz + dz * sz], [0.72, 0.72, 0.68], 0.5, 0.9);
-  });
+    const blocks = [
+      [cx - dx * 0.75, cz - dz * 0.7, 0.18, 0.2],
+      [cx + dx * 0.72, cz - dz * 0.55, 0.2, 0.18],
+      [cx - dx * 0.62, cz + dz * 0.68, 0.16, 0.18],
+    ];
+    blocks.forEach(([bx, bz, sx, sz], i) => {
+      createBox(model, `structure_context_block_${i}`, [bx - dx * sx, groundY, bz - dz * sz],
+        [bx + dx * sx, groundY + 2.2 + i * 0.7, bz + dz * sz], [0.72, 0.72, 0.68], 0.5, 0.9);
+    });
 
-  for (let i = 0; i < 34; i++) {
-    const side = i % 2 === 0 ? -1 : 1;
-    const row = Math.floor(i / 10);
-    const tx = cx - dx * 0.82 + (i % 10) * dx * 0.18;
-    const tz = row === 2
-      ? cz - dz * 0.78 - pad * 0.16
-      : cz + side * (dz * 0.76 + pad * (0.13 + row * 0.04));
-    createTree(model, `structure_context_tree_${i}`, tx, groundY, tz, 1.25 + (i % 4) * 0.16);
+    for (let i = 0; i < 34; i++) {
+      const side = i % 2 === 0 ? -1 : 1;
+      const row = Math.floor(i / 10);
+      const tx = cx - dx * 0.82 + (i % 10) * dx * 0.18;
+      const tz = row === 2
+        ? cz - dz * 0.78 - pad * 0.16
+        : cz + side * (dz * 0.76 + pad * (0.13 + row * 0.04));
+      createTree(model, `structure_context_tree_${i}`, tx, groundY, tz, 1.25 + (i % 4) * 0.16);
+    }
+  } catch (err) {
+    model.destroy?.();
+    throw err;
   }
 
   model.finalize();
@@ -886,7 +928,10 @@ function createTexturedPlane(
   const positions = [x0, y, z0, x1, y, z0, x1, y, z1, x0, y, z1];
   const normals = [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0];
   const uv = [0, 0, repeatX, 0, repeatX, repeatZ, 0, repeatZ];
-  const indices = [0, 1, 2, 0, 2, 3];
+  // Winding is intentionally counter-clockwise when viewed from +Y. The
+  // previous order pointed normals downward, so the site planes disappeared
+  // from the default top/isometric camera on WebGL backface culling.
+  const indices = [0, 2, 1, 0, 3, 2];
   const meshId = `${id}_mesh`;
   model.createMesh({
     id: meshId,
