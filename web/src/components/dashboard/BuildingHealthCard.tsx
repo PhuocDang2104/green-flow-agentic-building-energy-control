@@ -1,13 +1,31 @@
-import { ArrowDown, ArrowRight, ArrowUp } from "lucide-react";
+import {
+  AlertTriangle,
+  ArrowDown,
+  ArrowRight,
+  ArrowUp,
+  Bell,
+  CircleHelp,
+  Cloud,
+  Clock,
+  Leaf,
+  Thermometer,
+  Waves,
+  Wrench,
+  Zap,
+} from "lucide-react";
 import Skeleton from "@/components/shared/Skeleton";
-import type { HealthDimension, HealthScore } from "@/lib/types";
+import type { HealthDimension, HealthScore, Kpis } from "@/lib/types";
 
-type PerformanceBand = "poor" | "average" | "good";
+type PerformanceBand = "critical" | "watch" | "good";
+type Trend = "up" | "side" | "down";
 
-interface ScoreRow {
+interface MetricRowData {
+  icon: typeof Cloud;
   label: string;
-  score: number;
-  detail?: string;
+  value: string;
+  note?: string;
+  band: PerformanceBand;
+  detail: string;
 }
 
 interface PerformancePanel {
@@ -15,13 +33,14 @@ interface PerformancePanel {
   score: number;
   target: number;
   accent: string;
-  rows?: ScoreRow[];
+  detail: string;
+  rows?: MetricRowData[];
 }
 
 const BAND_STYLES: Record<PerformanceBand, { color: string }> = {
-  poor: { color: "#E11D48" },
-  average: { color: "#FBBF24" },
-  good: { color: "#16C172" },
+  critical: { color: "#FF1028" },
+  watch: { color: "#FFB400" },
+  good: { color: "#0BAE27" },
 };
 
 function clampScore(value?: number | null) {
@@ -30,15 +49,9 @@ function clampScore(value?: number | null) {
 }
 
 function performanceBand(score: number): PerformanceBand {
-  if (score >= 90) return "good";
-  if (score >= 75) return "average";
-  return "poor";
-}
-
-function average(scores: Array<number | undefined>) {
-  const available = scores.filter((score): score is number => score != null);
-  if (!available.length) return 0;
-  return clampScore(available.reduce((sum, score) => sum + score, 0) / available.length);
+  if (score >= 80) return "good";
+  if (score >= 60) return "watch";
+  return "critical";
 }
 
 function findDimension(dimensions: HealthDimension[], key: string) {
@@ -49,14 +62,20 @@ function scoreFrom(dimension: HealthDimension | undefined, fallback = 0) {
   return clampScore(dimension?.score ?? fallback);
 }
 
+function trendFrom(score: number, target: number): Trend {
+  if (score >= target + 1) return "up";
+  if (score <= target - 1) return "down";
+  return "side";
+}
+
 function TrendIcon({ score, target }: { score: number; target: number }) {
-  const delta = score - target;
-  const Icon = delta >= 8 ? ArrowUp : delta >= -7 ? ArrowRight : ArrowDown;
+  const trend = trendFrom(score, target);
+  const Icon = trend === "up" ? ArrowUp : trend === "side" ? ArrowRight : ArrowDown;
   return (
     <Icon
-      size={24}
+      size={25}
       strokeWidth={2.2}
-      className={delta >= 8 ? "text-emerald-500" : delta >= -7 ? "text-slate-500" : "text-rose-500"}
+      className={trend === "up" ? "text-[#04783F]" : trend === "side" ? "text-slate-500" : "text-[#C87500]"}
       aria-hidden="true"
     />
   );
@@ -65,7 +84,7 @@ function TrendIcon({ score, target }: { score: number; target: number }) {
 function BandMark({ band }: { band: PerformanceBand }) {
   const color = BAND_STYLES[band].color;
 
-  if (band === "poor") {
+  if (band === "critical") {
     return <span className="h-4 w-4 rotate-45 rounded-[2px]" style={{ backgroundColor: color }} />;
   }
 
@@ -76,12 +95,18 @@ function BandMark({ band }: { band: PerformanceBand }) {
   return <span className="h-4 w-4 rounded-[2px]" style={{ backgroundColor: color }} />;
 }
 
+function rowIconTint(band: PerformanceBand) {
+  if (band === "good") return "bg-green-100 text-[#04783F]";
+  if (band === "watch") return "bg-amber-50 text-[#C87500]";
+  return "bg-red-50 text-[#E11D48]";
+}
+
 function ScoreGauge({ score, target }: { score: number; target: number }) {
   const band = performanceBand(score);
   const color = BAND_STYLES[band].color;
 
   return (
-    <div className="relative mx-auto h-[118px] w-[188px]">
+    <div className="relative mx-auto h-[132px] w-[218px] max-w-full">
       <svg viewBox="0 0 188 112" className="h-full w-full" role="img" aria-label={`Score ${score} of 100`}>
         <path
           d="M 32 88 A 62 62 0 0 1 156 88"
@@ -103,71 +128,105 @@ function ScoreGauge({ score, target }: { score: number; target: number }) {
           style={{ transition: "stroke-dashoffset 0.8s ease, stroke 0.3s ease" }}
         />
       </svg>
-      <div className="absolute inset-x-0 top-[46px] flex items-center justify-center gap-1">
-        <span className="text-[38px] font-medium leading-none text-slate-700 tabular-nums">{score}</span>
+      <div className="absolute inset-x-0 top-[50px] flex items-center justify-center gap-1">
+        <span className="text-[44px] font-bold leading-none text-[#006D38] tabular-nums">{score}</span>
         <TrendIcon score={score} target={target} />
       </div>
-      <div className="absolute inset-x-0 top-[88px] text-center text-[14px] font-semibold text-slate-400">
+      <div className="absolute inset-x-0 top-[96px] text-center text-[15px] font-medium text-slate-500">
         Target: {target}
       </div>
     </div>
   );
 }
 
-function MetricRow({ row }: { row: ScoreRow }) {
-  const band = performanceBand(row.score);
+function extractNumber(detail: string | undefined, pattern: RegExp) {
+  const match = detail?.match(pattern);
+  if (!match) return 0;
+  return Number(match[1] ?? 0);
+}
 
+function formatKw(value?: number | null) {
+  if (value == null || Number.isNaN(value)) return "-";
+  return Number.isInteger(value) ? String(value) : value.toFixed(1);
+}
+
+function MetricRow({ row }: { row: MetricRowData }) {
+  const Icon = row.icon;
   return (
-    <div className="grid min-h-[50px] grid-cols-[1fr_auto] items-center border-t border-slate-200 px-4">
+    <div
+      className="group/metric relative grid min-h-[74px] grid-cols-[1fr_auto] items-center gap-3 border-t border-slate-200 px-4 transition hover:bg-slate-50"
+      tabIndex={0}
+      aria-label={`${row.label}: ${row.detail}`}
+    >
       <div className="flex min-w-0 items-center gap-3">
-        <BandMark band={band} />
-        <span className="truncate text-[15px] font-semibold text-[#355D8B]" title={row.detail}>
-          {row.label}
+        <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${rowIconTint(row.band)}`}>
+          <Icon size={22} strokeWidth={2.2} aria-hidden="true" />
+        </span>
+        <span className="min-w-0">
+          <span className="block truncate text-[15px] font-semibold text-[#166534]">{row.label}</span>
+          {row.note && <span className="block truncate text-[12px] font-medium text-slate-500">{row.note}</span>}
         </span>
       </div>
-      <div className="flex items-center gap-3 text-[16px] font-semibold text-slate-500 tabular-nums">
-        <span>{row.score}</span>
-        <TrendIcon score={row.score} target={75} />
+      <div className="text-right text-[16px] font-bold leading-tight text-slate-900 tabular-nums">
+        {row.value}
+      </div>
+      <div className="pointer-events-none invisible absolute left-4 right-4 top-[calc(100%-5px)] z-40 translate-y-1 rounded-xl border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] leading-relaxed text-white opacity-0 shadow-xl transition group-hover/metric:visible group-hover/metric:translate-y-0 group-hover/metric:opacity-100 group-focus/metric:visible group-focus/metric:translate-y-0 group-focus/metric:opacity-100">
+        {row.detail}
       </div>
     </div>
   );
 }
 
 function ScorePanel({ panel }: { panel: PerformancePanel }) {
+  const band = performanceBand(panel.score);
   return (
-    <article className="overflow-hidden rounded-[6px] bg-white shadow-[0_2px_9px_rgba(15,23,42,0.16)] ring-1 ring-slate-200">
-      <div className="h-[7px]" style={{ backgroundColor: panel.accent }} />
-      <header className="border-b border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-3">
-        <h3 className="text-[20px] font-semibold leading-tight text-slate-700">{panel.title}</h3>
+    <article className="group/card relative overflow-visible rounded-[6px] bg-white shadow-[0_2px_9px_rgba(15,23,42,0.16)] ring-1 ring-slate-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.18)]">
+      <div className="h-[7px] rounded-t-[6px]" style={{ backgroundColor: panel.accent }} />
+      <header className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-4">
+        <h3 className="text-[19px] font-bold leading-tight text-[#0F172A]">{panel.title}</h3>
+        <span className="relative text-slate-400 transition group-hover/card:text-teal">
+          <CircleHelp size={16} aria-hidden="true" />
+          <span className="pointer-events-none invisible absolute right-0 top-6 z-50 w-64 rounded-xl border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] font-medium leading-relaxed text-white opacity-0 shadow-xl transition group-hover/card:visible group-hover/card:opacity-100">
+            {panel.detail}
+          </span>
+        </span>
       </header>
       <div className="px-3 pb-4 pt-5">
         <ScoreGauge score={panel.score} target={panel.target} />
       </div>
       {panel.rows ? (
-        <div className="pb-4">
+        <div className="pb-5">
           {panel.rows.map((row) => (
             <MetricRow key={row.label} row={row} />
           ))}
+          <button
+            type="button"
+            className="mx-auto mt-4 block text-[15px] font-semibold text-blue-700 transition hover:text-blue-900 hover:underline"
+            title={panel.detail}
+          >
+            View Details
+          </button>
         </div>
       ) : (
-        <div className="px-9 pb-8 pt-1">
-          <div className="mb-4 text-center text-[13px] font-semibold uppercase tracking-[0.22em] text-slate-400">
-            Scoring Key
+        <div className="border-t border-slate-200 px-9 pb-8 pt-6">
+          <div className="mb-5 text-center text-[13px] font-semibold uppercase tracking-[0.24em] text-slate-500">
+            SCORING KEY
           </div>
-          <div className="space-y-3">
+          <div className="space-y-4">
             <div className="flex items-center gap-4">
-              <BandMark band="poor" />
-              <span className="text-[15px] font-semibold text-slate-500">Poor 0-74</span>
+              <BandMark band="critical" />
+              <span className="text-[15px] font-medium text-slate-700">Critical 0-59</span>
             </div>
             <div className="flex items-center gap-4">
-              <BandMark band="average" />
-              <span className="text-[15px] font-semibold text-slate-500">Average 75-89</span>
+              <BandMark band="watch" />
+              <span className="text-[15px] font-medium text-slate-700">Watch 60-79</span>
             </div>
             <div className="flex items-center gap-4">
               <BandMark band="good" />
-              <span className="text-[15px] font-semibold text-slate-500">Good 90+</span>
+              <span className="text-[15px] font-medium text-slate-700">Good 80+</span>
             </div>
           </div>
+          <span className="sr-only">Current band: {band}</span>
         </div>
       )}
     </article>
@@ -176,18 +235,18 @@ function ScorePanel({ panel }: { panel: PerformancePanel }) {
 
 function LoadingPerformanceIndex() {
   return (
-    <section className="space-y-3" aria-label="Building Performance Index loading">
-      <Skeleton className="h-7 w-60 rounded-[4px]" />
-      <div className="grid gap-4 lg:grid-cols-4">
-        {Array.from({ length: 4 }).map((_, index) => (
-          <Skeleton key={index} className="h-[356px] rounded-[6px]" />
+    <section className="space-y-5" aria-label="Building Performance Index loading">
+      <Skeleton className="h-11 w-[480px] max-w-full rounded-[4px]" />
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
+        {Array.from({ length: 5 }).map((_, index) => (
+          <Skeleton key={index} className="h-[430px] rounded-[6px]" />
         ))}
       </div>
     </section>
   );
 }
 
-function buildPanels(health: HealthScore): PerformancePanel[] {
+function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): PerformancePanel[] {
   const dimensions = health.dimensions ?? [];
   const comfort = findDimension(dimensions, "comfort");
   const air = findDimension(dimensions, "air");
@@ -199,67 +258,144 @@ function buildPanels(health: HealthScore): PerformancePanel[] {
   const airScore = scoreFrom(air, overall);
   const energyScore = scoreFrom(energy, overall);
   const reliabilityScore = scoreFrom(reliability, overall);
-  const peopleScore = average([comfortScore, airScore]);
-  const placesScore = average([reliabilityScore, energyScore]);
-  const planetScore = energyScore;
+  const co2RiskZones = extractNumber(air?.detail, /(\d+)\s*>1000ppm/i);
+  const co2WatchZones = extractNumber(air?.detail, /.\s*(\d+)\s+elevated/i);
+  const peakRiskZones = kpis?.peak_high ?? extractNumber(energy?.detail, /(\d+)\/\d+\s+zones/i);
+  const comfortHighZones = kpis?.comfort_high ?? extractNumber(comfort?.detail, /(\d+)\s+high/i);
+  const comfortWatchZones = kpis?.comfort_watch ?? extractNumber(comfort?.detail, /.\s*(\d+)\s+watch/i);
+  const deviceFaults = extractNumber(reliability?.detail, /(\d+)\s+device/i);
+  const sensorFaults = extractNumber(reliability?.detail, /.\s*(\d+)\s+sensor/i);
 
   return [
     {
       title: "Overall Score",
       score: overall,
-      target: 75,
-      accent: "#0F2D52",
+      target: 80,
+      accent: "#087A3E",
+      detail: `Composite score from live backend dimensions: comfort, air quality, energy demand and equipment reliability. Backend timestamp: ${health.timestamp ?? "latest replay anchor"}.`,
     },
     {
-      title: "People",
-      score: peopleScore,
-      target: 75,
-      accent: "#0B6FA4",
+      title: "Air Quality",
+      score: airScore,
+      target: 80,
+      accent: "#0D63D8",
+      detail: air?.detail ?? "Live CO2 risk score from /api/kpi/health-score.",
       rows: [
-        { label: comfort?.label ?? "Thermal comfort", score: comfortScore, detail: comfort?.detail },
-        { label: air?.label ?? "Air quality", score: airScore, detail: air?.detail },
+        {
+          icon: Cloud,
+          label: "CO2 Risk",
+          value: `${co2RiskZones} zones`,
+          note: ">1000 ppm",
+          band: co2RiskZones > 0 ? "critical" : "good",
+          detail: air?.detail ?? "Zones above 1000 ppm from backend health-score detail.",
+        },
+        {
+          icon: Waves,
+          label: "Elevated CO2",
+          value: `${co2WatchZones} zones`,
+          note: "800-1000 ppm",
+          band: co2WatchZones > 0 ? "watch" : "good",
+          detail: air?.detail ?? "Zones in CO2 watch band from backend health-score detail.",
+        },
       ],
     },
     {
-      title: "Places",
-      score: placesScore,
-      target: 75,
-      accent: "#0EA5E9",
+      title: "Energy / Demand",
+      score: energyScore,
+      target: 85,
+      accent: "#12A985",
+      detail: energy?.detail ?? "Live demand-risk score from /api/kpi/health-score.",
       rows: [
-        { label: reliability?.label ?? "Equipment reliability", score: reliabilityScore, detail: reliability?.detail },
-        { label: energy?.label ?? "Energy / demand", score: energyScore, detail: energy?.detail },
+        {
+          icon: Zap,
+          label: "Peak Demand",
+          value: `${formatKw(totalKw ?? kpis?.total_kw)} kW`,
+          band: energyScore >= 80 ? "good" : energyScore >= 60 ? "watch" : "critical",
+          detail: `Current total load from /api/kpi/current or websocket replay: ${formatKw(totalKw ?? kpis?.total_kw)} kW.`,
+        },
+        {
+          icon: AlertTriangle,
+          label: "Peak Risk",
+          value: `${peakRiskZones} zones`,
+          note: "above threshold",
+          band: peakRiskZones > 0 ? "watch" : "good",
+          detail: energy?.detail ?? "Peak-risk zone count from backend health-score detail.",
+        },
       ],
     },
     {
-      title: "Planet",
-      score: planetScore,
-      target: 75,
-      accent: "#16A34A",
+      title: "Thermal Comfort",
+      score: comfortScore,
+      target: 82,
+      accent: "#0D63D8",
+      detail: comfort?.detail ?? "Live comfort-risk score from /api/kpi/health-score.",
       rows: [
-        { label: energy?.label ?? "Energy / demand", score: energyScore, detail: energy?.detail },
+        {
+          icon: Thermometer,
+          label: "Temp Deviation",
+          value: `${comfortHighZones} zones`,
+          band: comfortHighZones > 0 ? "critical" : "good",
+          detail: comfort?.detail ?? "High comfort-risk zone count from /api/kpi/current.",
+        },
+        {
+          icon: Clock,
+          label: "Comfort Watch",
+          value: `${comfortWatchZones} zones`,
+          note: "watch band",
+          band: comfortWatchZones > 0 ? "watch" : "good",
+          detail: comfort?.detail ?? "Watch comfort-risk zone count from /api/kpi/current.",
+        },
+      ],
+    },
+    {
+      title: "Equipment Health",
+      score: reliabilityScore,
+      target: 85,
+      accent: "#0BAE27",
+      detail: reliability?.detail ?? "Live equipment and sensor fault score from /api/kpi/health-score.",
+      rows: [
+        {
+          icon: Wrench,
+          label: "Active Faults",
+          value: `${deviceFaults} assets`,
+          band: deviceFaults > 0 ? "watch" : "good",
+          detail: reliability?.detail ?? "Open device faults from backend alerts.",
+        },
+        {
+          icon: Bell,
+          label: "Sensor Watch",
+          value: `${sensorFaults} assets`,
+          band: sensorFaults > 0 ? "watch" : "good",
+          detail: reliability?.detail ?? "Open sensor faults from backend alerts.",
+        },
       ],
     },
   ];
 }
 
-export default function BuildingHealthCard({ health }: { health: HealthScore | null }) {
+export default function BuildingHealthCard({
+  health,
+  kpis,
+  totalKw,
+}: {
+  health: HealthScore | null;
+  kpis?: Kpis | null;
+  totalKw?: number;
+}) {
   if (!health) return <LoadingPerformanceIndex />;
 
-  const panels = buildPanels(health);
+  const panels = buildPanels(health, kpis ?? null, totalKw);
 
   return (
-    <section className="space-y-3" aria-label="Building Performance Index">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <h2 className="text-[20px] font-semibold tracking-[-0.01em] text-slate-800">
+    <section className="space-y-6" aria-label="GreenFlow Building Performance Index">
+      <div className="flex flex-wrap items-center gap-4">
+        <Leaf size={34} fill="#0BAE27" strokeWidth={1.8} className="text-[#087A3E]" aria-hidden="true" />
+        <h2 className="text-[28px] font-bold tracking-[-0.03em] text-[#0F172A] md:text-[32px]">
+          <span className="mr-3 text-[#087A3E]">GreenFlow</span>
           Building Performance Index
         </h2>
-        <div className="flex flex-wrap items-center gap-4 text-[12px] font-semibold text-slate-500">
-          <span className="inline-flex items-center gap-1.5"><ArrowUp size={14} className="text-emerald-500" /> Up</span>
-          <span className="inline-flex items-center gap-1.5"><ArrowRight size={14} className="text-slate-500" /> Side</span>
-          <span className="inline-flex items-center gap-1.5"><ArrowDown size={14} className="text-rose-500" /> Down</span>
-        </div>
       </div>
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {panels.map((panel) => (
           <ScorePanel key={panel.title} panel={panel} />
         ))}
