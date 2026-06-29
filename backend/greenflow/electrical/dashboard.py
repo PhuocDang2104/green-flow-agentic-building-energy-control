@@ -11,6 +11,7 @@ from functools import lru_cache
 
 from . import canonical as C
 from . import config as cfg
+from ..energy_scope import dedup_enabled
 
 MANIFEST = cfg.OUT_ELEC / "dashboard_electrical_manifest.json"
 
@@ -51,12 +52,20 @@ def build_building_overview() -> dict:
                       for a in ann.values() if a["board_id"] != cfg.UNMAPPED_BOARD_ID),
                      key=lambda r: -(r["peak_total_kw"] or 0))
     split = {r["category"]: _f(r["zone_allocated_kwh"]) for r in recon}
+    raw_total = sum(_f(r.get("raw_zone_kwh")) or 0 for r in recon)
+    deduped_total = sum(
+        _f(r.get("deduped_zone_kwh", r.get("zone_allocated_kwh"))) or 0 for r in recon
+    )
     try:
         report = __import__("json").loads((cfg.OUT_ELEC / "electrical_validation_report.json").read_text("utf-8"))
         vsummary = report.get("summary", {})
     except Exception:
         vsummary = {}
-    return {"building": cfg.BUILDING_NAME, "energy_split_kwh": split,
+    return {"building": cfg.BUILDING_NAME, "dataset_key": cfg.DATASET_KEY,
+            "scenario_id": cfg.SCENARIO_ID, "energy_split_kwh": split,
+            "raw_total_kwh": round(raw_total, 1), "deduped_total_kwh": round(deduped_total, 1),
+            "excluded_aggregate_kwh": round(raw_total - deduped_total, 1),
+            "energy_scope_mode": "dedup" if dedup_enabled() else "audit",
             "board_demand_ranking": ranking, "validation_summary": vsummary,
             "boards": len(_boards()), "zones": len(_zones())}
 
@@ -86,6 +95,9 @@ def build_zone_view(zone_id: str) -> dict:
               for a in _alloc() if a["zone_id"] == zone_id]
     return {"zone_id": zone_id, "eplus_zone_name": z.get("eplus_zone_name"),
             "room_type": z.get("room_type"), "floor_id": z.get("floor_id"), "area_m2": z.get("area_m2"),
+            "energy_scope": z.get("energy_scope"),
+            "counts_toward_energy": z.get("counts_toward_energy"),
+            "scope_reason": z.get("scope_reason"),
             "assigned_boards": served, "energy_value_class": "energyplus_simulated",
             "note": "lights/equipment/HVAC kW available in the gold zone timeseries"}
 
@@ -119,7 +131,8 @@ def build_graph_neighbors(entity_id: str) -> dict:
 def run() -> dict[str, int]:
     cfg.ensure_dirs()
     manifest = {
-        "building": cfg.BUILDING_NAME, "version": 1,
+        "building": cfg.BUILDING_NAME, "version": 2,
+        "dataset_key": cfg.DATASET_KEY, "scenario_id": cfg.SCENARIO_ID,
         "layers": [
             {"id": "boards", "label": "Electrical boards", "entity_type": "ElectricalBoard",
              "geometry": "point", "default_visible": True},

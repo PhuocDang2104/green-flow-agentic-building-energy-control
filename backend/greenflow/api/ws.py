@@ -16,6 +16,7 @@ from fastapi import WebSocket
 
 from ..config import get_settings
 from ..db import db_conn, fetch_all
+from ..energy_scope import effective_counts_toward_energy
 from ..agent.tools.db_tool import _clean
 
 
@@ -65,8 +66,12 @@ async def replay_ticker() -> None:
             if ts:
                 zones = await asyncio.to_thread(_zone_states_at, building_id, ts)
                 weather = await asyncio.to_thread(_weather_at, ts)
-                total_kw = sum(z.get("total_power_kw") or 0 for z in zones.values())
-                occupancy = sum(z.get("occupancy_count") or 0 for z in zones.values())
+                counted = [
+                    z for z in zones.values()
+                    if effective_counts_toward_energy(z.get("counts_toward_energy", True))
+                ]
+                total_kw = sum(z.get("total_power_kw") or 0 for z in counted)
+                occupancy = sum(z.get("occupancy_count") or 0 for z in counted)
                 await manager.broadcast(f"building:{building_id}", {
                     "type": "state_tick",
                     "timestamp": ts,
@@ -114,7 +119,8 @@ async def broadcast_agent_event(building_id: str, event: dict) -> None:
 def _zone_states_at(building_id: str, ts: str) -> dict[str, dict]:
     with db_conn() as conn:
         rows = fetch_all(conn, """
-            SELECT z.entity_key, t.occupancy_count, t.temperature_c, t.hvac_power_kw,
+            SELECT z.entity_key, z.energy_scope, z.counts_toward_energy,
+                   t.occupancy_count, t.temperature_c, t.hvac_power_kw,
                    t.lighting_power_kw, t.plug_power_kw, t.total_power_kw,
                    t.setpoint_c, t.comfort_risk, t.peak_risk, t.anomaly_label
             FROM telemetry_zone_15m t JOIN zones z ON z.id = t.zone_id

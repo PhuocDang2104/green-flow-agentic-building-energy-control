@@ -9,7 +9,6 @@ manual_review. Space centroids (from ARCH tessellation) are cached for fast reru
 from __future__ import annotations
 
 import math
-from pathlib import Path
 
 from greenflow.bim.ifc_geometry import building_storeys, space_records, tessellate
 
@@ -18,6 +17,7 @@ from . import config as cfg
 from . import gold
 from . import ifc_common as ic
 from .provenance import Confidence, SourceSystem, ValueClass
+from ..energy_scope import classify_energy_scope
 
 NEAR_M = 6.0     # within this -> medium (spatial)
 FAR_M = 16.0     # within this -> low; beyond -> floor-only / manual_review
@@ -72,15 +72,24 @@ def build_zones() -> list[dict]:
         zid = C.zone_id_from_guid(s["guid"])
         floor = fidx.by_name(s["storey"])
         dim = dims.get(zid, {})
+        area = dim.get("area_m2") or s["area_m2"]
+        volume = dim.get("volume_m3") or s["volume_m3"]
+        label = s["long_name"] or s["number"] or ""
+        scope = classify_energy_scope(
+            label,
+            area_m2=area,
+            volume_m3=volume,
+            height_m=dim.get("ceiling_height_m"),
+        )
         zones.append({
             "zone_id": zid, "room_id": C.entity_id("room", s["guid"]),
             "ifc_global_id": s["guid"], "eplus_zone_name": eplus.get(zid, ""),
             "floor_id": floor["floor_id"] if floor else "", "storey": s["storey"],
             "room_type": s["room_type"], "long_name": s["long_name"], "number": s["number"],
-            "area_m2": dim.get("area_m2") or s["area_m2"],
-            "volume_m3": dim.get("volume_m3") or s["volume_m3"],
+            "area_m2": area, "volume_m3": volume,
             "usage_type": dim.get("usage_type") or "", "controllable": s.get("controllable"),
             "in_gold": zid in eplus,
+            **scope.to_dict(),
             "source_system": SourceSystem.IFC_ARCH, "value_class": ValueClass.IFC_DERIVED,
             "confidence": Confidence.HIGH,
         })

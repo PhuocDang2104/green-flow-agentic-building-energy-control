@@ -46,8 +46,21 @@ CREATE TABLE IF NOT EXISTS zones (
   comfort_profile text,
   risk_level text DEFAULT 'normal',
   raw_ifc_guid text,
-  source_space_name text
+  source_space_name text,
+  energy_scope text NOT NULL DEFAULT 'atomic_energy_zone',
+  counts_toward_energy boolean NOT NULL DEFAULT true,
+  scope_confidence text NOT NULL DEFAULT 'high',
+  scope_reason text NOT NULL DEFAULT 'default_atomic_space'
 );
+
+ALTER TABLE zones ADD COLUMN IF NOT EXISTS energy_scope text
+  NOT NULL DEFAULT 'atomic_energy_zone';
+ALTER TABLE zones ADD COLUMN IF NOT EXISTS counts_toward_energy boolean
+  NOT NULL DEFAULT true;
+ALTER TABLE zones ADD COLUMN IF NOT EXISTS scope_confidence text
+  NOT NULL DEFAULT 'high';
+ALTER TABLE zones ADD COLUMN IF NOT EXISTS scope_reason text
+  NOT NULL DEFAULT 'default_atomic_space';
 
 CREATE INDEX IF NOT EXISTS zones_building_floor_idx ON zones(building_id, floor_id);
 CREATE INDEX IF NOT EXISTS zones_name_idx ON zones(name);

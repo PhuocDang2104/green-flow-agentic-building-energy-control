@@ -46,6 +46,11 @@ export interface Zone {
   area_m2?: number;
   volume_m3?: number;
   floor_name?: string;
+  energy_scope?: "atomic_energy_zone" | "aggregate_context" | "review_required";
+  counts_toward_energy?: boolean;
+  is_energy_counted?: boolean;
+  scope_confidence?: string;
+  scope_reason?: string;
   latest_state?: ZoneState | null;
 }
 

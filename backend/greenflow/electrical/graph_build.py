@@ -51,7 +51,10 @@ def run() -> dict[str, int]:
                      source_system=SourceSystem.IFC_ARCH, source_file="ARCH_AsBuilt_enriched.ifc",
                      value_class=ValueClass.IFC_DERIVED, confidence=Confidence.HIGH,
                      properties={"room_type": z.get("room_type"), "area_m2": z.get("area_m2"),
-                                 "volume_m3": z.get("volume_m3"), "usage_type": z.get("usage_type")}))
+                                 "volume_m3": z.get("volume_m3"), "usage_type": z.get("usage_type"),
+                                 "energy_scope": z.get("energy_scope"),
+                                 "counts_toward_energy": z.get("counts_toward_energy"),
+                                 "scope_reason": z.get("scope_reason")}))
         if z["floor_id"]:
             edge(z["floor_id"], zid, "FLOOR_HAS_ROOM", source=SourceSystem.IFC_ARCH,
                  method="ifc_storey_containment", confidence=Confidence.HIGH)

@@ -94,7 +94,7 @@ export default function DashboardPage() {
       />
 
       <div className="mb-3">
-        <BuildingHealthCard health={health} />
+        <BuildingHealthCard health={health} kpis={kpis} totalKw={totalKw} />
       </div>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
