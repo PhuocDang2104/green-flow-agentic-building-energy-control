@@ -39,13 +39,22 @@ const ALERT_COLOR: Record<AlertSeverity, [number, number, number]> = {
 const ALERT_RANK: Record<AlertSeverity, number> = { info: 0, warning: 1, critical: 2 };
 
 const LAYER_RENDER_ORDER: Record<string, number> = {
-  architecture: 0,
+  architecture: 4,
   structure_context: -5,
-  structural: 8,
+  structural: 2,
   fenestration: 12,
   spaces: 18,
   electrical: 90,
   hvac: 100,
+};
+
+const STRUCTURAL_DEFAULT_LAYERS: Record<string, boolean> = {
+  architecture: false,
+  spaces: false,
+  fenestration: false,
+  structural: true,
+  hvac: false,
+  electrical: false,
 };
 
 export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightClass?: string }) {
@@ -103,8 +112,11 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
           canvasElement: canvasRef.current,
           transparent: true,
           antialias: true,
-        });
+          colorTextureEnabled: true,
+          pbrEnabled: true,
+        } as any);
         viewer.scene.gammaOutput = true;
+        viewer.scene.colorTextureEnabled = true;
         // Default view matches the product screenshot: low isometric, close,
         // architecture-forward rather than a top-down technical fit.
         viewer.camera.eye = [72, 34, 86];
@@ -173,7 +185,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
         }
 
         if (disposed) return;
-        setLayers(initialLayers);
+        setLayers({ ...initialLayers, ...STRUCTURAL_DEFAULT_LAYERS });
         styleDefaults(viewer);
 
         let pickedOnPointer = false;
@@ -512,7 +524,12 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
 
   const resetCamera = () => {
     const viewer = viewerRef.current;
-    if (viewer) flyToDefaultBuildingView(viewer, 0.6);
+    if (!viewer) return;
+    if (layers.structural) {
+      flyToStructurePresentationView(viewer, objectMapRef.current, 0.6);
+    } else {
+      flyToDefaultBuildingView(viewer, 0.6);
+    }
   };
 
   // Capture the wheel inside the 3D card: zoom the scene, never scroll the page.
@@ -630,15 +647,15 @@ const STRUCTURE_STYLE_MAP: Record<string, { color?: [number, number, number]; op
   IfcSite: { color: [0.45, 0.45, 0.42], opacity: 1.0 },
   IfcBuildingElementProxy: { color: [0.72, 0.72, 0.68], opacity: 1.0 },
   IfcSlab: { color: [0.72, 0.72, 0.68], opacity: 1.0 },
-  IfcWall: { color: [0.8, 0.8, 0.76], opacity: 1.0 },
-  IfcWallStandardCase: { color: [0.8, 0.8, 0.76], opacity: 1.0 },
+  IfcWall: { color: [0.78, 0.78, 0.74], opacity: 1.0 },
+  IfcWallStandardCase: { color: [0.78, 0.78, 0.74], opacity: 1.0 },
   IfcCurtainWall: { color: [0.45, 0.72, 0.78], opacity: 0.38 },
   IfcWindow: { color: [0.45, 0.78, 0.84], opacity: 0.38 },
   IfcDoor: { color: [0.12, 0.12, 0.12], opacity: 1.0 },
   IfcRoof: { color: [0.16, 0.24, 0.12], opacity: 1.0 },
   IfcCovering: { color: [0.62, 0.34, 0.2], opacity: 1.0 },
-  IfcBeam: { color: [0.38, 0.38, 0.38], opacity: 0.9 },
-  IfcColumn: { color: [0.34, 0.34, 0.34], opacity: 0.9 },
+  IfcBeam: { color: [0.42, 0.42, 0.4], opacity: 0.58 },
+  IfcColumn: { color: [0.38, 0.38, 0.36], opacity: 0.5 },
   IfcPlate: { color: [0.68, 0.7, 0.68], opacity: 1.0 },
   IfcRailing: { color: [0.18, 0.18, 0.18], opacity: 1.0 },
   IfcStair: { color: [0.64, 0.64, 0.6], opacity: 1.0 },
@@ -681,7 +698,7 @@ function applyStructurePresentationStyle(
     if (style.color) entity.colorize = style.color;
     if (style.opacity != null) entity.opacity = style.opacity;
     entity.xrayed = false;
-    entity.edges = entry.layer === "fenestration" ? false : true;
+    entity.edges = entry.layer === "architecture";
     entity.pickable = entry.layer === "spaces" ? !!entry.live : false;
   }
 }
@@ -694,15 +711,16 @@ function resetStructurePresentationStyle(viewer: any, objectMap: Record<string, 
     entity.colorize = null;
     entity.opacity = 1;
     entity.xrayed = false;
+    entity.edges = entry.layer !== "fenestration";
   }
 }
 
 function enablePresentationRendering(viewer: any) {
   if (viewer.scene?.sao) {
     viewer.scene.sao.enabled = true;
-    viewer.scene.sao.intensity = 0.08;
-    viewer.scene.sao.bias = 0.45;
-    viewer.scene.sao.scale = 360;
+    viewer.scene.sao.intensity = 0.13;
+    viewer.scene.sao.bias = 0.38;
+    viewer.scene.sao.scale = 420;
   }
   if (viewer.scene?.edgeMaterial) {
     viewer.scene.edgeMaterial.edgeAlpha = 0.1;
@@ -729,28 +747,32 @@ function createStructureContextModel(
   const cx = (xmin + xmax) / 2;
   const cz = (zmin + zmax) / 2;
   const gradeY = estimateGradeY(viewer, objectMap, ymin);
-  const groundY = gradeY - 0.06;
+  const groundY = gradeY + 0.018;
   const pad = Math.max(dx, dz) * 0.45;
   const model = new SceneModel(viewer.scene, {
     id: "structure_site_context",
     isModel: true,
     visible: true,
   });
+  const textures = createSiteTextureSets(model);
 
   const outer: [number, number, number, number] = [cx - dx / 2 - pad, cz - dz / 2 - pad, cx + dx / 2 + pad, cz + dz / 2 + pad];
   const apronOuter: [number, number, number, number] = [xmin - 8, zmin - 8, xmax + 8, zmax + 8];
   const footprint: [number, number, number, number] = [xmin - 0.6, zmin - 0.6, xmax + 0.6, zmax + 0.6];
 
-  createRingSlab(model, "structure_context_grass", outer, apronOuter, groundY - 0.08, groundY, [0.33, 0.55, 0.34], 1);
-  createRingSlab(model, "structure_context_concrete_apron", apronOuter, footprint, groundY - 0.035, groundY + 0.015, [0.58, 0.59, 0.56], 1);
-  createContextTexturePatches(model, outer, apronOuter, groundY + 0.018);
+  createRingSurface(model, "structure_context_grass", outer, apronOuter, groundY, [0.32, 0.5, 0.3], textures.grass, 7);
+  createRingSurface(model, "structure_context_concrete_apron", apronOuter, footprint, groundY + 0.018, [0.66, 0.66, 0.61], textures.concrete, 4);
+  createContextTexturePatches(model, outer, apronOuter, groundY + 0.024);
 
-  createBox(model, "structure_context_road_main", [cx - dx / 2 - pad, groundY + 0.01, cz + dz / 2 + pad * 0.28],
-    [cx + dx / 2 + pad, groundY + 0.045, cz + dz / 2 + pad * 0.48], [0.26, 0.28, 0.3], 1);
-  createBox(model, "structure_context_road_side", [cx + dx / 2 + pad * 0.18, groundY + 0.01, cz - dz / 2 - pad],
-    [cx + dx / 2 + pad * 0.38, groundY + 0.045, cz + dz / 2 + pad], [0.28, 0.29, 0.3], 1);
-  createBox(model, "structure_context_walkway", [cx - dx / 2 - pad, groundY + 0.035, cz - dz / 2 - pad * 0.24],
-    [cx + dx / 2 + pad, groundY + 0.07, cz - dz / 2 - pad * 0.12], [0.76, 0.76, 0.71], 1);
+  createTexturedPlane(model, "structure_context_road_main",
+    [cx - dx / 2 - pad, cz + dz / 2 + pad * 0.28, cx + dx / 2 + pad, cz + dz / 2 + pad * 0.48],
+    groundY + 0.035, [0.22, 0.24, 0.25], textures.asphalt, 3.5);
+  createTexturedPlane(model, "structure_context_road_side",
+    [cx + dx / 2 + pad * 0.18, cz - dz / 2 - pad, cx + dx / 2 + pad * 0.38, cz + dz / 2 + pad],
+    groundY + 0.036, [0.23, 0.24, 0.25], textures.asphalt, 3.5);
+  createTexturedPlane(model, "structure_context_walkway",
+    [cx - dx / 2 - pad, cz - dz / 2 - pad * 0.24, cx + dx / 2 + pad, cz - dz / 2 - pad * 0.12],
+    groundY + 0.048, [0.74, 0.74, 0.68], textures.concrete, 3);
 
   const blocks = [
     [cx - dx * 0.75, cz - dz * 0.7, 0.18, 0.2],
@@ -759,17 +781,17 @@ function createStructureContextModel(
   ];
   blocks.forEach(([bx, bz, sx, sz], i) => {
     createBox(model, `structure_context_block_${i}`, [bx - dx * sx, groundY, bz - dz * sz],
-      [bx + dx * sx, groundY + 2.2 + i * 0.7, bz + dz * sz], [0.72, 0.72, 0.68], 0.55);
+      [bx + dx * sx, groundY + 2.2 + i * 0.7, bz + dz * sz], [0.72, 0.72, 0.68], 0.5, 0.9);
   });
 
-  for (let i = 0; i < 24; i++) {
+  for (let i = 0; i < 34; i++) {
     const side = i % 2 === 0 ? -1 : 1;
-    const row = Math.floor(i / 8);
-    const tx = cx - dx * 0.72 + (i % 8) * dx * 0.22;
+    const row = Math.floor(i / 10);
+    const tx = cx - dx * 0.82 + (i % 10) * dx * 0.18;
     const tz = row === 2
       ? cz - dz * 0.78 - pad * 0.16
       : cz + side * (dz * 0.76 + pad * (0.13 + row * 0.04));
-    createTree(model, `structure_context_tree_${i}`, tx, groundY, tz, 1.15 + (i % 3) * 0.18);
+    createTree(model, `structure_context_tree_${i}`, tx, groundY, tz, 1.25 + (i % 4) * 0.16);
   }
 
   model.finalize();
@@ -780,6 +802,7 @@ function createStructureContextModel(
 
 function estimateGradeY(viewer: any, objectMap: Record<string, ObjectMapEntry>, fallbackY: number) {
   const preferred: number[] = [];
+  const basementTops: number[] = [];
   const nonBasement: number[] = [];
   const all: number[] = [];
   for (const [id, entry] of Object.entries(objectMap)) {
@@ -789,8 +812,15 @@ function estimateGradeY(viewer: any, objectMap: Record<string, ObjectMapEntry>, 
     if (!aabb || !Number.isFinite(aabb[1])) continue;
     const floor = `${entry.floor_key || ""} ${entry.name || ""}`.toLowerCase();
     all.push(aabb[1]);
+    const isBasement = floor.includes("basement") || floor.includes("kellari");
+    if (isBasement && Number.isFinite(aabb[4])) basementTops.push(aabb[4]);
     if (floor.includes("level_01") || floor.includes("01_kerros")) preferred.push(aabb[1]);
-    if (!floor.includes("basement") && !floor.includes("kellari") && !floor.includes("roof")) nonBasement.push(aabb[1]);
+    if (!isBasement && !floor.includes("roof")) nonBasement.push(aabb[1]);
+  }
+  if (basementTops.length) {
+    const basementTop = Math.max(...basementTops);
+    if (preferred.length) return Math.max(basementTop, Math.min(...preferred));
+    return basementTop;
   }
   if (preferred.length) return Math.min(...preferred);
   if (nonBasement.length) return Math.min(...nonBasement);
@@ -798,22 +828,74 @@ function estimateGradeY(viewer: any, objectMap: Record<string, ObjectMapEntry>, 
   return unique[1] ?? unique[0] ?? fallbackY;
 }
 
-function createRingSlab(
+function createSiteTextureSets(model: any) {
+  const make = (id: string, src: string) => {
+    try {
+      model.createTexture({ id: `${id}_texture`, src, flipY: false });
+      model.createTextureSet({ id, colorTextureId: `${id}_texture` });
+      return id;
+    } catch {
+      return undefined;
+    }
+  };
+  return {
+    grass: make("structure_site_grass", "/textures/site/grass.png"),
+    asphalt: make("structure_site_asphalt", "/textures/site/asphalt.png"),
+    concrete: make("structure_site_concrete", "/textures/site/concrete.png"),
+  };
+}
+
+function createRingSurface(
   model: any,
   id: string,
   outer: [number, number, number, number],
   inner: [number, number, number, number],
-  y0: number,
-  y1: number,
+  y: number,
   color: [number, number, number],
-  opacity = 1,
+  textureSetId: string | undefined,
+  repeatScale = 5,
 ) {
   const [ox0, oz0, ox1, oz1] = outer;
   const [ix0, iz0, ix1, iz1] = inner;
-  createBox(model, `${id}_north`, [ox0, y0, oz0], [ox1, y1, iz0], color, opacity);
-  createBox(model, `${id}_south`, [ox0, y0, iz1], [ox1, y1, oz1], color, opacity);
-  createBox(model, `${id}_west`, [ox0, y0, iz0], [ix0, y1, iz1], color, opacity);
-  createBox(model, `${id}_east`, [ix1, y0, iz0], [ox1, y1, iz1], color, opacity);
+  createTexturedPlane(model, `${id}_north`, [ox0, oz0, ox1, iz0], y, color, textureSetId, repeatScale);
+  createTexturedPlane(model, `${id}_south`, [ox0, iz1, ox1, oz1], y, color, textureSetId, repeatScale);
+  createTexturedPlane(model, `${id}_west`, [ox0, iz0, ix0, iz1], y, color, textureSetId, repeatScale);
+  createTexturedPlane(model, `${id}_east`, [ix1, iz0, ox1, iz1], y, color, textureSetId, repeatScale);
+}
+
+function createTexturedPlane(
+  model: any,
+  id: string,
+  rect: [number, number, number, number],
+  y: number,
+  color: [number, number, number],
+  textureSetId?: string,
+  repeatScale = 5,
+) {
+  const [x0, z0, x1, z1] = rect;
+  const width = Math.max(1, Math.abs(x1 - x0));
+  const depth = Math.max(1, Math.abs(z1 - z0));
+  const repeatX = Math.max(1, width / repeatScale);
+  const repeatZ = Math.max(1, depth / repeatScale);
+  const positions = [x0, y, z0, x1, y, z0, x1, y, z1, x0, y, z1];
+  const normals = [0, 1, 0, 0, 1, 0, 0, 1, 0, 0, 1, 0];
+  const uv = [0, 0, repeatX, 0, repeatX, repeatZ, 0, repeatZ];
+  const indices = [0, 1, 2, 0, 2, 3];
+  const meshId = `${id}_mesh`;
+  model.createMesh({
+    id: meshId,
+    primitive: "triangles",
+    positions,
+    normals,
+    uv,
+    indices,
+    color,
+    textureSetId,
+    opacity: 1,
+    metallic: 0,
+    roughness: 0.88,
+  } as any);
+  model.createEntity({ id, meshIds: [meshId], isObject: false, pickable: false });
 }
 
 function createContextTexturePatches(
@@ -834,8 +916,8 @@ function createContextTexturePatches(
     const sx = 2.5 + rnd() * 6;
     const sz = 1.5 + rnd() * 5;
     const green = 0.42 + rnd() * 0.16;
-    createBox(model, `structure_context_grass_patch_${i}`, [x - sx, y, z - sz],
-      [x + sx, y + 0.012, z + sz], [0.24, green, 0.24], 0.42);
+    createTexturedPlane(model, `structure_context_grass_patch_${i}`, [x - sx, z - sz, x + sx, z + sz], y + i * 0.0004,
+      [0.24, green, 0.24], undefined, 3);
   }
 }
 
@@ -843,7 +925,7 @@ function createTree(model: any, id: string, x: number, groundY: number, z: numbe
   const trunk = 0.22 * scale;
   const h = 1.8 * scale;
   createBox(model, `${id}_trunk`, [x - trunk, groundY, z - trunk],
-    [x + trunk, groundY + h, z + trunk], [0.34, 0.22, 0.13], 1);
+    [x + trunk, groundY + h, z + trunk], [0.34, 0.22, 0.13], 1, 0.72);
   const colors: [number, number, number][] = [
     [0.13, 0.34, 0.17],
     [0.18, 0.45, 0.22],
@@ -851,11 +933,11 @@ function createTree(model: any, id: string, x: number, groundY: number, z: numbe
   ];
   const canopy = 1.35 * scale;
   createBox(model, `${id}_canopy_a`, [x - canopy, groundY + h * 0.72, z - canopy],
-    [x + canopy, groundY + h * 1.5, z + canopy], colors[0], 0.88);
+    [x + canopy, groundY + h * 1.5, z + canopy], colors[0], 0.88, 0.95);
   createBox(model, `${id}_canopy_b`, [x - canopy * 0.75, groundY + h * 1.05, z - canopy * 1.18],
-    [x + canopy * 0.75, groundY + h * 1.75, z + canopy * 0.36], colors[1], 0.82);
+    [x + canopy * 0.75, groundY + h * 1.75, z + canopy * 0.36], colors[1], 0.82, 0.95);
   createBox(model, `${id}_canopy_c`, [x - canopy * 0.44, groundY + h * 1.35, z - canopy * 0.62],
-    [x + canopy * 1.0, groundY + h * 1.92, z + canopy * 0.9], colors[2], 0.78);
+    [x + canopy * 1.0, groundY + h * 1.92, z + canopy * 0.9], colors[2], 0.78, 0.95);
 }
 
 function createBox(
@@ -865,6 +947,7 @@ function createBox(
   max: [number, number, number],
   color: [number, number, number],
   opacity = 1,
+  roughness = 0.84,
 ) {
   const [x0, y0, z0] = min;
   const [x1, y1, z1] = max;
@@ -881,7 +964,7 @@ function createBox(
     0, 3, 7, 0, 7, 4,
   ];
   const meshId = `${id}_mesh`;
-  model.createMesh({ id: meshId, primitive: "triangles", positions, indices, color, opacity } as any);
+  model.createMesh({ id: meshId, primitive: "triangles", positions, indices, color, opacity, metallic: 0, roughness } as any);
   model.createEntity({ id, meshIds: [meshId], isObject: false, pickable: false });
 }
 

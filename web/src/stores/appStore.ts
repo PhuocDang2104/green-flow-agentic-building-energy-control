@@ -51,8 +51,8 @@ export const useAppStore = create<AppState>((set) => ({
 
   selectedEntityKey: null,
   activeMetric: "none",
-  layers: { architecture: true, spaces: true, fenestration: false,
-            structural: false, hvac: false, electrical: false },
+  layers: { architecture: false, spaces: false, fenestration: false,
+            structural: true, hvac: false, electrical: false },
   techHeatmap: { electrical: false, hvac: false },
   viewerUpdates: [],
   chatbotOpen: false,
