@@ -151,7 +151,7 @@ export default function DashboardPage() {
         <EntityInsightPanel />
       </div>
 
-      <div className="mt-4">
+      <div id="zone-state-table" className="mt-4 scroll-mt-4">
         <ZoneStateTable zones={zones} />
       </div>
 
