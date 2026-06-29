@@ -307,6 +307,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
             viewer,
             xeokitRef.current?.SceneModel,
             objectMapRef.current,
+            modelsRef.current,
           );
         } catch (err) {
           console.warn("Structure site context failed; keeping building geometry visible.", err);
@@ -774,13 +775,10 @@ function createStructureContextModel(
   viewer: any,
   SceneModel: any,
   objectMap: Record<string, ObjectMapEntry>,
+  models: Record<string, any>,
 ) {
   if (!SceneModel) return null;
-  const ids = Object.entries(objectMap)
-    .filter(([, entry]) => ["architecture", "structural", "fenestration"].includes(entry.layer))
-    .map(([id]) => id)
-    .filter((id) => viewer.scene.objects[id]);
-  const aabb = viewer.scene.getAABB(ids.length ? ids : viewer.scene.visibleObjectIds);
+  const aabb = getBuildingAABB(viewer, objectMap, models);
   if (!aabb || aabb.some((v: number) => !Number.isFinite(v))) return null;
 
   const [xmin, ymin, zmin, xmax, , zmax] = aabb;
@@ -804,19 +802,33 @@ function createStructureContextModel(
     const apronOuter: [number, number, number, number] = [xmin - 8, zmin - 8, xmax + 8, zmax + 8];
     const footprint: [number, number, number, number] = [xmin - 0.6, zmin - 0.6, xmax + 0.6, zmax + 0.6];
 
-    createRingSurface(model, "structure_context_grass", outer, apronOuter, groundY, [0.32, 0.5, 0.3], textures.grass, 7);
-    createRingSurface(model, "structure_context_concrete_apron", apronOuter, footprint, groundY + 0.018, [0.66, 0.66, 0.61], textures.concrete, 4);
+    // Base slabs are deliberately solid-color boxes. They are the reliability
+    // layer: even if texture UVs/images fail on a deployment, Structure mode
+    // still shows a complete site/context instead of reverting to white.
+    createRingSlab(model, "structure_context_grass_base", outer, apronOuter, groundY - 0.04, groundY + 0.004, [0.34, 0.56, 0.34], 1);
+    createRingSlab(model, "structure_context_concrete_base", apronOuter, footprint, groundY - 0.025, groundY + 0.012, [0.68, 0.68, 0.63], 1);
+    createBox(model, "structure_context_road_main_base",
+      [cx - dx / 2 - pad, groundY + 0.005, cz + dz / 2 + pad * 0.28],
+      [cx + dx / 2 + pad, groundY + 0.035, cz + dz / 2 + pad * 0.48],
+      [0.22, 0.24, 0.25], 1, 0.95);
+    createBox(model, "structure_context_road_side_base",
+      [cx + dx / 2 + pad * 0.18, groundY + 0.006, cz - dz / 2 - pad],
+      [cx + dx / 2 + pad * 0.38, groundY + 0.036, cz + dz / 2 + pad],
+      [0.23, 0.24, 0.25], 1, 0.95);
+
+    createRingSurface(model, "structure_context_grass", outer, apronOuter, groundY + 0.01, [0.32, 0.5, 0.3], textures.grass, 7);
+    createRingSurface(model, "structure_context_concrete_apron", apronOuter, footprint, groundY + 0.026, [0.66, 0.66, 0.61], textures.concrete, 4);
     createContextTexturePatches(model, outer, apronOuter, groundY + 0.024);
 
     createTexturedPlane(model, "structure_context_road_main",
       [cx - dx / 2 - pad, cz + dz / 2 + pad * 0.28, cx + dx / 2 + pad, cz + dz / 2 + pad * 0.48],
-      groundY + 0.035, [0.22, 0.24, 0.25], textures.asphalt, 3.5);
+      groundY + 0.045, [0.22, 0.24, 0.25], textures.asphalt, 3.5);
     createTexturedPlane(model, "structure_context_road_side",
       [cx + dx / 2 + pad * 0.18, cz - dz / 2 - pad, cx + dx / 2 + pad * 0.38, cz + dz / 2 + pad],
-      groundY + 0.036, [0.23, 0.24, 0.25], textures.asphalt, 3.5);
+      groundY + 0.046, [0.23, 0.24, 0.25], textures.asphalt, 3.5);
     createTexturedPlane(model, "structure_context_walkway",
       [cx - dx / 2 - pad, cz - dz / 2 - pad * 0.24, cx + dx / 2 + pad, cz - dz / 2 - pad * 0.12],
-      groundY + 0.048, [0.74, 0.74, 0.68], textures.concrete, 3);
+      groundY + 0.058, [0.74, 0.74, 0.68], textures.concrete, 3);
 
     const blocks = [
       [cx - dx * 0.75, cz - dz * 0.7, 0.18, 0.2],
@@ -845,7 +857,47 @@ function createStructureContextModel(
   model.finalize();
   model.pickable = false;
   model.renderOrder = LAYER_RENDER_ORDER.structure_context;
+  console.info("Structure site context ready", {
+    aabb: aabb.map((v: number) => Number(v.toFixed(2))),
+    groundY: Number(groundY.toFixed(2)),
+    dx: Number(dx.toFixed(2)),
+    dz: Number(dz.toFixed(2)),
+  });
   return model;
+}
+
+function getBuildingAABB(
+  viewer: any,
+  objectMap: Record<string, ObjectMapEntry>,
+  models: Record<string, any>,
+) {
+  const modelAABBs = ["architecture", "structural", "fenestration"]
+    .map((key) => models[key]?.aabb)
+    .filter((aabb) => Array.isArray(aabb) && aabb.length >= 6 && aabb.every((v: number) => Number.isFinite(v)));
+  if (modelAABBs.length) return unionAABBs(modelAABBs);
+
+  const ids = Object.entries(objectMap)
+    .filter(([, entry]) => ["architecture", "structural", "fenestration"].includes(entry.layer))
+    .map(([id]) => id)
+    .filter((id) => viewer.scene.objects[id]);
+  const visible = viewer.scene.visibleObjectIds || [];
+  const aabb = viewer.scene.getAABB(ids.length ? ids : visible);
+  if (aabb && aabb.every((v: number) => Number.isFinite(v))) return aabb;
+
+  // Conservative fallback: matches the default camera extents closely enough
+  // to keep the site visible even before all XKT metadata resolves.
+  return [-34, -2, -18, 34, 24, 18];
+}
+
+function unionAABBs(aabbs: number[][]) {
+  return aabbs.reduce((acc, aabb) => [
+    Math.min(acc[0], aabb[0]),
+    Math.min(acc[1], aabb[1]),
+    Math.min(acc[2], aabb[2]),
+    Math.max(acc[3], aabb[3]),
+    Math.max(acc[4], aabb[4]),
+    Math.max(acc[5], aabb[5]),
+  ], [Infinity, Infinity, Infinity, -Infinity, -Infinity, -Infinity]);
 }
 
 function estimateGradeY(viewer: any, objectMap: Record<string, ObjectMapEntry>, fallbackY: number) {
@@ -874,6 +926,24 @@ function estimateGradeY(viewer: any, objectMap: Record<string, ObjectMapEntry>, 
   if (nonBasement.length) return Math.min(...nonBasement);
   const unique = Array.from(new Set(all.map((v) => Number(v.toFixed(2))))).sort((a, b) => a - b);
   return unique[1] ?? unique[0] ?? fallbackY;
+}
+
+function createRingSlab(
+  model: any,
+  id: string,
+  outer: [number, number, number, number],
+  inner: [number, number, number, number],
+  y0: number,
+  y1: number,
+  color: [number, number, number],
+  opacity = 1,
+) {
+  const [ox0, oz0, ox1, oz1] = outer;
+  const [ix0, iz0, ix1, iz1] = inner;
+  createBox(model, `${id}_north`, [ox0, y0, oz0], [ox1, y1, iz0], color, opacity, 0.9);
+  createBox(model, `${id}_south`, [ox0, y0, iz1], [ox1, y1, oz1], color, opacity, 0.9);
+  createBox(model, `${id}_west`, [ox0, y0, iz0], [ix0, y1, iz1], color, opacity, 0.9);
+  createBox(model, `${id}_east`, [ix1, y0, iz0], [ox1, y1, iz1], color, opacity, 0.9);
 }
 
 function createSiteTextureSets(model: any) {
