@@ -712,6 +712,12 @@ function resetStructureModelStyle(models: Record<string, any>) {
     model.colorize = null;
     model.opacity = 1;
     model.xrayed = false;
+    for (const entity of model?.entityList || model?._entityList || []) {
+      entity.visible = true;
+      entity.colorize = null;
+      entity.opacity = 1;
+      entity.xrayed = false;
+    }
   }
 }
 
@@ -732,8 +738,8 @@ function styleModelEntityList(model: any, layer: "architecture" | "fenestration"
       entity.colorize = [0.44, 0.25, 0.15];
       entity.opacity = 1;
     } else if (key.includes("basement") || key.includes("parking")) {
-      entity.colorize = [0.18, 0.19, 0.18];
-      entity.opacity = 1;
+      entity.colorize = [0.14, 0.15, 0.14];
+      entity.opacity = 0.05;
     } else if (key.includes("level_01")) {
       entity.colorize = [0.58, 0.58, 0.53];
       entity.opacity = 1;
@@ -796,7 +802,7 @@ function styleForPresentation(entry: ObjectMapEntry, ifcType?: string) {
     const floor = String(entry.floor_key || entry.name || "").toLowerCase();
     if (floor.includes("roof") || floor.includes("vesikatto")) return STRUCTURE_STYLE_MAP.IfcRoof;
     if (floor.includes("level_05") || floor.includes("level_04")) return STRUCTURE_STYLE_MAP.IfcCovering;
-    if (floor.includes("basement") || floor.includes("parking")) return { color: [0.18, 0.19, 0.18] as [number, number, number], opacity: 1 };
+    if (floor.includes("basement") || floor.includes("parking")) return { color: [0.14, 0.15, 0.14] as [number, number, number], opacity: 0.05 };
     if (floor.includes("level_01")) return { color: [0.58, 0.58, 0.53] as [number, number, number], opacity: 1 };
     return STRUCTURE_STYLE_MAP.IfcWall;
   }
@@ -897,10 +903,10 @@ function createStructureContextModel(
       dz / 2 + Math.max(14, dz * 0.25),
     ];
     const footprint: SiteRect = [
-      -dx / 2 - Math.max(2.5, dx * 0.035),
-      -dz / 2 - Math.max(2.5, dz * 0.055),
-      dx / 2 + Math.max(2.5, dx * 0.035),
-      dz / 2 + Math.max(2.5, dz * 0.055),
+      -dx / 2 + Math.max(0.45, dx * 0.012),
+      -dz / 2 + Math.max(0.45, dz * 0.012),
+      dx / 2 - Math.max(0.45, dx * 0.012),
+      dz / 2 - Math.max(0.45, dz * 0.012),
     ];
 
     // Base slabs are deliberately solid-color boxes. They are the reliability
@@ -1062,15 +1068,18 @@ function ymaxFromAABB(aabb: number[]) {
 
 function chooseStructureGradeY(ymin: number, ymax: number, candidate: number) {
   const dy = Math.max(1, ymax - ymin);
-  const lowerDatum = ymin < -0.5 ? 0 : ymin;
-  if (!Number.isFinite(candidate)) return lowerDatum;
+  // The dark basement/plinth band belongs below exterior grade. The landscape
+  // should cut at the top of that band, not at the raw model ymin. XKT floor
+  // AABBs are not always reliable, so use a conservative low-height datum.
+  const plinthTop = Math.max(ymin, (ymin < -0.5 ? 0 : ymin) + Math.min(5.2, Math.max(3.6, dy * 0.155)));
+  if (!Number.isFinite(candidate)) return plinthTop;
   // Per-object AABBs in some generated XKT metadata report floor objects near
   // roof height. Reject those; grade must live close to the lower quarter of the
   // building, never near the roof.
   if (candidate < ymin - 0.25 || candidate > ymin + Math.max(3, dy * 0.25)) {
-    return lowerDatum;
+    return plinthTop;
   }
-  if (ymin < -0.5 && candidate < -0.25) return 0;
+  if (candidate < plinthTop - 0.35) return plinthTop;
   return candidate;
 }
 
