@@ -70,6 +70,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const structureContextModelRef = useRef<any>(null);
   const wasStructuralOnRef = useRef(false);
   const [ready, setReady] = useState(false);
+  const [geometryVersion, setGeometryVersion] = useState(0);
   const [error, setError] = useState<string | null>(null);
   const [hover, setHover] = useState<{ id: string; x: number; y: number } | null>(null);
   // zone_key -> highest open-alert severity, drives the "Faults" view overlay
@@ -150,9 +151,10 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
             // style/refit progressively; never block the UI on load events
             model.on("loaded", () => {
               styleDefaults(viewer);
+              setGeometryVersion((v) => v + 1);
               if (!firstLoaded) {
                 firstLoaded = true;
-                flyToDefaultBuildingView(viewer, 0.8);
+                flyToStructurePresentationView(viewer, objectMapRef.current, 0.8);
               }
             });
             model.on("error", (e: any) =>
@@ -298,17 +300,21 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       }
     }
     if (structuralOn) {
+      let contextCreated = false;
       if (!structureContextModelRef.current) {
         structureContextModelRef.current = createStructureContextModel(
           viewer,
           xeokitRef.current?.SceneModel,
           objectMapRef.current,
         );
+        contextCreated = !!structureContextModelRef.current;
       }
       if (structureContextModelRef.current) structureContextModelRef.current.visible = true;
       applyStructurePresentationStyle(viewer, objectMapRef.current, metaTypeByObjectRef.current);
       enablePresentationRendering(viewer);
-      if (!wasStructuralOnRef.current) flyToStructurePresentationView(viewer, objectMapRef.current, 0.7);
+      if (!wasStructuralOnRef.current || contextCreated) {
+        flyToStructurePresentationView(viewer, objectMapRef.current, 0.7);
+      }
     } else {
       if (structureContextModelRef.current) structureContextModelRef.current.visible = false;
       resetStructurePresentationStyle(viewer, objectMapRef.current);
@@ -345,7 +351,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       entity.xrayed = false;
       entity.opacity = 1;
     }
-  }, [layers, ready, activeMetric]);
+  }, [layers, ready, activeMetric, geometryVersion]);
 
   // --- heatmap overlay from live zone state --------------------------------
   useEffect(() => {
