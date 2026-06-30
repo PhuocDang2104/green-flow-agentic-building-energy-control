@@ -167,6 +167,7 @@ function MetricRow({ row, index }: { row: MetricRowData; index: number }) {
       style={{ "--gf-bpi-row-delay": `${260 + index * 70}ms` } as CSSProperties}
       tabIndex={0}
       aria-label={`${row.label}: ${row.detail}`}
+      title={row.detail}
     >
       <div className="flex min-w-0 items-center gap-3">
         <span className={`grid h-9 w-9 shrink-0 place-items-center rounded-lg ${rowIconTint(row.band)}`}>
@@ -179,9 +180,6 @@ function MetricRow({ row, index }: { row: MetricRowData; index: number }) {
       </div>
       <div className="text-right text-[13px] font-bold leading-tight text-slate-900 tabular-nums">
         {row.value}
-      </div>
-      <div className="pointer-events-none invisible absolute left-4 right-4 top-[calc(100%-5px)] z-40 translate-y-1 rounded-xl border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] leading-relaxed text-white opacity-0 shadow-xl transition group-hover/metric:visible group-hover/metric:translate-y-0 group-hover/metric:opacity-100 group-focus/metric:visible group-focus/metric:translate-y-0 group-focus/metric:opacity-100">
-        {row.detail}
       </div>
     </div>
   );
@@ -197,9 +195,9 @@ function ScorePanel({ panel, index }: { panel: PerformancePanel; index: number }
       <div className="h-[7px] rounded-t-[6px]" style={{ backgroundColor: panel.accent }} />
       <header className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-3">
         <h3 className="text-[16px] font-bold leading-tight text-[#0F172A]">{panel.title}</h3>
-        <span className="relative text-slate-400 transition group-hover/card:text-teal">
+        <span className="group/help relative text-slate-400 transition hover:text-teal focus-visible:text-teal" tabIndex={0}>
           <CircleHelp size={16} aria-hidden="true" />
-          <span className="pointer-events-none invisible absolute right-0 top-6 z-50 w-64 rounded-xl border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] font-medium leading-relaxed text-white opacity-0 shadow-xl transition group-hover/card:visible group-hover/card:opacity-100">
+          <span className="pointer-events-none invisible absolute right-0 top-6 z-50 w-64 rounded-xl border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] font-medium leading-relaxed text-white opacity-0 shadow-xl transition group-hover/help:visible group-hover/help:opacity-100 group-focus/help:visible group-focus/help:opacity-100">
             {panel.detail}
           </span>
         </span>
