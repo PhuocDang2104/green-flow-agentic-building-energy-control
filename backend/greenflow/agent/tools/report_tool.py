@@ -106,6 +106,7 @@ def _markdown_to_pdf(title: str, markdown: str, out_path: Path) -> None:
     pdf.set_font("Helvetica", "B", 18)
     pdf.set_text_color(*SLATE)
     pdf.multi_cell(0, 9, _latin(title))
+    pdf.set_x(pdf.l_margin)
     pdf.set_font("Helvetica", "", 9)
     pdf.set_text_color(*GRAY)
     pdf.cell(0, 6, datetime.now().strftime("Generated %Y-%m-%d %H:%M"),
