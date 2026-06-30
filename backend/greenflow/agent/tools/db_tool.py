@@ -46,11 +46,13 @@ def get_zones(building_id: str, floor_id: str | None = None) -> list[dict]:
             sql += " AND z.floor_id = :f"
             params["f"] = floor_id
         rows = [_clean(r) for r in fetch_all(conn, sql + " ORDER BY z.name", **params)]
+        visible = []
         for row in rows:
-            row["is_energy_counted"] = effective_counts_toward_energy(
-                row.get("counts_toward_energy", True)
-            )
-        return rows
+            is_counted = effective_counts_toward_energy(row.get("counts_toward_energy", True))
+            row["is_energy_counted"] = is_counted
+            if is_counted:
+                visible.append(row)
+        return visible
 
 
 def get_devices(building_id: str, zone_id: str | None = None) -> list[dict]:
