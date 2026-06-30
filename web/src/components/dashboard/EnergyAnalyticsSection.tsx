@@ -266,19 +266,19 @@ export default function EnergyAnalyticsSection() {
         {/* top consuming zones */}
         <div className="card px-5 py-4">
           <CardTitle tipText={topZonesExplanation}>Top consuming zones</CardTitle>
-          <div className="mt-1 h-[188px]">
+          <div className="mt-1 h-[156px]">
             {ready ? (
-              <div className="flex h-full flex-col gap-2">
+              <div className="flex h-full flex-col gap-1">
                 {topZones.map((zone, index) => (
                   <div
                     key={`${zone.name}-${index}`}
-                    className="grid min-h-[24px] grid-cols-[minmax(136px,190px)_1fr_48px] items-center gap-3"
+                    className="grid min-h-[21px] grid-cols-[minmax(136px,190px)_1fr_44px] items-center gap-2.5"
                     title={zone.name}
                   >
-                    <p className="text-[10.5px] font-medium leading-[1.12] text-slate-600">
+                    <p className="text-[10px] font-medium leading-[1.08] text-slate-600">
                       {zone.name}
                     </p>
-                    <div className="h-2.5 overflow-hidden rounded-full bg-slate-100">
+                    <div className="h-2 overflow-hidden rounded-full bg-slate-100">
                       <div
                         className="h-full rounded-full bg-[#0F766E]"
                         style={{ width: `${Math.max(4, (zone.kw / topZoneMaxKw) * 100)}%` }}
