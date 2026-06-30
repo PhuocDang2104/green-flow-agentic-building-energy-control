@@ -1,7 +1,7 @@
 "use client";
 
-import { useEffect, useState } from "react";
-import { Zap } from "lucide-react";
+import { useEffect, useState, type ReactNode } from "react";
+import { CircleHelp, Zap } from "lucide-react";
 import {
   Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
@@ -77,6 +77,29 @@ const tip = {
   },
 };
 
+function InfoTip({ text }: { text: string }) {
+  return (
+    <span
+      className="group/help relative inline-flex text-slate-400 transition hover:text-teal focus-visible:text-teal"
+      tabIndex={0}
+    >
+      <CircleHelp size={15} aria-hidden="true" />
+      <span className="pointer-events-none invisible absolute right-0 top-6 z-50 w-72 rounded-xl border border-slate-200 bg-slate-950 px-3 py-2 text-[11px] font-medium leading-relaxed text-white opacity-0 shadow-xl transition group-hover/help:visible group-hover/help:opacity-100 group-focus/help:visible group-focus/help:opacity-100">
+        {text}
+      </span>
+    </span>
+  );
+}
+
+function CardTitle({ children, tipText }: { children: ReactNode; tipText: string }) {
+  return (
+    <div className="mb-1 flex items-center justify-between gap-3">
+      <p className="text-[13px] font-medium text-text-secondary">{children}</p>
+      <InfoTip text={tipText} />
+    </div>
+  );
+}
+
 /**
  * Energy analytics — a dashboard section: energy KPI tiles, a red→green
  * benchmark gauge (EUI rating), a load-share donut, top consuming
@@ -132,9 +155,9 @@ export default function EnergyAnalyticsSection() {
   const topZones = [...energyZones]
     .sort((a, b) => ((b.latest_state?.total_power_kw) || 0) - ((a.latest_state?.total_power_kw) || 0))
     .slice(0, 6)
-    .map((z) => ({
+    .map((z, index) => ({
       name: z.name,
-      shortName: truncateLabel(compactZoneName(z.name)),
+      axisKey: `${index + 1}. ${truncateLabel(compactZoneName(z.name))}`,
       kw: Number(((z.latest_state?.total_power_kw) || 0).toFixed(2)),
     }));
 
@@ -147,6 +170,11 @@ export default function EnergyAnalyticsSection() {
 
   const costStr = cost >= 1e6 ? `${(cost / 1e6).toFixed(2)}M ₫`
     : `${Number(cost).toLocaleString("vi-VN")} ₫`;
+  const euiExplanation = `Energy use intensity run-rate = today's energy divided by counted floor area, then annualized. Current inputs: ${kwh.toFixed(0)} kWh today / ${totalArea.toFixed(0)} m² = ${euiDaily.toFixed(2)} kWh/m²/day, or about ${euiAnnual.toFixed(0)} kWh/m²/year. Lower is better; office target is ≤90 kWh/m²/year.`;
+  const mixExplanation = `Load share uses the last 24h building timeseries and integrates each power category by timestep. HVAC, lighting, and plug-load kWh are compared as percentages of the category total.`;
+  const topZonesExplanation = `Top consuming zones ranks counted zones by their latest total_power_kw from the backend zone state. This is an instantaneous load view, not a daily kWh total.`;
+  const loadProfileExplanation = `24-hour load profile comes from /timeseries/building and shows HVAC, lighting, and plug-load power over the latest replay window.`;
+  const updatedAt = kpi?.timestamp;
 
   return (
     <section className="mt-4">
@@ -159,20 +187,48 @@ export default function EnergyAnalyticsSection() {
       {/* energy KPI tiles */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
         <KpiCard title="Energy used today" value={`${kwh.toFixed(0)} kWh`} loading={!ready}
-                 delta="calendar day-to-date" status="normal" />
+                 delta="calendar day-to-date" status="normal"
+                 help={{
+                   summary: "Total calendar-day energy from counted building zones at the current replay anchor.",
+                   statusReason: `Backend value from /kpi/current: ${kwh.toFixed(0)} kWh today.`,
+                   thresholds: "Use this with the EUI card to judge whether today's consumption is normal for the modeled floor area.",
+                   timestamp: updatedAt,
+                 }} />
         <KpiCard title="Cost today" value={costStr} loading={!ready}
-                 delta="calendar day-to-date" status="info" />
+                 delta="calendar day-to-date" status="info"
+                 help={{
+                   summary: "Estimated day-to-date electricity cost for the same counted energy scope.",
+                   statusReason: `Backend value from /kpi/current: ${costStr}.`,
+                   thresholds: "This is an operational estimate using the configured tariff, not a utility-bill settlement.",
+                   timestamp: updatedAt,
+                 }} />
         <KpiCard title="Peak demand, last 24h" value={`${peakKw.toFixed(1)} kW`} loading={!ready}
-                 delta="last 24h" status="warning" />
+                 delta="last 24h" status="warning"
+                 help={{
+                   summary: "Maximum total building load observed in the last 24-hour building timeseries.",
+                   statusReason: `Current 24h peak is ${peakKw.toFixed(1)} kW.`,
+                   thresholds: "High peak demand increases demand charges and drives the Energy / Demand risk score.",
+                   timestamp: updatedAt,
+                 }} />
         <KpiCard title="EUI run-rate" value={`${euiDaily.toFixed(2)} kWh/m²`} loading={!ready}
                  delta={`annualized ≈ ${euiAnnual.toFixed(0)} kWh/m²/yr`}
-                 status={score >= 70 ? "success" : score >= 50 ? "warning" : "danger"} />
+                 status={score >= 70 ? "success" : score >= 50 ? "warning" : "danger"}
+                 help={{
+                   summary: "Energy Use Intensity run-rate normalizes today's energy by counted floor area.",
+                   statusReason: `${kwh.toFixed(0)} kWh / ${totalArea.toFixed(0)} m² = ${euiDaily.toFixed(2)} kWh/m² today; annualized to about ${euiAnnual.toFixed(0)} kWh/m²/year.`,
+                   thresholds: "Lower is better. Office target used here: <=90 kWh/m²/year; poor band approaches 250 kWh/m²/year.",
+                   timestamp: updatedAt,
+                 }} />
       </div>
 
       {/* gauge · donut · top zones */}
       <div className="mt-3 grid gap-4 lg:grid-cols-[0.85fr_0.85fr_1.3fr]">
         {/* performance gauge */}
-        <div className="card flex items-center gap-4 px-5 py-4">
+        <div className="card px-5 py-4">
+          <div className="flex justify-end">
+            <InfoTip text={euiExplanation} />
+          </div>
+          <div className="flex items-center gap-4">
           {ready ? <Gauge score={score} euiAnnual={euiAnnual} /> : <Skeleton className="h-[120px] w-[120px] rounded-full" />}
           <div>
             <p className="text-[13px] font-medium text-text-secondary">EUI run-rate</p>
@@ -186,11 +242,12 @@ export default function EnergyAnalyticsSection() {
               Annualized from today's use · {ready ? `${score}/100` : "loading…"}
             </p>
           </div>
+          </div>
         </div>
 
         {/* load-share donut */}
         <div className="card px-5 py-4">
-          <p className="text-[13px] font-medium text-text-secondary">Load share, last 24h</p>
+          <CardTitle tipText={mixExplanation}>Load share, last 24h</CardTitle>
           <div className="flex items-center gap-3">
             <div className="h-[132px] w-[132px] shrink-0">
               {ready ? (
@@ -221,14 +278,14 @@ export default function EnergyAnalyticsSection() {
 
         {/* top consuming zones */}
         <div className="card px-5 py-4">
-          <p className="text-[13px] font-medium text-text-secondary">Top consuming zones</p>
+          <CardTitle tipText={topZonesExplanation}>Top consuming zones</CardTitle>
           <div className="mt-1 h-[156px]">
             {ready ? (
               <ResponsiveContainer width="100%" height="100%">
                 <BarChart data={topZones} layout="vertical" margin={{ top: 4, right: 12, bottom: 2, left: 8 }}>
                   <CartesianGrid stroke="#EEF2F7" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false} unit=" kW" />
-                  <YAxis type="category" dataKey="shortName" width={152} tick={{ fontSize: 10, fill: "#64748B" }}
+                  <YAxis type="category" dataKey="axisKey" width={152} tick={{ fontSize: 10, fill: "#64748B" }}
                          tickLine={false} axisLine={false} />
                   <Tooltip
                     {...tip}
@@ -245,7 +302,7 @@ export default function EnergyAnalyticsSection() {
 
       {/* 24h load profile (stacked by category) */}
       <div className="card mt-4 px-5 py-4">
-        <p className="text-[13px] font-medium text-text-secondary">24-hour load profile</p>
+        <CardTitle tipText={loadProfileExplanation}>24-hour load profile</CardTitle>
         <div className="mt-2 h-64">
           {ready ? (
             <ResponsiveContainer width="100%" height="100%">
