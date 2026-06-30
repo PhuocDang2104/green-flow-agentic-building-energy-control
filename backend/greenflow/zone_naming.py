@@ -51,6 +51,13 @@ def _collapse_repeated_colon_label(value: str) -> str:
     return " ".join(parts)
 
 
+def _collapse_repeated_leading_token(value: str) -> str:
+    words = value.split()
+    if len(words) >= 2 and words[0].casefold() == words[1].casefold():
+        return " ".join([words[0], *words[2:]])
+    return value
+
+
 def _area_label(area_m2: object) -> str:
     try:
         area = float(area_m2)
@@ -82,6 +89,7 @@ def zone_space_label(
         label = num
 
     label = _collapse_repeated_colon_label(label)
+    label = _collapse_repeated_leading_token(label)
     if label and label.upper().startswith("ZN_"):
         label = ""
 

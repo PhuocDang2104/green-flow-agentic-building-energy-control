@@ -32,3 +32,12 @@ def test_repeated_volume_label_is_collapsed():
         room_name="VOLUME / OFFICE:VOLUME / OFFICE:2646424",
         energy_scope="aggregate_context",
     ) == "VOLUME / OFFICE"
+
+
+def test_repeated_long_name_number_prefix_is_collapsed():
+    assert zone_space_label(
+        long_name="ELECT",
+        number="ELECT:3061944",
+        room_type="technical_core",
+        energy_scope="atomic_energy_zone",
+    ) == "ELECT 3061944"
