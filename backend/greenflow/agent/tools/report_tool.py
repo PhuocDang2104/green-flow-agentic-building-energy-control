@@ -164,7 +164,7 @@ def _emit_table(pdf: FPDF, rows: list[list[str]]) -> None:
     if not rows:
         return
     ncols = max(len(r) for r in rows)
-    width = 190 / ncols
+    widths = _table_widths(rows, ncols)
     pdf.ln(1)
     for i, row in enumerate(rows):
         pdf.set_font("Helvetica", "B" if i == 0 else "", 8.5)
@@ -174,11 +174,91 @@ def _emit_table(pdf: FPDF, rows: list[list[str]]) -> None:
         else:
             pdf.set_fill_color(255, 255, 255)
             pdf.set_text_color(*SLATE)
-        for c in range(ncols):
-            cell = _strip_md(row[c]) if c < len(row) else ""
-            pdf.cell(width, 6, _latin(cell[:38]), border=1, fill=(i == 0))
-        pdf.ln(6)
+        _emit_table_row(pdf, row, widths, is_header=(i == 0))
     pdf.ln(2)
+
+
+def _table_widths(rows: list[list[str]], ncols: int) -> list[float]:
+    """Column widths tuned for report tables in portrait A4.
+
+    fpdf cells do not wrap by default. These widths reserve more space for
+    narrative/evidence columns and less for numeric columns.
+    """
+    header = [(_strip_md(c) if c else "").strip().lower() for c in rows[0]]
+    presets: dict[tuple[str, ...], list[float]] = {
+        ("dimension", "score", "target", "status", "backend evidence"): [36, 17, 17, 22, 98],
+        ("priority", "severity", "finding", "evidence", "recommended action"): [16, 20, 34, 58, 62],
+        ("workstream", "action", "owner", "target window"): [37, 74, 35, 44],
+        ("zone", "type", "area m2", "occupancy", "temp c", "load kw", "comfort"): [48, 30, 18, 22, 18, 20, 34],
+        ("metric", "current value", "why it matters"): [42, 38, 110],
+        ("data domain", "coverage / issue", "interpretation"): [42, 42, 106],
+    }
+    widths = presets.get(tuple(header[:ncols]))
+    if widths:
+        return widths
+    if ncols == 2:
+        return [58, 132]
+    if ncols == 3:
+        return [46, 48, 96]
+    if ncols == 4:
+        return [42, 72, 34, 42]
+    if ncols == 5:
+        return [34, 26, 40, 45, 45]
+    return [190 / ncols] * ncols
+
+
+def _emit_table_row(pdf: FPDF, row: list[str], widths: list[float], is_header: bool) -> None:
+    cells = [_strip_md(row[c]) if c < len(row) else "" for c in range(len(widths))]
+    line_sets = [_wrap_text(pdf, _latin(cell), width - 2, max_lines=4 if is_header else 5)
+                 for cell, width in zip(cells, widths)]
+    line_h = 4.2
+    row_h = max(7.0, max(len(lines) for lines in line_sets) * line_h + 3.0)
+    if pdf.get_y() + row_h > pdf.h - pdf.b_margin:
+        pdf.add_page()
+    x0, y0 = pdf.get_x(), pdf.get_y()
+    for lines, width in zip(line_sets, widths):
+        x, y = pdf.get_x(), pdf.get_y()
+        pdf.rect(x, y, width, row_h, "DF" if is_header else "D")
+        pdf.set_xy(x + 1, y + 1.5)
+        for line in lines:
+            pdf.cell(width - 2, line_h, line, new_x="LMARGIN", new_y="NEXT")
+            pdf.set_x(x + 1)
+        pdf.set_xy(x + width, y)
+    pdf.set_xy(x0, y0 + row_h)
+
+
+def _wrap_text(pdf: FPDF, text: str, max_width: float, max_lines: int = 5) -> list[str]:
+    words = text.split()
+    if not words:
+        return [""]
+    lines: list[str] = []
+    current = ""
+    for word in words:
+        candidate = f"{current} {word}".strip()
+        if pdf.get_string_width(candidate) <= max_width:
+            current = candidate
+            continue
+        if current:
+            lines.append(current)
+        current = _fit_word(pdf, word, max_width)
+        if len(lines) >= max_lines:
+            break
+    if current and len(lines) < max_lines:
+        lines.append(current)
+    if len(lines) > max_lines:
+        lines = lines[:max_lines]
+    if len(lines) == max_lines and len(" ".join(words)) > len(" ".join(lines)):
+        lines[-1] = _fit_word(pdf, lines[-1].rstrip(".") + "...", max_width)
+    return lines or [""]
+
+
+def _fit_word(pdf: FPDF, word: str, max_width: float) -> str:
+    if pdf.get_string_width(word) <= max_width:
+        return word
+    trimmed = word
+    while trimmed and pdf.get_string_width(trimmed + "...") > max_width:
+        trimmed = trimmed[:-1]
+    return (trimmed or word[:1]) + "..."
 
 
 def _strip_md(s: str) -> str:
