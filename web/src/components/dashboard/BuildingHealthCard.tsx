@@ -278,6 +278,7 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
   const deviceFaults = extractNumber(reliability?.detail, /(\d+)\s+device/i);
   const sensorFaults = extractNumber(reliability?.detail, /.\s*(\d+)\s+sensor/i);
   const updatedAt = health.timestamp ?? "latest replay anchor";
+  const zoneCount = health.zones || 0;
 
   return [
     {
@@ -313,11 +314,11 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
       ],
     },
     {
-      title: "Energy Health",
+      title: "Demand Health",
       score: energyScore,
       target: 85,
       accent: "#12A985",
-      detail: `Energy Health is a 0-100 score where higher is better. It penalizes peak-demand risk across zones, so a low score means the building needs load shifting, pre-cooling, or other demand-control actions. Backend detail: ${energy?.detail ?? "unavailable"}.`,
+      detail: `Demand Health is a 0-100 current peak-risk score where higher is better. It penalizes zones currently above their demand threshold, so a low score means the building needs load shifting, pre-cooling, or other demand-control actions. Backend detail: ${energy?.detail ?? "unavailable"}.`,
       rows: [
         {
           icon: Zap,
@@ -328,11 +329,11 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
         },
         {
           icon: AlertTriangle,
-          label: "Peak Risk",
-          value: `${peakRiskZones} zones`,
+          label: "Zones at Peak Risk",
+          value: zoneCount ? `${peakRiskZones}/${zoneCount}` : `${peakRiskZones}`,
           note: "above threshold",
           band: peakRiskZones > 25 ? "critical" : peakRiskZones > 0 ? "watch" : "good",
-          detail: `Peak Risk counts zones marked as peak-demand risk by backend telemetry. A high count means demand is broad across the building, not isolated to one space. Source: /api/kpi/current and /api/kpi/health-score. Backend detail: ${energy?.detail ?? "unavailable"}.`,
+          detail: `Zones at Peak Risk counts zones marked as peak-demand risk by backend telemetry. A high share means demand is broad across the building, not isolated to one space. Source: /api/kpi/current and /api/kpi/health-score. Backend detail: ${energy?.detail ?? "unavailable"}.`,
         },
       ],
     },

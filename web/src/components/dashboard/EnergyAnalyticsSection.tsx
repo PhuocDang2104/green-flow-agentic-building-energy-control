@@ -65,8 +65,8 @@ const tip = {
 };
 
 /**
- * Energy & performance analytics — a dashboard section: energy KPI tiles, a
- * red→green performance gauge (EUI rating), an energy-mix donut, top consuming
+ * Energy analytics — a dashboard section: energy KPI tiles, a red→green
+ * benchmark gauge (EUI rating), a load-share donut, top consuming
  * zones, and a 24h load profile. All derived from existing APIs (no new
  * endpoint): /timeseries/building, /zones, /kpi/current.
  */
@@ -97,14 +97,17 @@ export default function EnergyAnalyticsSection() {
   const peakKw = series?.length ? Math.max(...series.map((p) => p.total_power_kw || 0)) : 0;
   const euiDaily = totalArea ? kwh / totalArea : 0;          // kWh/m²·day
   const euiAnnual = euiDaily * 365;                          // kWh/m²·yr (est.)
+  const timestepHours = series && series.length > 1
+    ? Math.max(0, (new Date(series[1].timestamp).getTime() - new Date(series[0].timestamp).getTime()) / 3600000)
+    : 0.25;
   // EUI rating: efficient ≤90 → 100, poor ≥250 → 0 (office benchmark band)
   const score = Math.max(0, Math.min(100, Math.round((100 * (250 - euiAnnual)) / (250 - 90))));
 
   const sums = (series || []).reduce(
     (a, p) => ({
-      HVAC: a.HVAC + (p.hvac_power_kw || 0),
-      Lighting: a.Lighting + (p.lighting_power_kw || 0),
-      "Plug loads": a["Plug loads"] + (p.plug_power_kw || 0),
+      HVAC: a.HVAC + ((p.hvac_power_kw || 0) * timestepHours),
+      Lighting: a.Lighting + ((p.lighting_power_kw || 0) * timestepHours),
+      "Plug loads": a["Plug loads"] + ((p.plug_power_kw || 0) * timestepHours),
     }),
     { HVAC: 0, Lighting: 0, "Plug loads": 0 } as Record<string, number>,
   );
@@ -132,20 +135,20 @@ export default function EnergyAnalyticsSection() {
     <section className="mt-4">
       <div className="mb-3 flex items-center gap-2">
         <Zap size={16} className="text-teal" />
-        <h2 className="text-sm font-semibold">Energy &amp; performance analytics</h2>
-        <span className="text-xs text-text-muted">last 24h · per-category breakdown</span>
+        <h2 className="text-sm font-semibold">Energy analytics</h2>
+        <span className="text-xs text-text-muted">today totals · last 24h load profile</span>
       </div>
 
       {/* energy KPI tiles */}
       <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-        <KpiCard title="Energy today" value={`${kwh.toFixed(0)} kWh`} loading={!ready}
-                 delta="building total" status="normal" />
+        <KpiCard title="Energy used today" value={`${kwh.toFixed(0)} kWh`} loading={!ready}
+                 delta="calendar day-to-date" status="normal" />
         <KpiCard title="Cost today" value={costStr} loading={!ready}
-                 delta="EVN tariff" status="info" />
-        <KpiCard title="Peak demand" value={`${peakKw.toFixed(1)} kW`} loading={!ready}
+                 delta="calendar day-to-date" status="info" />
+        <KpiCard title="Peak demand, last 24h" value={`${peakKw.toFixed(1)} kW`} loading={!ready}
                  delta="last 24h" status="warning" />
-        <KpiCard title="Energy intensity" value={`${euiDaily.toFixed(2)} kWh/m²`} loading={!ready}
-                 delta={`≈ ${euiAnnual.toFixed(0)} kWh/m²/yr`}
+        <KpiCard title="EUI run-rate" value={`${euiDaily.toFixed(2)} kWh/m²`} loading={!ready}
+                 delta={`annualized ≈ ${euiAnnual.toFixed(0)} kWh/m²/yr`}
                  status={score >= 70 ? "success" : score >= 50 ? "warning" : "danger"} />
       </div>
 
@@ -155,7 +158,7 @@ export default function EnergyAnalyticsSection() {
         <div className="card flex items-center gap-4 px-5 py-4">
           {ready ? <Gauge score={score} euiAnnual={euiAnnual} /> : <Skeleton className="h-[120px] w-[120px] rounded-full" />}
           <div>
-            <p className="text-[13px] font-medium text-text-secondary">Energy intensity</p>
+            <p className="text-[13px] font-medium text-text-secondary">EUI run-rate</p>
             <p className="mt-0.5 text-lg font-semibold" style={{ color: ready ? STROKE[band(score)] : undefined }}>
               {ready ? bandLabel(score) : "…"}
             </p>
@@ -163,14 +166,14 @@ export default function EnergyAnalyticsSection() {
               Lower is better · office target ≤90
             </p>
             <p className="mt-0.5 text-[11px] text-text-muted">
-              Efficiency score · {ready ? `${score}/100` : "loading…"}
+              Annualized from today's use · {ready ? `${score}/100` : "loading…"}
             </p>
           </div>
         </div>
 
-        {/* energy mix donut */}
+        {/* load-share donut */}
         <div className="card px-5 py-4">
-          <p className="text-[13px] font-medium text-text-secondary">Energy mix</p>
+          <p className="text-[13px] font-medium text-text-secondary">Load share, last 24h</p>
           <div className="flex items-center gap-3">
             <div className="h-[132px] w-[132px] shrink-0">
               {ready ? (
@@ -180,7 +183,7 @@ export default function EnergyAnalyticsSection() {
                          innerRadius={42} outerRadius={62} paddingAngle={2} stroke="none">
                       {mix.map((m) => <Cell key={m.name} fill={CAT[m.name]} />)}
                     </Pie>
-                    <Tooltip {...tip} formatter={(v: any, n: any) => [`${Number(v).toFixed(0)} kW·h-eq`, n]} />
+                    <Tooltip {...tip} formatter={(v: any, n: any) => [`${Number(v).toFixed(1)} kWh`, n]} />
                   </PieChart>
                 </ResponsiveContainer>
               ) : <Skeleton className="h-full w-full rounded-full" />}
