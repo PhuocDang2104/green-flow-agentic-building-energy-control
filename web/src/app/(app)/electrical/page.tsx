@@ -122,8 +122,7 @@ export default function ElectricalPage() {
   if (err) {
     return (
       <div className="pb-6">
-        <PageHeader title="Electrical Distribution Twin"
-          subtitle="Board-level digital twin over the EnergyPlus zone dataset." />
+        <PageHeader title="Electrical Distribution Twin" />
         <div className="card p-8 text-center text-[13px] text-text-muted">
           Electrical API not reachable — {err}.<br />
           Start the backend (port 8000) and run <code>python scripts/build_electrical_kg.py --all</code>.
@@ -136,7 +135,6 @@ export default function ElectricalPage() {
     <div className="space-y-8 pb-10 elevate-surface">
       <PageHeader
         title="Electrical Distribution Twin"
-        subtitle="3D digital twin of the LV distribution — boards, supply topology and EnergyPlus-simulated demand, every value provenance-tagged."
       />
 
       {/* Energy & performance analytics (moved here from the dashboard) */}
