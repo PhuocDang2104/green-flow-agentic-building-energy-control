@@ -1,0 +1,99 @@
+energy_scope,counts_toward_energy,zone_id,name,source_space_name,floor_id,area_m2,volume_m3,scope_confidence,scope_reason
+aggregate_context,false,zone_1rU_t3tkDF9h1LzFTQbFc3,2,ZN_0260_14562137,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,3564.05,11405.00,high,explicit_aggregate_name
+aggregate_context,false,zone_1VG1As2i9CNAES2YSNmuJU,2,ZN_0236_5018E57E,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,3647.96,11673.50,high,explicit_aggregate_name
+aggregate_context,false,zone_2zhoehGLvBbwmT_FUY8B0L,2,ZN_0241_30D90A96,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,3712.13,11878.80,high,explicit_aggregate_name
+aggregate_context,false,zone_1rU_t3tkDF9h1LzFTQbFDG,K,ZN_0258_D261444B,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,3487.80,11160.90,high,explicit_aggregate_name
+aggregate_context,false,zone_2zhoehGLvBbwmT_FUY8BB4,K,ZN_0239_5247F99E,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,3704.39,11854.00,high,explicit_aggregate_name
+aggregate_context,false,zone_2zhoehGLvBbwmT_FUY8CNA,VOLUME / GARAGE:VOLUME / GARAGE:2673500,ZN_0266_2523BFD6,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,1037.46,1867.23,high,explicit_aggregate_name
+aggregate_context,false,zone_2yC6uZ1Mj3WfWcT4GmORMG,VOLUME / OFFICE:VOLUME / OFFICE:2646424,ZN_0265_925E8FE2,231fe004-7b01-4905-9478-e1fc47adf6b2,3712.13,30773.90,high,explicit_aggregate_name
+aggregate_context,false,zone_1rU_t3tkDF9h1LzFTQbFcg,3,ZN_0261_1BCBFE75,31da4eda-fbf4-424b-8713-32bd5a853749,3564.05,11405.00,high,explicit_aggregate_name
+aggregate_context,false,zone_1VG1As2i9CNAES2YSNmuK1,3,ZN_0237_BB6659AA,31da4eda-fbf4-424b-8713-32bd5a853749,3648.79,11676.10,high,explicit_aggregate_name
+aggregate_context,false,zone_2zhoehGLvBbwmT_FUY8B0q,3,ZN_0242_131CC093,31da4eda-fbf4-424b-8713-32bd5a853749,3712.13,11878.80,high,explicit_aggregate_name
+aggregate_context,false,zone_0y9ASLGLvEHv0SDNef9uK7,5,ZN_0264_B06BFED4,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,384.19,1229.42,high,explicit_aggregate_name
+aggregate_context,false,zone_2zhoehGLvBbwmT_FUY8CyO,5,ZN_0245_2ABD5889,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,2722.51,8712.02,high,explicit_aggregate_name
+aggregate_context,false,zone_1rU_t3tkDF9h1LzFTQb8B5,5a,ZN_0263_2CB3BA79,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,1799.30,5757.76,high,explicit_aggregate_name
+aggregate_context,false,zone_1rU_t3tkDF9h1LzFTQbFdr,1,ZN_0259_6F72C06C,e1038069-b3b4-4ae6-99a5-2de7f6053d39,3564.05,11405.00,high,explicit_aggregate_name
+aggregate_context,false,zone_1VG1As2i9CNAES2YSNmuIZ,1,ZN_0235_C2AAAF37,e1038069-b3b4-4ae6-99a5-2de7f6053d39,3647.89,11673.30,high,explicit_aggregate_name
+aggregate_context,false,zone_2zhoehGLvBbwmT_FUY8B3p,1,ZN_0240_1F18C60A,e1038069-b3b4-4ae6-99a5-2de7f6053d39,3712.13,11878.80,high,explicit_aggregate_name
+aggregate_context,false,zone_2zhoehGLvBbwmT_FUY8C_P,P,ZN_0243_35B66173,e1038069-b3b4-4ae6-99a5-2de7f6053d39,1018.22,3258.31,high,explicit_aggregate_name
+aggregate_context,false,zone_1rU_t3tkDF9h1LzFTQbFvn,4,ZN_0262_9F618C37,e76ad824-6f77-4922-8e97-2db648649765,3564.05,11405.00,high,explicit_aggregate_name
+aggregate_context,false,zone_1VG1As2i9CNAES2YSNmuLw,4,ZN_0238_A439495B,e76ad824-6f77-4922-8e97-2db648649765,3648.79,11676.10,high,explicit_aggregate_name
+aggregate_context,false,zone_2zhoehGLvBbwmT_FUY8C_x,4,ZN_0244_93D59450,e76ad824-6f77-4922-8e97-2db648649765,3712.13,11878.80,high,explicit_aggregate_name
+review_required,true,zone_36Blhdds16DOgkiAVsPxcV,2208,ZN_0111_E1FD624E,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,9.61,37.94,low,context_space_name
+review_required,true,zone_36Blhdds16DOgkiAVsP4Vi,2310,ZN_0125_6FCFDAB5,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,9.73,38.41,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO6_Q,CHASE:3127950,ZN_0194_0F0D150B,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,6.57,2.57,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO6_r,CHASE:3127969,ZN_0195_3DDD217D,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,6.56,2.57,low,context_space_name
+review_required,true,zone_1BI3W4_qjCRul28Xx_mEQU,SHAFT:2368612,ZN_0222_367716B4,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,3.77,3.73,low,context_space_name
+review_required,true,zone_1BI3W4_qjCRul28Xx_mES5,SHAFT:2369023,ZN_0223_CDB3D360,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,3.77,3.73,low,context_space_name
+review_required,true,zone_2gcNnmocjA5uvLJTxY_5Hp,SHAFT:3079370,ZN_0231_8A08D473,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,1.43,5.64,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYp3L,Turning Free Space:Turning Free Space 1500 mm:3441375,ZN_0274_1ED6441B,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYp6i,Turning Free Space:Turning Free Space 1500 mm:3441574,ZN_0275_2B29D3B8,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYp7M,Turning Free Space:Turning Free Space 1500 mm:3441628,ZN_0276_A71955C6,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpO6,Turning Free Space:Turning Free Space 1500 mm:3441676,ZN_0277_73DCF447,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpPA,Turning Free Space:Turning Free Space 1500 mm:3441728,ZN_0278_AD3DC999,14ebf9a8-cc08-46f8-9b88-d51cabf1b88c,2.25,3.53,low,context_space_name
+review_required,true,zone_0x2YWQZaL7RuBo3f9SkzJQ,CHASE:3301055,ZN_0202_2310BD25,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,6.56,2.47,low,context_space_name
+review_required,true,zone_1CEwDhGXz6rf1qZbuMomxT,LIFT:1423872,ZN_0219_1912DD49,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,10.15,123.72,low,unusual_height
+review_required,true,zone_2HM8XWPUz6WgsmzelJ_fNE,LIFT:2861246,ZN_0220_91BB7379,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,10.15,123.72,low,unusual_height
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpPM,Turning Free Space:Turning Free Space 1500 mm:3441756,ZN_0279_43103D68,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpTJ,Turning Free Space:Turning Free Space 1500 mm:3442009,ZN_0280_8D1EF124,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpTf,Turning Free Space:Turning Free Space 1500 mm:3442019,ZN_0281_C127CE46,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpTb,Turning Free Space:Turning Free Space 1500 mm:3442031,ZN_0282_C96AADF7,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpTz,Turning Free Space:Turning Free Space 1500 mm:3442039,ZN_0283_D56E37FB,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpU9,Turning Free Space:Turning Free Space 1500 mm:3442051,ZN_0284_2EA9F373,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpU7,Turning Free Space:Turning Free Space 1500 mm:3442061,ZN_0285_54473F78,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpUV,Turning Free Space:Turning Free Space 1500 mm:3442069,ZN_0286_5EF5517F,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpUL,Turning Free Space:Turning Free Space 1500 mm:3442079,ZN_0287_C19940B7,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpUX,Turning Free Space:Turning Free Space 1500 mm:3442091,ZN_0288_789A2830,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpU_,Turning Free Space:Turning Free Space 1500 mm:3442101,ZN_0289_FF7977CA,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpd9,Turning Free Space:Turning Free Space 1500 mm:3443651,ZN_0308_7C3D6784,19fbaa99-0db8-49e0-abf4-d40d6b4118a4,2.25,3.53,low,context_space_name
+review_required,true,zone_2iOIITjL90wPZVGpFrW07z,5315,ZN_0181_709F4962,31da4eda-fbf4-424b-8713-32bd5a853749,9.61,37.95,low,context_space_name
+review_required,true,zone_2iOIITjL90wPZVGpFrW07_,5316,ZN_0182_583138AB,31da4eda-fbf4-424b-8713-32bd5a853749,9.73,38.41,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO6jr,CHASE:3128929,ZN_0196_B7B315D0,31da4eda-fbf4-424b-8713-32bd5a853749,6.80,3.35,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO6k5,CHASE:3128977,ZN_0197_84CB8A04,31da4eda-fbf4-424b-8713-32bd5a853749,6.57,2.57,low,context_space_name
+review_required,true,zone_1BI3W4_qjCRul28Xx_mExk,SHAFT:2370580,ZN_0224_345E80D9,31da4eda-fbf4-424b-8713-32bd5a853749,3.77,3.73,low,context_space_name
+review_required,true,zone_1BI3W4_qjCRul28Xx_mExj,SHAFT:2370583,ZN_0225_222359DD,31da4eda-fbf4-424b-8713-32bd5a853749,3.77,3.73,low,context_space_name
+review_required,true,zone_2gcNnmocjA5uvLJTxY_5Hg,SHAFT:3079379,ZN_0232_E692BC15,31da4eda-fbf4-424b-8713-32bd5a853749,1.43,5.64,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpVt,Turning Free Space:Turning Free Space 1500 mm:3442173,ZN_0290_5F7CD2A7,31da4eda-fbf4-424b-8713-32bd5a853749,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpIG,Turning Free Space:Turning Free Space 1500 mm:3442330,ZN_0291_1B97CAAF,31da4eda-fbf4-424b-8713-32bd5a853749,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpJU,Turning Free Space:Turning Free Space 1500 mm:3442388,ZN_0292_DCDDE856,31da4eda-fbf4-424b-8713-32bd5a853749,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpKQ,Turning Free Space:Turning Free Space 1500 mm:3442448,ZN_0293_6FAE91E5,31da4eda-fbf4-424b-8713-32bd5a853749,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpL6,Turning Free Space:Turning Free Space 1500 mm:3442508,ZN_0294_088EBCD4,31da4eda-fbf4-424b-8713-32bd5a853749,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpME,Turning Free Space:Turning Free Space 1500 mm:3442564,ZN_0295_4A4D56B9,31da4eda-fbf4-424b-8713-32bd5a853749,2.25,3.53,low,context_space_name
+review_required,true,zone_0SCHpckP52uejwTkqQpmS1,500,ZN_0068_FE5F2D81,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,37.02,184.13,low,context_space_name
+review_required,true,zone_1VG1As2i9CNAES2YSNmu8x,510,ZN_0071_763C5296,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,882.54,1819.62,low,context_space_name
+review_required,true,zone_3JI0SE8z59FBfLCYYLZlAY,5205,ZN_0176_9314483B,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,5.98,35.71,low,unusual_height
+review_required,true,zone_3M4BY9f2fEkQXYemrsO6gK,CHASE:3129216,ZN_0198_AB8A94F0,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,6.30,3.36,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO6gr,CHASE:3129249,ZN_0199_F4252FE2,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,6.78,4.31,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO6f4,SHAFT:3129168,ZN_0234_9F4C8278,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,3.61,4.11,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYplB,Turning Free Space:Turning Free Space 1500 mm:3443137,ZN_0302_7EA2410B,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpYV,Turning Free Space:Turning Free Space 1500 mm:3443349,ZN_0303_013F9A39,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpZ5,Turning Free Space:Turning Free Space 1500 mm:3443407,ZN_0304_7410DBD9,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpaF,Turning Free Space:Turning Free Space 1500 mm:3443461,ZN_0305_995A6535,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpat,Turning Free Space:Turning Free Space 1500 mm:3443517,ZN_0306_D5AC2107,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpb_,Turning Free Space:Turning Free Space 1500 mm:3443573,ZN_0307_162B24A8,c3cef801-5bbd-4973-bbe4-63c28ce6fa6e,2.25,3.53,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO6tz,CHASE:3127529,ZN_0192_25EA58B8,e1038069-b3b4-4ae6-99a5-2de7f6053d39,13.05,3.56,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO6mK,CHASE:3127552,ZN_0193_19CC016D,e1038069-b3b4-4ae6-99a5-2de7f6053d39,6.39,2.46,low,context_space_name
+review_required,true,zone_1BI3W4_qjCRul28Xx_mEDH,SHAFT:2367915,ZN_0221_7639D718,e1038069-b3b4-4ae6-99a5-2de7f6053d39,3.77,3.96,low,context_space_name
+review_required,true,zone_3jCS7E4Nb3qBkgP0MIoqI9,SHAFT:2794459,ZN_0228_5E96565B,e1038069-b3b4-4ae6-99a5-2de7f6053d39,3.77,3.97,low,context_space_name
+review_required,true,zone_2Ab53HB9b2wfqHriZIzvth,SHAFT:3067657,ZN_0229_ECE20C0C,e1038069-b3b4-4ae6-99a5-2de7f6053d39,1.93,3.94,low,context_space_name
+review_required,true,zone_2Ab53HB9b2wfqHriZIzvtu,SHAFT:3067674,ZN_0230_CBC7AD8B,e1038069-b3b4-4ae6-99a5-2de7f6053d39,3.41,14.32,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpBY,Turning Free Space:Turning Free Space 1500 mm:3440872,ZN_0267_497EA3B3,e1038069-b3b4-4ae6-99a5-2de7f6053d39,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpEf,Turning Free Space:Turning Free Space 1500 mm:3441059,ZN_0268_96945421,e1038069-b3b4-4ae6-99a5-2de7f6053d39,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpFH,Turning Free Space:Turning Free Space 1500 mm:3441115,ZN_0269_568115C0,e1038069-b3b4-4ae6-99a5-2de7f6053d39,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYp0R,Turning Free Space:Turning Free Space 1500 mm:3441169,ZN_0270_57BF41B5,e1038069-b3b4-4ae6-99a5-2de7f6053d39,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYp1F,Turning Free Space:Turning Free Space 1500 mm:3441221,ZN_0271_5AC21D28,e1038069-b3b4-4ae6-99a5-2de7f6053d39,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYp1p,Turning Free Space:Turning Free Space 1500 mm:3441273,ZN_0272_B6A74653,e1038069-b3b4-4ae6-99a5-2de7f6053d39,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYp27,Turning Free Space:Turning Free Space 1500 mm:3441293,ZN_0273_2EEE0E20,e1038069-b3b4-4ae6-99a5-2de7f6053d39,2.25,3.53,low,context_space_name
+review_required,true,zone_2iOIITjL90wPZVGpFrW07v,5317,ZN_0183_BF0B66C8,e76ad824-6f77-4922-8e97-2db648649765,9.63,36.61,low,context_space_name
+review_required,true,zone_2iOIITjL90wPZVGpFrW07w,5318,ZN_0184_3642C250,e76ad824-6f77-4922-8e97-2db648649765,9.78,37.17,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO16f,CHASE:3130557,ZN_0200_B87919D7,e76ad824-6f77-4922-8e97-2db648649765,6.57,2.50,low,context_space_name
+review_required,true,zone_3M4BY9f2fEkQXYemrsO178,CHASE:3130588,ZN_0201_B36F9DC3,e76ad824-6f77-4922-8e97-2db648649765,6.56,2.49,low,context_space_name
+review_required,true,zone_1BI3W4_qjCRul28Xx_mFxY,SHAFT:2374680,ZN_0226_ADE89E53,e76ad824-6f77-4922-8e97-2db648649765,3.77,3.97,low,context_space_name
+review_required,true,zone_1BI3W4_qjCRul28Xx_mFxa,SHAFT:2374686,ZN_0227_3891FF71,e76ad824-6f77-4922-8e97-2db648649765,3.77,3.97,low,context_space_name
+review_required,true,zone_2gcNnmocjA5uvLJTxY_5Hl,SHAFT:3079382,ZN_0233_4EE70807,e76ad824-6f77-4922-8e97-2db648649765,1.44,5.46,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpND,Turning Free Space:Turning Free Space 1500 mm:3442631,ZN_0296_4A7BE659,e76ad824-6f77-4922-8e97-2db648649765,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpfj,Turning Free Space:Turning Free Space 1500 mm:3442791,ZN_0297_D9E6F5EB,e76ad824-6f77-4922-8e97-2db648649765,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpgl,Turning Free Space:Turning Free Space 1500 mm:3442853,ZN_0298_ACFB5BB6,e76ad824-6f77-4922-8e97-2db648649765,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYphL,Turning Free Space:Turning Free Space 1500 mm:3442911,ZN_0299_4A29A494,e76ad824-6f77-4922-8e97-2db648649765,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpiH,Turning Free Space:Turning Free Space 1500 mm:3442971,ZN_0300_57F5CE82,e76ad824-6f77-4922-8e97-2db648649765,2.25,3.53,low,context_space_name
+review_required,true,zone_1ihDn_IqL2a8bCCZUoYpjV,Turning Free Space:Turning Free Space 1500 mm:3443029,ZN_0301_A2B0C854,e76ad824-6f77-4922-8e97-2db648649765,2.25,3.53,low,context_space_name

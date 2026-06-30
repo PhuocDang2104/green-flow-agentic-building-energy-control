@@ -28,6 +28,7 @@ from greenflow.datasets import active_dataset  # noqa: E402
 from greenflow.db import db_conn, fetch_all  # noqa: E402
 from greenflow.energy_scope import classify_energy_scope  # noqa: E402
 from greenflow.electrical import config as electrical_cfg  # noqa: E402
+from greenflow.zone_naming import zone_display_name  # noqa: E402
 
 BUILDING_ID = uuid.UUID("b0000000-0000-0000-0000-000000000001")
 NS = uuid.uuid5(uuid.NAMESPACE_URL, "greenflow/true-building/elnino-2024")
@@ -197,14 +198,33 @@ def main() -> int:
         zone_records = []
         for z in zones:
             key = entity_key(z["zone_id"])
-            name = z["room_name"] or z["eplus_zone_name"] or key
+            mapped_scope = scope_map.get(z["zone_id"])
+            mapped_long_name = mapped_scope.get("long_name") if mapped_scope else ""
+            mapped_number = mapped_scope.get("number") if mapped_scope else ""
+            raw_label = " ".join(
+                x for x in (mapped_long_name, mapped_number, z["room_name"], z["room_id"]) if x
+            ).strip() or z["eplus_zone_name"] or key
             scope = classify_energy_scope(
-                name,
+                raw_label,
                 area_m2=z["area_m2_final"],
                 volume_m3=z["volume_m3_final"],
                 height_m=z["height_m_final"],
             )
-            mapped_scope = scope_map.get(z["zone_id"])
+            energy_scope = mapped_scope["energy_scope"] if mapped_scope else scope.scope
+            name = zone_display_name(
+                floor=z["floor_id"],
+                storey=mapped_scope.get("storey") if mapped_scope else None,
+                long_name=mapped_long_name,
+                number=mapped_number,
+                room_name=z["room_name"],
+                room_id=z["room_id"],
+                room_type=(mapped_scope.get("room_type") if mapped_scope else None)
+                or z["room_type"]
+                or "unknown",
+                eplus_zone_name=z["eplus_zone_name"],
+                area_m2=z["area_m2_final"],
+                energy_scope=energy_scope,
+            )
             zone_records.append({
                 "id": stable_uuid("zone", key),
                 "b": BUILDING_ID,
@@ -216,7 +236,7 @@ def main() -> int:
                 "volume": z["volume_m3_final"],
                 "guid": z["zone_id"],
                 "src": z["eplus_zone_name"] or z["room_id"] or z["zone_id"],
-                "scope": mapped_scope["energy_scope"] if mapped_scope else scope.scope,
+                "scope": energy_scope,
                 "counted": (mapped_scope["counts_toward_energy"].lower() == "true"
                             if mapped_scope else scope.counts_toward_energy),
                 "scope_conf": (mapped_scope["scope_confidence"]

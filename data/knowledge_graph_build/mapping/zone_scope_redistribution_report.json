@@ -1,0 +1,13 @@
+{
+  "summary": {
+    "aggregate_count": 20,
+    "mapped_aggregate_count": 20,
+    "child_count": 210,
+    "weight_rows": 833,
+    "unmapped_aggregate_ids": []
+  },
+  "notes": [
+    "Weights are area-based among non-aggregate child candidates on the same storey/floor.",
+    "Aggregate raw rows are not deleted here; callers opt into redistribution by feature flag."
+  ]
+}

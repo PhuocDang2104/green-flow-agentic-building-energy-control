@@ -1,4 +1,4 @@
-"""Orchestrates the 12-phase electrical knowledge-graph build. Each phase is
+"""Orchestrates the 13-phase electrical knowledge-graph build. Each phase is
 independently rerunnable; the full run regenerates validation + docs every time.
 """
 from __future__ import annotations
@@ -11,6 +11,7 @@ PHASES: list[tuple[str, str]] = [
     ("audit", "audit"),
     ("ele", "ele_extract"),
     ("spatial", "spatial_map"),
+    ("scope", "scope"),
     ("energy", "energy_map"),
     ("alloc", "board_alloc"),
     ("hvac", "hvac_energy"),

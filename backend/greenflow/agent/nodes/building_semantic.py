@@ -36,7 +36,9 @@ def run(state: GreenFlowState) -> dict:
     semantic_context = {
         "building_name": summary.get("name"),
         "floor_count": summary.get("floor_count"),
-        "zone_count": summary.get("zone_count"),
+        "zone_count": len(zones),
+        "physical_zone_count": summary.get("zone_count"),
+        "energy_zone_count": summary.get("energy_zone_count"),
         "device_count": summary.get("device_count"),
         "total_area_m2": summary.get("total_area_m2"),
         "zone_types": zone_types,

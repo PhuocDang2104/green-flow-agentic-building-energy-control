@@ -23,6 +23,9 @@ from __future__ import annotations
 import os
 import sys
 import uuid
+import csv
+import math
+from collections import defaultdict
 from datetime import timezone, timedelta
 from pathlib import Path
 
@@ -34,7 +37,9 @@ from sqlalchemy import text  # noqa: E402
 
 from greenflow.datasets import active_dataset  # noqa: E402
 from greenflow.db import db_conn, fetch_all  # noqa: E402
-from greenflow.energy_scope import effective_counts_toward_energy  # noqa: E402
+from greenflow.energy_scope import AGGREGATE, effective_counts_toward_energy, telemetry_scope_mode  # noqa: E402
+from greenflow.electrical import config as electrical_cfg  # noqa: E402
+from greenflow.zone_redistribution import SCOPE_CHILD_WEIGHTS_CSV  # noqa: E402
 
 BUILDING_ID = uuid.UUID("b0000000-0000-0000-0000-000000000001")
 TZ = timezone(timedelta(hours=7))  # Hà Nội; timestamp trong data là local naive
@@ -106,6 +111,116 @@ def tariff_vnd(hour: float) -> int:
     return 1839
 
 
+def _entity_key(zone_id: str) -> str:
+    return "zone_" + zone_id[len("tz_"):] if str(zone_id).startswith("tz_") else str(zone_id)
+
+
+def _read_child_weights() -> dict[str, list[tuple[str, float]]]:
+    path = electrical_cfg.OUT_MAPPING / SCOPE_CHILD_WEIGHTS_CSV
+    if not path.exists():
+        print(f"redistribution weights not found: {path}")
+        return {}
+    out: dict[str, list[tuple[str, float]]] = defaultdict(list)
+    with path.open(encoding="utf-8-sig", newline="") as handle:
+        for row in csv.DictReader(handle):
+            try:
+                weight = float(row.get("weight") or 0)
+            except (TypeError, ValueError):
+                weight = 0.0
+            if weight <= 0:
+                continue
+            out[_entity_key(row["aggregate_zone_id"])].append(
+                (_entity_key(row["child_zone_id"]), weight)
+            )
+    return dict(out)
+
+
+def _occ_allocations(total_occ: int, weights: list[tuple[str, float]]) -> dict[str, int]:
+    raw = [(child, max(0.0, total_occ * weight)) for child, weight in weights]
+    floors = {child: int(math.floor(value)) for child, value in raw}
+    residual = int(total_occ) - sum(floors.values())
+    if residual > 0:
+        ranked = sorted(raw, key=lambda x: (x[1] - math.floor(x[1])), reverse=True)
+        for child, _value in ranked[:residual]:
+            floors[child] += 1
+    return floors
+
+
+def _refresh_occupancy_fields(record: dict, zone_meta: dict) -> None:
+    room = zone_meta["room_type"]
+    dens = DENSITY.get(room, DEFAULT_DENSITY)
+    cap = max(1.0, float(zone_meta["area_m2"] or 0) * dens)
+    ratio = min(1.0, float(record["occ"] or 0) / cap)
+    record["st"] = ("empty" if record["occ"] == 0 else "low" if ratio < 0.25
+                    else "medium" if ratio < 0.7 else "high")
+    record["co2"] = round(420 + 600 * ratio)
+    record["comfort"] = ("high" if record["occ"] > 0 and record["temp"] > COMFORT_LIMIT_C
+                         else "watch" if record["temp"] > COMFORT_LIMIT_C - 1 else "normal")
+
+
+def _redistribute_records(records: list[dict], zmap: dict[str, dict]) -> list[dict]:
+    mode = telemetry_scope_mode()
+    if mode not in {"exclude_aggregate", "redistribute"}:
+        return records
+
+    def is_aggregate(record: dict) -> bool:
+        return str(zmap[record["key"]].get("energy_scope") or "") == AGGREGATE
+
+    if mode == "exclude_aggregate":
+        out = [record for record in records if not is_aggregate(record)]
+        print(f"telemetry scope exclude_aggregate: {len(records):,} -> {len(out):,} rows")
+        return out
+
+    child_weights = _read_child_weights()
+    if not child_weights:
+        print("telemetry scope redistribute requested but no weights found; keeping raw records")
+        return records
+
+    out_by_key: dict[tuple, dict] = {}
+    aggregate_records: list[dict] = []
+    for record in records:
+        if is_aggregate(record):
+            aggregate_records.append(record)
+            continue
+        out_by_key[(record["ts"], record["key"])] = dict(record)
+
+    unmapped = set()
+    for aggregate in aggregate_records:
+        weights = child_weights.get(aggregate["key"])
+        if not weights:
+            unmapped.add(aggregate["key"])
+            out_by_key[(aggregate["ts"], aggregate["key"])] = dict(aggregate)
+            continue
+        occ_by_child = _occ_allocations(int(aggregate["occ"] or 0), weights)
+        for child_key, weight in weights:
+            child_meta = zmap.get(child_key)
+            if not child_meta:
+                continue
+            key = (aggregate["ts"], child_key)
+            if key not in out_by_key:
+                out_by_key[key] = {
+                    **aggregate,
+                    "key": child_key,
+                    "f": child_meta["floor_id"],
+                    "z": child_meta["id"],
+                    "occ": 0,
+                }
+            target = out_by_key[key]
+            target["occ"] = int(target.get("occ") or 0) + occ_by_child.get(child_key, 0)
+            for field in ("hvac", "light", "plug", "total", "kwh", "cost"):
+                target[field] = round(float(target.get(field) or 0) + float(aggregate[field] or 0) * weight, 5)
+            _refresh_occupancy_fields(target, child_meta)
+
+    out = list(out_by_key.values())
+    print(
+        "telemetry scope redistribute: "
+        f"{len(records):,} raw rows -> {len(out):,} effective rows; "
+        f"aggregate rows redistributed={len(aggregate_records) - len(unmapped):,}; "
+        f"unmapped aggregates={len(unmapped)}"
+    )
+    return out
+
+
 REPO_ENTITY_KEYS = [
     "zone_3jzuKaCoj7duM8YUpx6IdZ", "zone_3H2AkZFqzChQTN2UOTW_7V",
     "zone_1xBFBS5N18MfdblikYnUBD", "zone_0Q4MSUQx531vKL_w06AgFJ",
@@ -133,7 +248,8 @@ def main() -> None:
     # 1) zones trong Postgres: entity_key -> (uuid, floor_id, room_type, area)
     with db_conn() as conn:
         zrows = fetch_all(conn, """
-            SELECT entity_key, id, floor_id, room_type, area_m2, counts_toward_energy
+            SELECT entity_key, id, floor_id, room_type, area_m2,
+                   energy_scope, counts_toward_energy
             FROM zones WHERE building_id = :b""", b=BUILDING_ID)
     zmap = {r["entity_key"]: r for r in zrows}
 
@@ -214,6 +330,7 @@ def main() -> None:
         cost = round(float(kwh or 0) * tariff_vnd(hour))
         records.append({
             "ts": dt, "b": BUILDING_ID, "f": z["floor_id"], "z": z["id"],
+            "key": key,
             "occ": occ, "st": state, "conf": 0.85, "temp": round(temp, 2),
             "rh": round(rh, 1), "co2": co2, "hvac": round(hvac, 4),
             "light": round(light, 4), "plug": round(equip, 4), "total": round(total, 4),
@@ -221,6 +338,8 @@ def main() -> None:
             "comfort": comfort, "peak": peak, "scn": SCENARIO_ID})
 
     # 5) ghi vào Postgres (thay telemetry cũ)
+    records = _redistribute_records(records, zmap)
+
     ins = text("""
         INSERT INTO telemetry_zone_15m
           (timestamp, building_id, floor_id, zone_id, occupancy_count, occupancy_state,

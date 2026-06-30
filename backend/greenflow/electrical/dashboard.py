@@ -11,7 +11,7 @@ from functools import lru_cache
 
 from . import canonical as C
 from . import config as cfg
-from ..energy_scope import dedup_enabled
+from ..energy_scope import energy_scope_mode
 
 MANIFEST = cfg.OUT_ELEC / "dashboard_electrical_manifest.json"
 
@@ -56,6 +56,9 @@ def build_building_overview() -> dict:
     deduped_total = sum(
         _f(r.get("deduped_zone_kwh", r.get("zone_allocated_kwh"))) or 0 for r in recon
     )
+    effective_total = sum(
+        _f(r.get("effective_zone_kwh", r.get("zone_allocated_kwh"))) or 0 for r in recon
+    )
     try:
         report = __import__("json").loads((cfg.OUT_ELEC / "electrical_validation_report.json").read_text("utf-8"))
         vsummary = report.get("summary", {})
@@ -64,8 +67,9 @@ def build_building_overview() -> dict:
     return {"building": cfg.BUILDING_NAME, "dataset_key": cfg.DATASET_KEY,
             "scenario_id": cfg.SCENARIO_ID, "energy_split_kwh": split,
             "raw_total_kwh": round(raw_total, 1), "deduped_total_kwh": round(deduped_total, 1),
+            "effective_total_kwh": round(effective_total, 1),
             "excluded_aggregate_kwh": round(raw_total - deduped_total, 1),
-            "energy_scope_mode": "dedup" if dedup_enabled() else "audit",
+            "energy_scope_mode": energy_scope_mode(),
             "board_demand_ranking": ranking, "validation_summary": vsummary,
             "boards": len(_boards()), "zones": len(_zones())}
 

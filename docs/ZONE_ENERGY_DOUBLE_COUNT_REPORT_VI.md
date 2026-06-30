@@ -195,7 +195,60 @@ Dieu nay co the xay ra vi du lieu hien tai co the dang dat mot phan lon load vao
 
 Vi vay khong nen fix bang cach xoa thang. Can danh dau, so sanh, va review truoc.
 
-## 9. Ket luan
+## 9. Trang thai sau khi da trien khai redistribute
+
+Tinh den ngay 2026-06-30, huong xu ly da duoc trien khai tren production VM theo
+che do `redistribute`, khong con chi la de xuat audit.
+
+Mode dang chay:
+
+```text
+GREENFLOW_ENERGY_SCOPE_MODE=redistribute
+GREENFLOW_TELEMETRY_SCOPE_MODE=redistribute
+```
+
+Ket qua reload telemetry:
+
+```text
+901,824 raw rows -> 843,264 effective rows
+aggregate rows redistributed = 58,560
+unmapped aggregates = 0
+```
+
+Sau reload, bang `telemetry_zone_15m` khong con row cho `aggregate_context`.
+Dashboard va Run Optimization chi hien thi/count 288 zone:
+
+```text
+atomic_energy_zone = 210 zones
+review_required = 78 zones
+aggregate_context = 0 visible telemetry zones
+```
+
+Luu y quan trong:
+
+- Tong energy effective duoc bao toan khi redistribute.
+- Zone aggregate khong bi xoa khoi bang `zones`; chung duoc giu de audit/IFC context.
+- API `/api/zones` va semantic agent da loc theo visible/countable zones, nen UI khong con hien cac zone lon nhu `VOLUME / OFFICE`, `GFA`, `Gross Area Placeholder`.
+- Cac run agent cu trong DB van co log `308 zones`; chi run moi sau commit `ab7a944` moi hien `288 zones`.
+
+Backup truoc khi reload telemetry:
+
+```text
+/root/greenflow_telemetry_zone_15m_before_redistribute_2026-06-30_151153.sql.gz
+```
+
+Checklist danh gia tiep:
+
+1. Review file `docs/ZONE_ENERGY_SCOPE_REVIEW_LIST.csv`.
+2. Xac nhan 20 `aggregate_context` da map dung child zone trong
+   `data/knowledge_graph_build/mapping/zone_scope_child_weights.csv`.
+3. Review tiep 78 `review_required`, dac biet cac zone co `scope_reason`
+   la `context_space_name` hoac `unusual_height`.
+4. Chay Run Optimization moi va xac nhan candidate actions khong target aggregate zone.
+5. So sanh `/api/kpi/current`, `/api/kpi/health-score`, `/api/electrical/overview`
+   voi dashboard de dam bao UI da dung so sau redistribute.
+
+## 10. Ket luan
 
 Hien tai co rui ro that su ve viec tinh trung nang luong giua zone lon va zone nho.
 
@@ -204,4 +257,7 @@ De xu ly dung, can tach ro:
 - Zone dung de tinh dien that.
 - Zone chi dung lam ngu canh hinh hoc/IFC.
 
-Dashboard, board load va KPI chi nen cong cac zone thuoc nhom `atomic_energy_zone`. Cac zone lon nhu `VOLUME / OFFICE`, `GFA`, `HEATED NETAREA` nen duoc giu lai de tham khao, nhung khong nen tinh vao tong dien neu chung bao phu cac zone nho ben trong.
+Dashboard, board load va KPI khong nen cong truc tiep cac zone `aggregate_context`.
+Production hien da chuyen sang redistribute: giu lai tong nang luong effective,
+nhung chuyen tai/occupancy cua aggregate xuong child zones va an aggregate khoi
+UI/agent surfaces.

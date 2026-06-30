@@ -20,6 +20,7 @@ from functools import lru_cache
 from . import canonical as C
 from . import config as cfg
 from ..energy_scope import effective_counts_toward_energy
+from ..zone_naming import zone_display_name_from_mapping
 
 ZONE_ENERGY_CSV = cfg.OUT_ELEC / "zone_annual_energy.csv"
 
@@ -195,8 +196,9 @@ def build_scene(include_loads: bool = True, max_lights: int = 800) -> dict:
         is_counted = effective_counts_toward_energy(m.get("counts_toward_energy", True))
         feeder = dominant.get(zid)
         kwh = _f(e.get("total_kwh"), 0.0)
+        zone_name = zone_display_name_from_mapping(m) if m else zid
         zones.append({
-            "id": zid, "name": m.get("eplus_zone_name") or m.get("long_name") or zid,
+            "id": zid, "name": zone_name,
             "pos": pos, "size": size, "floor_id": m.get("floor_id"), "room_type": m.get("room_type"),
             "area_m2": _f(m.get("area_m2")), "total_kwh": round(kwh, 1),
             "energy_scope": m.get("energy_scope") or "atomic_energy_zone",
