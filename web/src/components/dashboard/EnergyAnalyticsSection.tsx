@@ -27,12 +27,17 @@ function bandLabel(s: number) {
   return s >= 85 ? "Excellent" : s >= 70 ? "Efficient" : s >= 50 ? "Average" : "Poor";
 }
 
-/** Red→green energy-performance score gauge (higher = more efficient). */
-function Gauge({ score }: { score: number }) {
+/** Red→green benchmark gauge for EUI. Center value is raw EUI: lower is better. */
+function Gauge({ score, euiAnnual }: { score: number; euiAnnual: number }) {
   const R = 46, C = 2 * Math.PI * R, color = STROKE[band(score)];
   return (
     <div className="relative h-[120px] w-[120px] shrink-0">
-      <svg viewBox="0 0 116 116" className="h-full w-full -rotate-90">
+      <svg
+        viewBox="0 0 116 116"
+        className="h-full w-full -rotate-90"
+        role="img"
+        aria-label={`Energy use intensity ${euiAnnual.toFixed(0)} kWh per square meter per year`}
+      >
         <circle cx="58" cy="58" r={R} fill="none" stroke="#E2E8F0" strokeWidth="10" />
         <circle
           cx="58" cy="58" r={R} fill="none" stroke={color} strokeWidth="10" strokeLinecap="round"
@@ -41,8 +46,12 @@ function Gauge({ score }: { score: number }) {
         />
       </svg>
       <div className="absolute inset-0 flex flex-col items-center justify-center">
-        <span className="text-[28px] font-semibold leading-none tracking-tight">{score}</span>
-        <span className="text-[10px] text-text-muted">/ 100</span>
+        <span className="text-[28px] font-semibold leading-none tracking-tight">
+          {euiAnnual.toFixed(0)}
+        </span>
+        <span className="mt-1 text-center text-[9px] font-medium leading-tight text-text-muted">
+          kWh/m²/yr
+        </span>
       </div>
     </div>
   );
@@ -144,14 +153,17 @@ export default function EnergyAnalyticsSection() {
       <div className="mt-3 grid gap-4 lg:grid-cols-3">
         {/* performance gauge */}
         <div className="card flex items-center gap-4 px-5 py-4">
-          {ready ? <Gauge score={score} /> : <Skeleton className="h-[120px] w-[120px] rounded-full" />}
+          {ready ? <Gauge score={score} euiAnnual={euiAnnual} /> : <Skeleton className="h-[120px] w-[120px] rounded-full" />}
           <div>
-            <p className="text-[13px] font-medium text-text-secondary">Energy performance</p>
+            <p className="text-[13px] font-medium text-text-secondary">Energy intensity</p>
             <p className="mt-0.5 text-lg font-semibold" style={{ color: ready ? STROKE[band(score)] : undefined }}>
               {ready ? bandLabel(score) : "…"}
             </p>
             <p className="mt-1 text-[11px] text-text-muted">
-              EUI rating · {ready ? `≈ ${euiAnnual.toFixed(0)} kWh/m²/yr` : "loading…"}
+              Lower is better · office target ≤90
+            </p>
+            <p className="mt-0.5 text-[11px] text-text-muted">
+              Efficiency score · {ready ? `${score}/100` : "loading…"}
             </p>
           </div>
         </div>

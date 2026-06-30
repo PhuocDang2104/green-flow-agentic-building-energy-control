@@ -104,6 +104,12 @@ function rowIconTint(band: PerformanceBand) {
   return "bg-red-50 text-[#E11D48]";
 }
 
+function rowLabelTint(band: PerformanceBand) {
+  if (band === "good") return "text-[#166534]";
+  if (band === "watch") return "text-[#92400E]";
+  return "text-[#BE123C]";
+}
+
 function ScoreGauge({ score, target }: { score: number; target: number }) {
   const band = performanceBand(score);
   const color = BAND_STYLES[band].color;
@@ -142,7 +148,7 @@ function ScoreGauge({ score, target }: { score: number; target: number }) {
         <TrendIcon score={score} target={target} />
       </div>
       <div className="absolute inset-x-0 top-[94px] text-center text-[12px] font-medium text-slate-500">
-        Target: {target}
+        Goal: {target}+
       </div>
     </div>
   );
@@ -174,7 +180,9 @@ function MetricRow({ row, index }: { row: MetricRowData; index: number }) {
           <Icon size={22} strokeWidth={2.2} aria-hidden="true" />
         </span>
         <span className="min-w-0">
-          <span className="block truncate text-[13px] font-semibold text-[#166534]">{row.label}</span>
+          <span className={`block truncate text-[13px] font-semibold ${rowLabelTint(row.band)}`}>
+            {row.label}
+          </span>
           {row.note && <span className="block truncate text-[10px] font-medium text-slate-500">{row.note}</span>}
         </span>
       </div>
@@ -277,7 +285,7 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
       score: overall,
       target: 80,
       accent: "#087A3E",
-      detail: `Overall live building score from /api/kpi/health-score. Weighted blend: Thermal Comfort 30%, Air Quality 20%, Energy / Demand 25%, Equipment Health 25%. Updated at ${updatedAt}.`,
+      detail: `Overall live building score from /api/kpi/health-score. Higher is better. Weighted blend: Thermal Comfort 30%, Air Quality 20%, Energy Health 25%, Equipment Health 25%. Updated at ${updatedAt}.`,
     },
     {
       title: "Air Quality",
@@ -305,25 +313,25 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
       ],
     },
     {
-      title: "Energy / Demand",
+      title: "Energy Health",
       score: energyScore,
       target: 85,
       accent: "#12A985",
-      detail: `Demand-risk score from /api/kpi/health-score. It measures how many zones are currently in peak-demand risk, softened so a concentrated peak event does not zero the whole building. Backend detail: ${energy?.detail ?? "unavailable"}.`,
+      detail: `Energy Health is a 0-100 score where higher is better. It penalizes peak-demand risk across zones, so a low score means the building needs load shifting, pre-cooling, or other demand-control actions. Backend detail: ${energy?.detail ?? "unavailable"}.`,
       rows: [
         {
           icon: Zap,
-          label: "Peak Demand",
+          label: "Current Demand",
           value: `${formatKw(totalKw ?? kpis?.total_kw)} kW`,
           band: energyScore >= 80 ? "good" : energyScore >= 60 ? "watch" : "critical",
-          detail: `Peak Demand is the current whole-building electrical load. It uses websocket replay data when available, otherwise /api/kpi/current. Current load: ${formatKw(totalKw ?? kpis?.total_kw)} kW. Use this with Peak Risk to decide load-shed or pre-cooling actions.`,
+          detail: `Current Demand is the whole-building electrical load at the replay/live timestamp. It uses websocket replay data when available, otherwise /api/kpi/current. Current load: ${formatKw(totalKw ?? kpis?.total_kw)} kW. Use this with Peak Risk to decide load-shed or pre-cooling actions.`,
         },
         {
           icon: AlertTriangle,
           label: "Peak Risk",
           value: `${peakRiskZones} zones`,
           note: "above threshold",
-          band: "watch",
+          band: peakRiskZones > 25 ? "critical" : peakRiskZones > 0 ? "watch" : "good",
           detail: `Peak Risk counts zones marked as peak-demand risk by backend telemetry. A high count means demand is broad across the building, not isolated to one space. Source: /api/kpi/current and /api/kpi/health-score. Backend detail: ${energy?.detail ?? "unavailable"}.`,
         },
       ],
