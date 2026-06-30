@@ -3,10 +3,8 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import {
-  Archive, Bot, Boxes, FileText, FlaskConical, GitCompareArrows,
-  Settings, Sparkles, Zap,
+  Archive, Bot, Boxes, FlaskConical, Settings, Zap,
 } from "lucide-react";
-import { useAppStore } from "@/stores/appStore";
 
 const MAIN = [
   { href: "/dashboard", label: "Dashboard & 3D View", icon: Boxes },
@@ -22,7 +20,6 @@ const BOTTOM = [
 
 export default function SideBar() {
   const pathname = usePathname();
-  const setChatbotOpen = useAppStore((s) => s.setChatbotOpen);
 
   const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: any }) => {
     const active = pathname?.startsWith(href);
@@ -57,32 +54,8 @@ export default function SideBar() {
       </div>
 
       <nav className="flex-1 overflow-y-auto px-3 pb-4">
-        {/* Favourites */}
-        <p className="px-3 pb-1.5 pt-3 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
-          Favourites
-        </p>
-        <div className="space-y-0.5">
-          <button
-            onClick={() => setChatbotOpen(true)}
-            className="flex w-full items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-text-secondary transition hover:bg-surface-muted hover:text-text-primary"
-          >
-            <Sparkles size={18} className="text-text-muted" />
-            Ask Copilot
-          </button>
-          <Link href="/simulation-baseline"
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-text-secondary transition hover:bg-surface-muted hover:text-text-primary">
-            <GitCompareArrows size={18} className="text-text-muted" />
-            Baseline vs Optimized
-          </Link>
-          <Link href="/archive"
-                className="flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium text-text-secondary transition hover:bg-surface-muted hover:text-text-primary">
-            <FileText size={18} className="text-text-muted" />
-            Reports
-          </Link>
-        </div>
-
         {/* Main menu */}
-        <p className="px-3 pb-1.5 pt-5 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
+        <p className="px-3 pb-1.5 pt-3 text-[11px] font-semibold uppercase tracking-wide text-text-muted">
           Main menu
         </p>
         <div className="space-y-0.5">
