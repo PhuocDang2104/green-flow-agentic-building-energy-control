@@ -3,7 +3,7 @@
 import { useEffect, useState, type ReactNode } from "react";
 import { CircleHelp, Zap } from "lucide-react";
 import {
-  Area, AreaChart, Bar, BarChart, CartesianGrid, Cell, Pie, PieChart,
+  Area, AreaChart, CartesianGrid, Cell, Pie, PieChart,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
 import { api } from "@/lib/api";
@@ -25,19 +25,6 @@ function band(s: number) {
 }
 function bandLabel(s: number) {
   return s >= 85 ? "Excellent" : s >= 70 ? "Efficient" : s >= 50 ? "Average" : "Poor";
-}
-
-function compactZoneName(name: string) {
-  return name
-    .replace(/\s*·\s*/g, " ")
-    .replace(/\s+/g, " ")
-    .replace(/\bOFFICE\b/gi, "Office")
-    .replace(/^Level\s+/i, "L")
-    .trim();
-}
-
-function truncateLabel(value: string, max = 26) {
-  return value.length <= max ? value : `${value.slice(0, max - 1)}…`;
 }
 
 /** Red→green benchmark gauge for EUI. Center value is raw EUI: lower is better. */
@@ -155,11 +142,11 @@ export default function EnergyAnalyticsSection() {
   const topZones = [...energyZones]
     .sort((a, b) => ((b.latest_state?.total_power_kw) || 0) - ((a.latest_state?.total_power_kw) || 0))
     .slice(0, 6)
-    .map((z, index) => ({
+    .map((z) => ({
       name: z.name,
-      axisKey: `${index + 1}. ${truncateLabel(compactZoneName(z.name))}`,
       kw: Number(((z.latest_state?.total_power_kw) || 0).toFixed(2)),
     }));
+  const topZoneMaxKw = Math.max(1, ...topZones.map((zone) => zone.kw));
 
   const chart = (series || []).map((p) => ({
     time: new Date(p.timestamp).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
@@ -279,22 +266,30 @@ export default function EnergyAnalyticsSection() {
         {/* top consuming zones */}
         <div className="card px-5 py-4">
           <CardTitle tipText={topZonesExplanation}>Top consuming zones</CardTitle>
-          <div className="mt-1 h-[156px]">
+          <div className="mt-2 h-[228px]">
             {ready ? (
-              <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topZones} layout="vertical" margin={{ top: 4, right: 12, bottom: 2, left: 8 }}>
-                  <CartesianGrid stroke="#EEF2F7" horizontal={false} />
-                  <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false} unit=" kW" />
-                  <YAxis type="category" dataKey="axisKey" width={152} tick={{ fontSize: 10, fill: "#64748B" }}
-                         tickLine={false} axisLine={false} />
-                  <Tooltip
-                    {...tip}
-                    formatter={(v: any) => [`${Number(v).toFixed(2)} kW`, "Load"]}
-                    labelFormatter={(_, payload: any) => payload?.[0]?.payload?.name || ""}
-                  />
-                  <Bar dataKey="kw" fill="#0F766E" radius={[0, 4, 4, 0]} barSize={12} />
-                </BarChart>
-              </ResponsiveContainer>
+              <div className="flex h-full flex-col justify-between">
+                {topZones.map((zone, index) => (
+                  <div
+                    key={`${zone.name}-${index}`}
+                    className="grid min-h-[30px] grid-cols-[minmax(136px,190px)_1fr_56px] items-center gap-3"
+                    title={zone.name}
+                  >
+                    <p className="text-[10.5px] font-medium leading-tight text-slate-600">
+                      {zone.name}
+                    </p>
+                    <div className="h-3 overflow-hidden rounded-full bg-slate-100">
+                      <div
+                        className="h-full rounded-full bg-[#0F766E]"
+                        style={{ width: `${Math.max(4, (zone.kw / topZoneMaxKw) * 100)}%` }}
+                      />
+                    </div>
+                    <p className="text-right text-[10.5px] font-semibold tabular-nums text-slate-500">
+                      {zone.kw.toFixed(1)}
+                    </p>
+                  </div>
+                ))}
+              </div>
             ) : <Skeleton className="h-full" />}
           </div>
         </div>
