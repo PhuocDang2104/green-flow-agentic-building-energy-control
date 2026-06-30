@@ -103,7 +103,7 @@ def get_building_health(building_id: str) -> dict:
         """, b=building_id, ts=ts) or {}
         faults = fetch_one(conn, """
             SELECT count(*) FILTER (WHERE alert_type = 'device_fault') AS device_faults,
-                   count(*) FILTER (WHERE alert_type = 'sensor_stuck') AS sensor_faults
+                   count(DISTINCT zone_id) FILTER (WHERE alert_type = 'sensor_stuck') AS sensor_zones
             FROM alerts WHERE building_id = :b AND resolved_at IS NULL
         """, b=building_id) or {}
 
@@ -111,7 +111,7 @@ def get_building_health(building_id: str) -> dict:
     ch, cw = int(row.get("comfort_high") or 0), int(row.get("comfort_watch") or 0)
     aq_poor, aq_watch = int(row.get("co2_poor") or 0), int(row.get("co2_watch") or 0)
     peak = int(row.get("peak_high") or 0)
-    dev_f, sen_f = int(faults.get("device_faults") or 0), int(faults.get("sensor_faults") or 0)
+    dev_f, sen_z = int(faults.get("device_faults") or 0), int(faults.get("sensor_zones") or 0)
 
     def score(penalty: float) -> int:
         return max(0, min(100, round(100 * (1 - min(1.0, penalty)))))
@@ -120,11 +120,11 @@ def get_building_health(building_id: str) -> dict:
     air = score((aq_poor + 0.5 * aq_watch) / n)
     energy = score(0.6 * (peak / n))
     # Device faults are hard failures. sensor_stuck is an info-level data-quality
-    # signal and can fire once per zone on flat simulated temperatures, so score
-    # it by affected-zone share and cap its impact instead of treating every
-    # alert as an independent broken asset.
+    # signal and can fire many times for the same zone, so score it by affected-
+    # zone share and cap its impact instead of treating every alert as an
+    # independent broken asset.
     device_penalty = min(0.70, dev_f * 0.12)
-    sensor_penalty = min(0.35, (sen_f / n) * 0.35)
+    sensor_penalty = min(0.35, (sen_z / n) * 0.35)
     reliability = score(device_penalty + sensor_penalty)
 
     dims = [
@@ -135,7 +135,7 @@ def get_building_health(building_id: str) -> dict:
         {"key": "energy", "label": "Energy / demand", "score": energy, "weight": 0.25,
          "detail": f"{peak}/{n} zones in peak-demand risk"},
         {"key": "reliability", "label": "Equipment reliability", "score": reliability, "weight": 0.25,
-         "detail": f"{dev_f} device · {sen_f} sensor watch / {n} zones"},
+         "detail": f"{dev_f} device · {sen_z} sensor zones / {n} zones"},
     ]
     overall = max(0, min(100, round(sum(d["score"] * d["weight"] for d in dims))))
     if overall >= 85:
