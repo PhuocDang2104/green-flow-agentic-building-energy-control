@@ -14,6 +14,7 @@ import {
   Zap,
 } from "lucide-react";
 import Skeleton from "@/components/shared/Skeleton";
+import type { CSSProperties } from "react";
 import type { HealthDimension, HealthScore, Kpis } from "@/lib/types";
 
 type PerformanceBand = "critical" | "watch" | "good";
@@ -127,11 +128,17 @@ function ScoreGauge({ score, target }: { score: number; target: number }) {
           pathLength={100}
           strokeDasharray="100"
           strokeDashoffset={100 - score}
-          style={{ transition: "stroke-dashoffset 0.8s ease, stroke 0.3s ease" }}
+          className="gf-bpi-gauge-arc"
+          style={{
+            "--gf-bpi-offset": 100 - score,
+            transition: "stroke-dashoffset 0.8s ease, stroke 0.3s ease",
+          } as CSSProperties}
         />
       </svg>
       <div className="absolute inset-x-0 top-[50px] flex items-center justify-center gap-1">
-        <span className="text-[36px] font-bold leading-none tabular-nums" style={{ color }}>{score}</span>
+        <span className="gf-bpi-score text-[36px] font-bold leading-none tabular-nums" style={{ color }}>
+          {score}
+        </span>
         <TrendIcon score={score} target={target} />
       </div>
       <div className="absolute inset-x-0 top-[94px] text-center text-[12px] font-medium text-slate-500">
@@ -152,11 +159,12 @@ function formatKw(value?: number | null) {
   return Number.isInteger(value) ? String(value) : value.toFixed(1);
 }
 
-function MetricRow({ row }: { row: MetricRowData }) {
+function MetricRow({ row, index }: { row: MetricRowData; index: number }) {
   const Icon = row.icon;
   return (
     <div
-      className="group/metric relative grid min-h-[74px] grid-cols-[1fr_auto] items-center gap-3 border-t border-slate-200 px-4 transition hover:bg-slate-50"
+      className="gf-bpi-metric group/metric relative grid min-h-[74px] grid-cols-[1fr_auto] items-center gap-3 border-t border-slate-200 px-4 transition hover:bg-slate-50"
+      style={{ "--gf-bpi-row-delay": `${260 + index * 70}ms` } as CSSProperties}
       tabIndex={0}
       aria-label={`${row.label}: ${row.detail}`}
     >
@@ -179,10 +187,13 @@ function MetricRow({ row }: { row: MetricRowData }) {
   );
 }
 
-function ScorePanel({ panel }: { panel: PerformancePanel }) {
+function ScorePanel({ panel, index }: { panel: PerformancePanel; index: number }) {
   const band = performanceBand(panel.score);
   return (
-    <article className="group/card relative overflow-visible rounded-[6px] bg-white shadow-[0_2px_9px_rgba(15,23,42,0.16)] ring-1 ring-slate-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.18)]">
+    <article
+      className="gf-bpi-card group/card relative overflow-visible rounded-[6px] bg-white shadow-[0_2px_9px_rgba(15,23,42,0.16)] ring-1 ring-slate-200 transition duration-200 hover:-translate-y-0.5 hover:shadow-[0_18px_38px_rgba(15,23,42,0.18)]"
+      style={{ "--gf-bpi-card-delay": `${index * 85}ms` } as CSSProperties}
+    >
       <div className="h-[7px] rounded-t-[6px]" style={{ backgroundColor: panel.accent }} />
       <header className="flex items-center justify-between border-b border-slate-200 bg-gradient-to-b from-slate-50 to-slate-100 px-4 py-3">
         <h3 className="text-[16px] font-bold leading-tight text-[#0F172A]">{panel.title}</h3>
@@ -198,8 +209,8 @@ function ScorePanel({ panel }: { panel: PerformancePanel }) {
       </div>
       {panel.rows ? (
         <div className="pb-5">
-          {panel.rows.map((row) => (
-            <MetricRow key={row.label} row={row} />
+          {panel.rows.map((row, rowIndex) => (
+            <MetricRow key={row.label} row={row} index={rowIndex} />
           ))}
         </div>
       ) : (
@@ -383,16 +394,16 @@ export default function BuildingHealthCard({
 
   return (
     <section className="space-y-6" aria-label="GreenFlow Building Performance Index">
-      <div className="flex flex-wrap items-center gap-4">
-        <Leaf size={28} fill="#0BAE27" strokeWidth={1.8} className="text-[#087A3E]" aria-hidden="true" />
+      <div className="gf-bpi-heading flex flex-wrap items-center gap-4">
+        <Leaf size={28} fill="#0BAE27" strokeWidth={1.8} className="gf-bpi-leaf text-[#087A3E]" aria-hidden="true" />
         <h2 className="text-[23px] font-bold tracking-[-0.03em] text-[#0F172A] md:text-[26px]">
           <span className="mr-3 text-[#087A3E]">GreenFlow</span>
           Building Performance Index
         </h2>
       </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
-        {panels.map((panel) => (
-          <ScorePanel key={panel.title} panel={panel} />
+        {panels.map((panel, index) => (
+          <ScorePanel key={panel.title} panel={panel} index={index} />
         ))}
       </div>
     </section>
