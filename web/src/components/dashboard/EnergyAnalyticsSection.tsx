@@ -150,7 +150,7 @@ export default function EnergyAnalyticsSection() {
       </div>
 
       {/* gauge · donut · top zones */}
-      <div className="mt-3 grid gap-4 lg:grid-cols-3">
+      <div className="mt-3 grid gap-4 lg:grid-cols-[0.85fr_0.85fr_1.3fr]">
         {/* performance gauge */}
         <div className="card flex items-center gap-4 px-5 py-4">
           {ready ? <Gauge score={score} euiAnnual={euiAnnual} /> : <Skeleton className="h-[120px] w-[120px] rounded-full" />}
