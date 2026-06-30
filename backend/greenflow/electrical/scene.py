@@ -257,6 +257,7 @@ def build_scene(include_loads: bool = True, max_lights: int = 800) -> dict:
         if bid in bpos:
             supply_links.append({"board_id": bid, "zone_id": ld.get("zone_id"),
                                  "from": bpos[bid], "to": ld["pos"],
+                                 "kind": ld.get("kind"),
                                  "color_idx": color_idx.get(bid, -1)})
 
     # --- floors -------------------------------------------------------------

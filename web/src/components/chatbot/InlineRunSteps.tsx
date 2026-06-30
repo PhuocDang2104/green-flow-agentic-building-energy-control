@@ -177,6 +177,8 @@ function SemanticMiniViewer() {
         const loader = new XKTLoaderPlugin(viewer);
         let loadedCount = 0;
         const wanted = new Set(["architecture", "fenestration", "electrical", "hvac"]);
+        const targetCount = manifest.assets.filter((a: any) =>
+          wanted.has(a.layer === "thermal_zones" ? "spaces" : a.layer)).length || 1;
         for (const asset of manifest.assets) {
           const layer = asset.layer === "thermal_zones" ? "spaces" : asset.layer;
           if (!wanted.has(layer)) continue;
@@ -194,7 +196,11 @@ function SemanticMiniViewer() {
             loadedCount += 1;
             styleSemanticObjects(viewer, objectMapRef.current, heatmap);
             applySemanticVisibility(modelsRef.current, showElec, showHvac);
-            if (loadedCount === 1) flyToSemanticMep(viewer);
+            // First model gives an initial frame; once the electrical + HVAC
+            // systems are in, re-frame tightly on the MEP so it fills the panel.
+            if (loadedCount === 1 || loadedCount >= targetCount) {
+              flyToSemanticMep(viewer, modelsRef.current);
+            }
             setReady(true);
           });
         }
@@ -242,7 +248,7 @@ function SemanticMiniViewer() {
         ))}
         <span className="ml-auto text-[10px] text-text-muted">orbit / zoom</span>
       </div>
-      <div className="relative h-40 bg-white">
+      <div className="relative h-56 bg-white">
         <canvas ref={canvasRef} className="h-full w-full" />
         {!ready && (
           <div className="absolute inset-0 grid place-items-center text-[11px] text-text-muted">
@@ -293,9 +299,23 @@ function styleSemanticObjects(viewer: any, objectMap: Record<string, any>, heatm
   }
 }
 
-function flyToSemanticMep(viewer: any) {
-  const ids = viewer.scene.visibleObjectIds;
-  const aabb = viewer.scene.getAABB(ids);
+function unionModelAABB(models: any[]): number[] | null {
+  const valid = (models || [])
+    .map((m) => m?.aabb)
+    .filter((a: any) => a && a.length >= 6 && Array.from(a).every((v: any) => Number.isFinite(v))
+      && Math.max(...Array.from(a as number[]).map((v) => Math.abs(v))) < 1e6);
+  if (!valid.length) return null;
+  return valid.reduce((acc: number[] | null, a: any) => acc ? [
+    Math.min(acc[0], a[0]), Math.min(acc[1], a[1]), Math.min(acc[2], a[2]),
+    Math.max(acc[3], a[3]), Math.max(acc[4], a[4]), Math.max(acc[5], a[5]),
+  ] : Array.from(a as number[]), null);
+}
+
+function flyToSemanticMep(viewer: any, models?: Record<string, any>) {
+  // Frame the electrical + HVAC systems specifically (not the whole shell), so
+  // the MEP fills the small panel instead of floating tiny inside the building.
+  let aabb = unionModelAABB([models?.electrical, models?.hvac]);
+  if (!aabb) aabb = viewer.scene.getAABB(viewer.scene.visibleObjectIds);
   if (!aabb || aabb.some((v: number) => !Number.isFinite(v))) return;
   const [xmin, ymin, zmin, xmax, ymax, zmax] = aabb;
   const dx = Math.max(1, xmax - xmin);
@@ -305,9 +325,11 @@ function flyToSemanticMep(viewer: any) {
   const cy = (ymin + ymax) / 2;
   const cz = (zmin + zmax) / 2;
   const diag = Math.hypot(dx, dy, dz);
+  // tight multipliers → camera sits close (fills the small panel); the user can
+  // still orbit / zoom out.
   viewer.cameraFlight.flyTo({
-    eye: [cx + diag * 0.18, cy + dy * 0.28, cz + diag * 0.72],
-    look: [cx, cy + dy * 0.05, cz],
+    eye: [cx + diag * 0.16, cy + dy * 0.22, cz + diag * 0.58],
+    look: [cx, cy + dy * 0.02, cz],
     up: [0, 1, 0],
     duration: 0.5,
   });

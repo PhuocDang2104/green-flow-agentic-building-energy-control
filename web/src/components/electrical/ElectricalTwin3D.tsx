@@ -82,12 +82,48 @@ function Floors({ floors, radius }: { floors: any[]; radius: number }) {
         <group key={f.floor_id} position={[0, f.y, 0]}>
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[radius * 1.8, radius * 1.8]} />
-            <meshStandardMaterial color="#e8eef6" transparent opacity={0.35}
+            <meshStandardMaterial color="#e8eef6" transparent opacity={0.1}
               side={THREE.DoubleSide} depthWrite={false} />
           </mesh>
-          <gridHelper args={[radius * 1.8, 24, "#c3cedd", "#dde5ef"]} />
+          <gridHelper args={[radius * 1.8, 24, "#d6dfeb", "#e9eef6"]} />
         </group>
       ))}
+    </group>
+  );
+}
+
+/* --------- architecture ghost: faded envelope of every zone box ---------- */
+/* Mirrors how the dashboard x-rays the architecture under ELEC/HVAC: all zone
+ * boxes drawn as a faint frosted shell so the building reads even when no zone
+ * type is selected. Not pickable, ignores the zone-type filter. */
+function ArchitectureGhost({ zones }: { zones: any[] }) {
+  const ref = useRef<THREE.InstancedMesh>(null);
+  useLayoutEffect(() => {
+    const mesh = ref.current;
+    if (!mesh) return;
+    const m = new THREE.Matrix4(), q = new THREE.Quaternion();
+    const s = new THREE.Vector3(), p = new THREE.Vector3();
+    zones.forEach((z, i) => {
+      const [sx, sy, sz] = z.size ?? [3.5, 3, 3.5];
+      p.set(z.pos[0], z.pos[1], z.pos[2]);
+      s.set(Math.max(sx, 0.6), Math.max(sy, 0.6), Math.max(sz, 0.6));
+      m.compose(p, q, s);
+      mesh.setMatrixAt(i, m);
+    });
+    mesh.instanceMatrix.needsUpdate = true;
+  }, [zones]);
+  const edges = useMemo(() => buildZoneEdges(zones), [zones]);
+  return (
+    <group>
+      <instancedMesh key={zones.length}
+        args={[undefined as any, undefined as any, Math.max(zones.length, 1)]} ref={ref}>
+        <boxGeometry args={[1, 1, 1]} />
+        <meshBasicMaterial color="#dbe4f0" transparent opacity={0.05}
+          side={THREE.DoubleSide} depthWrite={false} />
+      </instancedMesh>
+      <lineSegments key={"ag" + zones.length} geometry={edges}>
+        <lineBasicMaterial color="#9fb1c6" transparent opacity={0.12} />
+      </lineSegments>
     </group>
   );
 }
@@ -181,7 +217,12 @@ function SupplyLinks({ links, mode }: { links: any[]; mode: ColorMode }) {
     const col = new Float32Array(links.length * 6);
     links.forEach((l, i) => {
       pos.set([l.from[0], l.from[1], l.from[2], l.to[0], l.to[1], l.to[2]], i * 6);
-      const c = new THREE.Color(mode === "load" ? "#0284c7" : feederColor(l.color_idx ?? -1));
+      // Load-heat mode: paint each supply line with the colour of the load it
+      // feeds (lighting / plug / alarm), so the line reads back to its fixture;
+      // feeder mode keeps the per-board colour.
+      const c = new THREE.Color(mode === "load"
+        ? (LOAD_DOT[l.kind as string] ?? "#0284c7")
+        : feederColor(l.color_idx ?? -1));
       col.set([c.r, c.g, c.b, c.r, c.g, c.b], i * 6);
     });
     const g = new THREE.BufferGeometry();
@@ -286,11 +327,23 @@ export default function ElectricalTwin3D({
     prepped?.zones.forEach((z: any) => (m[z.id] = z.floor_id));
     return m;
   }, [prepped]);
+  // load kind keyed by its (rounded) position, so a supply line can recover the
+  // kind of the fixture it terminates on even if the backend omits link.kind.
+  const loadKindByPos = useMemo(() => {
+    const m: Record<string, string> = {};
+    prepped?.loads.forEach((l: any) => { m[(l.pos as number[]).join(",")] = l.kind; });
+    return m;
+  }, [prepped]);
 
   const vBoards = useMemo(() => prepped ? prepped.boards.filter((b: any) => okFloor(b.floor_id)) : [], [prepped, okFloor]);
   const vZones = useMemo(() => prepped ? prepped.zones.filter((z: any) =>
     okFloor(z.floor_id) && okZoneType(z.room_type) && (!focusBoard || z.feeder_board === focusBoard)) : [],
     [prepped, okFloor, okZoneType, focusBoard]);
+  // Faded architecture envelope — every zone on the visible floors, independent
+  // of the zone-type filter (which starts empty) and of board focus.
+  const ghostZones = useMemo(() => prepped
+    ? prepped.zones.filter((z: any) => okFloor(z.floor_id) && (!focusBoard || z.feeder_board === focusBoard))
+    : [], [prepped, okFloor, focusBoard]);
   const vLoads = useMemo(() => {
     if (!prepped || !loadKinds || loadKinds.size === 0) return [];
     return prepped.loads.filter((l: any) => loadKinds.has(l.kind) && okFloor(l.floor_id)
@@ -298,8 +351,9 @@ export default function ElectricalTwin3D({
   }, [prepped, loadKinds, okFloor, focusBoard]);
   const vLinks = useMemo(() => prepped ? prepped.supply_links.filter((l: any) =>
     okFloor(boardFloor[l.board_id]) && okFloor(zoneFloor[l.zone_id])
-    && (!focusBoard || l.board_id === focusBoard)) : [],
-    [prepped, okFloor, boardFloor, zoneFloor, focusBoard]);
+    && (!focusBoard || l.board_id === focusBoard))
+    .map((l: any) => ({ ...l, kind: l.kind ?? loadKindByPos[(l.to as number[]).join(",")] })) : [],
+    [prepped, okFloor, boardFloor, zoneFloor, focusBoard, loadKindByPos]);
   const vFloors = useMemo(() => prepped ? prepped.floors.filter((f: any) => okFloor(f.floor_id)) : [], [prepped, okFloor]);
 
   if (!prepped) return null;
@@ -318,6 +372,7 @@ export default function ElectricalTwin3D({
         <directionalLight position={[cam, cam * 1.5, cam * 0.6]} intensity={1.1} color="#ffffff" />
 
         {vis.floors && <Floors floors={vFloors} radius={r} />}
+        {ghostZones.length > 0 && <ArchitectureGhost zones={ghostZones} />}
         {vZones.length > 0 && <Zones zones={vZones} mode={colorMode} onPick={(e) => onSelect?.(e)} />}
         {vis.links && vLinks.length > 0 && <SupplyLinks links={vLinks} mode={colorMode} />}
         {vLoads.length > 0 && <LoadPoints loads={vLoads} />}

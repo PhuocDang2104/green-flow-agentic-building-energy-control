@@ -1,11 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import {
   Area, CartesianGrid, ComposedChart, Line, ReferenceArea, ReferenceLine,
   ResponsiveContainer, Tooltip, XAxis, YAxis,
 } from "recharts";
-import { BarChart3, CalendarDays, Info, Loader2, Zap } from "lucide-react";
+import { BarChart3, CalendarDays, Info, Loader2, Sun, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
@@ -27,6 +27,8 @@ type MetricConfig = {
 
 const PRECOMPUTE_DATE_FROM = "2024-03-01";
 const PRECOMPUTE_DATE_TO = "2024-05-01";
+// El Niño phase of the recorded period — the cooling-driven ramp starts in April.
+const EL_NINO_FROM = "2024-04-01";
 const PRECOMPUTE_DATE_TO_INCLUSIVE = "2024-04-30";
 const PRECOMPUTE_LABEL = "01 Mar 2024 - 30 Apr 2024";
 const PREDICTIVE_HORIZON_STEPS = 8;
@@ -427,6 +429,7 @@ export default function CampaignWhatIf() {
   const [data, setData] = useState<WhatIfData | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [showElNino, setShowElNino] = useState(true);
 
   const run = useCallback(() => {
     const selected = clampRange(dateFrom, dateTo);
@@ -462,6 +465,19 @@ export default function CampaignWhatIf() {
   const visiblePeriod = periodLabel(visibleRange);
   const recordedThrough = visibleRange ? fullDate(visibleRange.end) : PRECOMPUTE_LABEL;
   const pointCount = chartData.length;
+  // El Niño overlay band: first chart point on/after 1 Apr -> end of the range.
+  const elNinoBand = useMemo(() => {
+    const rows = chartData as any[];
+    if (!rows.length) return null;
+    const from = Date.parse(`${EL_NINO_FROM}T00:00:00+07:00`);
+    const at = (row: any) => {
+      const raw = isTimestep ? row.timestamp : row.date;
+      return isTimestep ? Date.parse(raw) : Date.parse(`${raw}T00:00:00+07:00`);
+    };
+    const startIdx = rows.findIndex((row) => at(row) >= from);
+    if (startIdx < 0) return null;
+    return { x1: rows[startIdx][xKey], x2: rows[rows.length - 1][xKey] };
+  }, [chartData, isTimestep, xKey]);
   const cardBaseline = metric.id === "energy" ? k?.baseline_kwh : aggregateMetric(chartData, metric.base, metric.id);
   const cardOptimized = metric.id === "energy" ? k?.optimized_kwh : aggregateMetric(chartData, metric.opt, metric.id);
   const cardDelta = cardBaseline != null && cardOptimized != null ? cardBaseline - cardOptimized : null;
@@ -547,6 +563,14 @@ export default function CampaignWhatIf() {
                   <option key={m.id} value={m.id}>{m.label}</option>
                 ))}
               </select>
+              <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-amber-300/70 bg-amber-50/70 px-2.5 py-2 text-[12px] font-medium text-amber-800 transition hover:bg-amber-50">
+                <input type="checkbox" checked={showElNino}
+                       onChange={(event) => setShowElNino(event.target.checked)}
+                       className="h-3.5 w-3.5 accent-amber-500" />
+                <Sun size={13} className="text-amber-500" />
+                El Niño
+                <MetricHelp text="Shade the chart background over the El Niño phase of the recorded period (from 1 Apr 2024 onward), when cooling-driven demand ramps up." />
+              </label>
               <div className="ml-auto flex items-center gap-3 text-[11px] text-text-muted">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2 w-3 rounded-sm" style={{ background: "#94A3B8" }} /> Without AI
@@ -568,6 +592,11 @@ export default function CampaignWhatIf() {
                     </linearGradient>
                   </defs>
                   <CartesianGrid stroke="#EEF2F7" vertical={false} />
+                  {showElNino && elNinoBand && (
+                    <ReferenceArea x1={elNinoBand.x1} x2={elNinoBand.x2}
+                                   fill="#f59e0b" fillOpacity={0.08} stroke="#fcd34d" strokeOpacity={0.5}
+                                   label={{ value: "El Niño", fill: "#b45309", fontSize: 10, position: "insideTopRight" }} />
+                  )}
                   <XAxis dataKey={xKey}
                          tickFormatter={isTimestep ? timeLabel : ddmm}
                          tick={{ fontSize: 10, fill: "#94A3B8" }}

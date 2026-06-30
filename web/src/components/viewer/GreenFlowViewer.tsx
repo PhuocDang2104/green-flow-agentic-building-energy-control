@@ -30,6 +30,12 @@ type AlertSeverity = "critical" | "warning" | "info";
 const ZONE_BASE_COLOR: [number, number, number] = [0.06, 0.46, 0.43];
 const STRUCTURE_COMPANION_LAYERS = ["architecture", "fenestration"] as const;
 
+// Two-tone brown for the top of the tower so the rooftop penthouse reads apart
+// from the brick band below it, plus a visible concrete tone for the parking deck.
+const ROOFTOP_PENTHOUSE_BROWN: [number, number, number] = [0.3, 0.17, 0.12];
+const UPPER_BRICK_BROWN: [number, number, number] = [0.5, 0.3, 0.18];
+const PARKING_DECK_COLOR: [number, number, number] = [0.56, 0.57, 0.55];
+
 // Fault overlay palette (matches FaultsPanel / MetricLegend severity colors).
 const ALERT_COLOR: Record<AlertSeverity, [number, number, number]> = {
   critical: [0.86, 0.13, 0.13],
@@ -112,7 +118,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
 
     (async () => {
       try {
-        const [{ Viewer, XKTLoaderPlugin, SceneModel, buildSphereGeometry }, manifestRes] =
+        const [{ Viewer, XKTLoaderPlugin, SceneModel, buildSphereGeometry, AmbientLight, DirLight }, manifestRes] =
           await Promise.all([
             import("@xeokit/xeokit-sdk"),
             fetch(MANIFEST_URL),
@@ -136,7 +142,11 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
           pbrEnabled: true,
         } as any);
         viewer.scene.gammaOutput = true;
+        viewer.scene.gammaFactor = 2.2;
         viewer.scene.colorTextureEnabled = true;
+        // Soft daylight rig (warm sun key + cool sky fill + back rim) so the
+        // textured massing reads with realistic depth instead of flat ambient.
+        setupSceneLighting(viewer.scene, AmbientLight, DirLight);
         // Default view matches the product screenshot: low isometric, close,
         // architecture-forward rather than a top-down technical fit.
         viewer.camera.eye = [72, 34, 86];
@@ -734,10 +744,21 @@ function styleModelEntityList(model: any, layer: "architecture" | "fenestration"
     if (key.includes("roof") || key.includes("vesikatto")) {
       entity.colorize = [0.12, 0.2, 0.1];
       entity.opacity = 1;
-    } else if (key.includes("level_05") || key.includes("level_04")) {
-      entity.colorize = [0.44, 0.25, 0.15];
+    } else if (key.includes("level_05")) {
+      // Rooftop penthouse / plant floor — distinct dark espresso brown so it
+      // reads apart from the brick band just below it.
+      entity.colorize = ROOFTOP_PENTHOUSE_BROWN;
       entity.opacity = 1;
-    } else if (key.includes("basement") || key.includes("parking")) {
+    } else if (key.includes("level_04")) {
+      // Upper brick band — warmer, lighter brown than the penthouse cap.
+      entity.colorize = UPPER_BRICK_BROWN;
+      entity.opacity = 1;
+    } else if (key.includes("parking")) {
+      // Parking deck (level_02a) — a real concrete storey, must stay visible
+      // (it used to be hidden along with the basement, so it looked missing).
+      entity.colorize = PARKING_DECK_COLOR;
+      entity.opacity = 1;
+    } else if (key.includes("basement")) {
       entity.colorize = [0.14, 0.15, 0.14];
       entity.opacity = 0.05;
     } else if (key.includes("level_01")) {
@@ -801,8 +822,10 @@ function styleForPresentation(entry: ObjectMapEntry, ifcType?: string) {
   if (entry.layer === "architecture") {
     const floor = String(entry.floor_key || entry.name || "").toLowerCase();
     if (floor.includes("roof") || floor.includes("vesikatto")) return STRUCTURE_STYLE_MAP.IfcRoof;
-    if (floor.includes("level_05") || floor.includes("level_04")) return STRUCTURE_STYLE_MAP.IfcCovering;
-    if (floor.includes("basement") || floor.includes("parking")) return { color: [0.14, 0.15, 0.14] as [number, number, number], opacity: 0.05 };
+    if (floor.includes("level_05")) return { color: ROOFTOP_PENTHOUSE_BROWN, opacity: 1 };
+    if (floor.includes("level_04")) return { color: UPPER_BRICK_BROWN, opacity: 1 };
+    if (floor.includes("parking")) return { color: PARKING_DECK_COLOR, opacity: 1 };
+    if (floor.includes("basement")) return { color: [0.14, 0.15, 0.14] as [number, number, number], opacity: 0.05 };
     if (floor.includes("level_01")) return { color: [0.58, 0.58, 0.53] as [number, number, number], opacity: 1 };
     return STRUCTURE_STYLE_MAP.IfcWall;
   }
@@ -845,15 +868,42 @@ function resetStructurePresentationStyle(viewer: any, objectMap: Record<string, 
   }
 }
 
+/**
+ * Replace xeokit's default flat light set with a soft daylight rig: a warm sun
+ * key, a cool sky fill and a back rim, over gentle ambient. Built defensively —
+ * the new lights are created first and the defaults are only dropped once that
+ * succeeds, so an SDK/API mismatch can never leave the scene unlit.
+ */
+function setupSceneLighting(scene: any, AmbientLight: any, DirLight: any) {
+  if (!scene || !AmbientLight || !DirLight) return;
+  const previous = Object.values(scene.lights || {});
+  const added: any[] = [];
+  try {
+    added.push(new AmbientLight(scene, { color: [1, 1, 1], intensity: 0.55 }));
+    // warm sun (key)
+    added.push(new DirLight(scene, { dir: [-0.4, -0.85, -0.5], color: [1.0, 0.96, 0.88], intensity: 1.05, space: "world" }));
+    // cool sky bounce (fill)
+    added.push(new DirLight(scene, { dir: [0.7, -0.35, 0.55], color: [0.72, 0.82, 0.96], intensity: 0.5, space: "world" }));
+    // back rim to separate the massing from the sky
+    added.push(new DirLight(scene, { dir: [0.2, -0.55, -0.92], color: [0.92, 0.94, 1.0], intensity: 0.34, space: "world" }));
+    previous.forEach((l: any) => l?.destroy?.());
+  } catch (err) {
+    added.forEach((l) => l?.destroy?.());
+    console.warn("custom daylight rig failed; keeping default lights", err);
+  }
+}
+
 function enablePresentationRendering(viewer: any) {
   if (viewer.scene?.sao) {
     viewer.scene.sao.enabled = true;
-    viewer.scene.sao.intensity = 0.13;
-    viewer.scene.sao.bias = 0.38;
-    viewer.scene.sao.scale = 420;
+    viewer.scene.sao.intensity = 0.22;
+    viewer.scene.sao.bias = 0.4;
+    viewer.scene.sao.scale = 480;
+    viewer.scene.sao.kernelRadius = 120;
+    viewer.scene.sao.blur = true;
   }
   if (viewer.scene?.edgeMaterial) {
-    viewer.scene.edgeMaterial.edgeAlpha = 0.1;
+    viewer.scene.edgeMaterial.edgeAlpha = 0.08;
     viewer.scene.edgeMaterial.edgeColor = [0.24, 0.28, 0.3];
   }
 }
@@ -943,17 +993,8 @@ function createStructureContextModel(
 
     createSiteDetails(model, siteFrame, outer, plaza, dx, dz, pad, groundY);
 
-    const blocks = [
-      [-dx * 0.78, -dz * 0.74, 0.16, 0.16],
-      [dx * 0.76, -dz * 0.64, 0.18, 0.15],
-      [-dx * 0.68, dz * 0.72, 0.14, 0.16],
-      [dx * 0.66, dz * 0.68, 0.13, 0.14],
-    ];
-    blocks.forEach(([bu, bv, sx, sz], i) => {
-      createOrientedBox(model, `structure_context_block_${i}`,
-        [bu - dx * sx, bv - dz * sz, bu + dx * sx, bv + dz * sz],
-        groundY, groundY + 2.2 + i * 0.55, [0.64, 0.64, 0.58], 0.38, 0.9, siteFrame);
-    });
+    // (Removed the four pale context "neighbour-building" blocks at the site
+    // corners — they read as stray white boxes around the roads.)
 
     createDistributedTrees(model, siteFrame, outer, plaza, groundY, treeGeometry);
   } catch (err) {

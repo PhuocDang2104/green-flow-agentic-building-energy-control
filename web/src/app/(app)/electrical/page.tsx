@@ -100,7 +100,10 @@ export default function ElectricalPage() {
   useEffect(() => {
     if (!scene) return;
     setFloorSel(new Set((scene.floors ?? []).map((ff: any) => ff.floor_id)));
-    setZoneSel(new Set((scene.zones ?? []).map((z: any) => z.room_type || "unknown")));
+    // Zones start deselected — the faded architecture ghost already conveys the
+    // building envelope, so the boards/links/loads read cleanly until the user
+    // opts a zone type back in via the Zones filter.
+    setZoneSel(new Set());
   }, [scene]);
 
   const toggleSet = (s: Set<string>, setter: (x: Set<string>) => void, id: string) => {
