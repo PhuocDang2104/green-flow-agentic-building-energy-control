@@ -119,7 +119,13 @@ def get_building_health(building_id: str) -> dict:
     comfort = score((ch + 0.5 * cw) / n)
     air = score((aq_poor + 0.5 * aq_watch) / n)
     energy = score(0.6 * (peak / n))
-    reliability = score(dev_f * 0.34 + sen_f * 0.15)
+    # Device faults are hard failures. sensor_stuck is an info-level data-quality
+    # signal and can fire once per zone on flat simulated temperatures, so score
+    # it by affected-zone share and cap its impact instead of treating every
+    # alert as an independent broken asset.
+    device_penalty = min(0.70, dev_f * 0.12)
+    sensor_penalty = min(0.35, (sen_f / n) * 0.35)
+    reliability = score(device_penalty + sensor_penalty)
 
     dims = [
         {"key": "comfort", "label": "Thermal comfort", "score": comfort, "weight": 0.30,
@@ -129,7 +135,7 @@ def get_building_health(building_id: str) -> dict:
         {"key": "energy", "label": "Energy / demand", "score": energy, "weight": 0.25,
          "detail": f"{peak}/{n} zones in peak-demand risk"},
         {"key": "reliability", "label": "Equipment reliability", "score": reliability, "weight": 0.25,
-         "detail": f"{dev_f} device · {sen_f} sensor faults"},
+         "detail": f"{dev_f} device · {sen_f} sensor watch / {n} zones"},
     ]
     overall = max(0, min(100, round(sum(d["score"] * d["weight"] for d in dims))))
     if overall >= 85:

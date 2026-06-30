@@ -359,9 +359,9 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
         {
           icon: Bell,
           label: "Sensor Watch",
-          value: `${sensorFaults} assets`,
+          value: `${sensorFaults} alerts`,
           band: sensorFaults > 0 ? "watch" : "good",
-          detail: reliability?.detail ?? "Open sensor faults from backend alerts.",
+          detail: reliability?.detail ?? "Open sensor watch alerts from backend.",
         },
       ],
     },
