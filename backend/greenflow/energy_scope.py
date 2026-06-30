@@ -74,9 +74,23 @@ def counts_toward_energy(value: object) -> bool:
 
 
 def dedup_enabled() -> bool:
+    return energy_scope_mode() in {"dedup", "redistribute"}
+
+
+def redistribution_enabled() -> bool:
+    return energy_scope_mode() == "redistribute"
+
+
+def energy_scope_mode() -> str:
     from .config import get_settings
 
-    return get_settings().greenflow_energy_scope_mode.strip().lower() == "dedup"
+    return get_settings().greenflow_energy_scope_mode.strip().lower()
+
+
+def telemetry_scope_mode() -> str:
+    from .config import get_settings
+
+    return get_settings().greenflow_telemetry_scope_mode.strip().lower()
 
 
 def effective_counts_toward_energy(value: object) -> bool:

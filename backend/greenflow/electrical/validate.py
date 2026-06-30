@@ -13,7 +13,13 @@ from collections import Counter
 from . import canonical as C
 from . import config as cfg
 from . import gold
-from .board_timeseries import BOARD_TS, _alloc_wide, _zone_timeseries_projection
+from .board_timeseries import (
+    BOARD_TS,
+    _alloc_wide,
+    _raw_zone_timeseries_projection,
+    _zone_timeseries_projection,
+    register_scope_child_weights,
+)
 from .provenance import Confidence, ManualReviewItem
 from ..energy_scope import counts_toward_energy
 
@@ -39,6 +45,7 @@ def run() -> dict[str, int]:
     # ---- energy reconciliation (DuckDB) ----
     con = gold.duckdb_con()
     con.register("alloc_wide", _alloc_wide())
+    register_scope_child_weights(con)
     import pyarrow as pa
 
     scope_ids = [
@@ -49,14 +56,19 @@ def run() -> dict[str, int]:
     raw_zt = con.execute(f"""
         SELECT sum(lights_electricity_kwh_interval) l, sum(equipment_electricity_kwh_interval) e,
                sum(final_hvac_electricity_kwh_interval) h, sum(final_total_zone_electricity_kwh_interval) t
-        FROM ({_zone_timeseries_projection()}) WHERE scenario_id='{cfg.SCENARIO_ID}'
+        FROM ({_raw_zone_timeseries_projection()}) WHERE scenario_id='{cfg.SCENARIO_ID}'
     """).fetchone()
     scoped_zt = con.execute(f"""
         SELECT sum(lights_electricity_kwh_interval) l, sum(equipment_electricity_kwh_interval) e,
                sum(final_hvac_electricity_kwh_interval) h, sum(final_total_zone_electricity_kwh_interval) t
-        FROM ({_zone_timeseries_projection()})
+        FROM ({_raw_zone_timeseries_projection()})
         WHERE scenario_id='{cfg.SCENARIO_ID}'
           AND zone_id IN (SELECT zone_id FROM scope_counted)
+    """).fetchone()
+    effective_zt = con.execute(f"""
+        SELECT sum(lights_electricity_kwh_interval) l, sum(equipment_electricity_kwh_interval) e,
+               sum(final_hvac_electricity_kwh_interval) h, sum(final_total_zone_electricity_kwh_interval) t
+        FROM ({_zone_timeseries_projection()}) WHERE scenario_id='{cfg.SCENARIO_ID}'
     """).fetchone()
     zt = con.execute(f"""
         SELECT sum(lights_electricity_kwh_interval) l, sum(equipment_electricity_kwh_interval) e,
@@ -107,9 +119,13 @@ def run() -> dict[str, int]:
         scoped = {cfg.CAT_LIGHTS: scoped_zt[0] or 0,
                   cfg.CAT_EQUIPMENT: scoped_zt[1] or 0,
                   cfg.CAT_HVAC: scoped_zt[2] or 0}[cat]
+        effective = {cfg.CAT_LIGHTS: effective_zt[0] or 0,
+                     cfg.CAT_EQUIPMENT: effective_zt[1] or 0,
+                     cfg.CAT_HVAC: effective_zt[2] or 0}[cat]
         recon.append({"category": cat, "raw_zone_kwh": round(raw, 1),
                       "excluded_aggregate_kwh": round(raw - scoped, 1),
                       "deduped_zone_kwh": round(scoped, 1),
+                      "effective_zone_kwh": round(effective, 1),
                       "zone_allocated_kwh": round(z, 1),
                       "board_allocated_kwh": round(b, 1), "diff_kwh": round(diff, 3),
                       "diff_pct": round(dpct, 4), "building_meter_name": meter_name,
@@ -122,9 +138,12 @@ def run() -> dict[str, int]:
     tot_z, tot_b = zt[3] or 0, bt[3] or 0
     raw_total = raw_zt[3] or 0
     scoped_total = scoped_zt[3] or 0
+    effective_total = effective_zt[3] or 0
     chk("aggregate_zone_energy_identified", "pass" if raw_total >= scoped_total else "fail",
         f"raw zone total {raw_total:.0f} kWh; potential deduped total {scoped_total:.0f} kWh; "
         f"aggregate scope {raw_total - scoped_total:.0f} kWh")
+    chk("effective_zone_energy_conserved", "pass" if raw_total and abs(effective_total - raw_total) / raw_total * 100 <= TOL_PCT else "warn",
+        f"raw zone total {raw_total:.0f} kWh vs effective redistributed total {effective_total:.0f} kWh")
     chk("board_total_equals_allocated_zone_total",
         "pass" if (tot_z and abs(tot_b - tot_z) / tot_z * 100 <= TOL_PCT) else "warn",
         f"deduped zone total {tot_z:.0f} kWh vs board total {tot_b:.0f} kWh "
@@ -218,11 +237,11 @@ def run() -> dict[str, int]:
     for c in checks:
         md.append(f"- [{c['status'].upper()}] **{c['check']}** — {c['detail']}")
     md += ["", "## Energy reconciliation (annual kWh)",
-           "| category | raw zone | excluded | deduped zone | allocated zone | board | Δ% | meter | board/meter % |",
-           "|---|---|---|---|---|---|---|---|---|"]
+           "| category | raw zone | excluded | deduped zone | effective zone | allocated zone | board | Δ% | meter | board/meter % |",
+           "|---|---|---|---|---|---|---|---|---|---|"]
     for r in recon:
         md.append(f"| {r['category']} | {r['raw_zone_kwh']} | {r['excluded_aggregate_kwh']} | "
-                  f"{r['deduped_zone_kwh']} | {r['zone_allocated_kwh']} | "
+                  f"{r['deduped_zone_kwh']} | {r['effective_zone_kwh']} | {r['zone_allocated_kwh']} | "
                   f"{r['board_allocated_kwh']} | "
                   f"{r['diff_pct']} | {r['building_meter_kwh']} | {r['board_vs_meter_pct']} |")
     md += ["", "Boards are distribution assets; their demand is the redistribution of "

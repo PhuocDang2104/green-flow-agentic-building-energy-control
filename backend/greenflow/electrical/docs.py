@@ -49,20 +49,21 @@ graph-RAG cards, and a 3D dashboard manifest — **without** re-simulating or ed
 the IDF, and **without** double-counting boards as energy.
 
 ## Pipeline (each phase rerunnable)
-`python scripts/build_electrical_kg.py --all`  (or `--phase ele|spatial|energy|alloc|hvac|graph|timeseries|rag|dashboard|validate|docs`)
+`python scripts/build_electrical_kg.py --all`  (or `--phase ele|spatial|scope|energy|alloc|hvac|graph|timeseries|rag|dashboard|validate|docs`)
 
 1. audit → `knowledge_graph_build/audit/`
 2. ele → `electrical_distribution/electrical_{boards,load_points,cable_assets,asset_property_audit}.csv`
 3. spatial → `knowledge_graph_build/mapping/`
-4. energy → `knowledge_graph_build/energy/`
-5. alloc → `electrical_distribution/{zone_load_to_board_allocation,electrical_circuits,*_map}.csv`
-6. hvac → `knowledge_graph_build/hvac_*`
-7. graph → `knowledge_graph_build/graph_*` (+ `electrical_graph_*`)
-8. timeseries → `electrical_distribution/board_*` (parquet + summaries)
-9. rag → `knowledge_graph_build/graph_rag_*`
-10. dashboard → `electrical_distribution/dashboard_electrical_manifest.json`
-11. validate → `electrical_distribution/electrical_validation_report.json`
-12. docs → this folder
+4. scope → `knowledge_graph_build/mapping/zone_scope_child_weights.csv`
+5. energy → `knowledge_graph_build/energy/`
+6. alloc → `electrical_distribution/{zone_load_to_board_allocation,electrical_circuits,*_map}.csv`
+7. hvac → `knowledge_graph_build/hvac_*`
+8. graph → `knowledge_graph_build/graph_*` (+ `electrical_graph_*`)
+9. timeseries → `electrical_distribution/board_*` (parquet + summaries)
+10. rag → `knowledge_graph_build/graph_rag_*`
+11. dashboard → `electrical_distribution/dashboard_electrical_manifest.json`
+12. validate → `electrical_distribution/electrical_validation_report.json`
+13. docs → this folder
 
 ## Key facts
 - The IDF remains a **zone-level EnergyPlus** model; board/circuit/phase analytics are an

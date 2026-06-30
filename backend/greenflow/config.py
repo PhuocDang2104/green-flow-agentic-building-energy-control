@@ -76,7 +76,8 @@ class Settings(BaseSettings):
     greenflow_duckdb_path: str = ""
     greenflow_parquet_root: str = ""
     greenflow_electrical_out: str = "./data/electrical_distribution_elnino"
-    greenflow_energy_scope_mode: str = "audit"  # audit | dedup
+    greenflow_energy_scope_mode: str = "audit"  # audit | dedup | redistribute
+    greenflow_telemetry_scope_mode: str = "audit"  # audit | exclude_aggregate | redistribute
 
     # Model registry. MLflow is primary for runtime inference; committed local
     # LightGBM model files remain the offline fallback.

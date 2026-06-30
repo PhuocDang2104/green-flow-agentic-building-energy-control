@@ -16,6 +16,8 @@ from . import canonical as C
 from . import config as cfg
 from . import gold
 from .provenance import Confidence, ValueClass
+from ..energy_scope import redistribution_enabled
+from ..zone_redistribution import SCOPE_CHILD_WEIGHTS_CSV
 
 BOARD_TS = cfg.OUT_ELEC / "board_estimated_timeseries.parquet"
 CAT_TS = cfg.OUT_ELEC / "board_load_category_timeseries.parquet"
@@ -32,6 +34,34 @@ def _alloc_wide():
     return pa.Table.from_pylist(rows)
 
 
+def _scope_child_weights_rows() -> list[dict]:
+    rows = []
+    for row in C.read_rows_csv(cfg.OUT_MAPPING / SCOPE_CHILD_WEIGHTS_CSV):
+        try:
+            weight = float(row.get("weight") or 0)
+        except (TypeError, ValueError):
+            weight = 0.0
+        if row.get("aggregate_zone_id") and row.get("child_zone_id") and weight > 0:
+            rows.append({
+                "aggregate_zone_id": row["aggregate_zone_id"],
+                "child_zone_id": row["child_zone_id"],
+                "weight": weight,
+            })
+    return rows
+
+
+def register_scope_child_weights(con) -> int:
+    import pyarrow as pa
+
+    rows = _scope_child_weights_rows()
+    con.register("scope_child_weights", pa.Table.from_pylist(rows or [{
+        "aggregate_zone_id": "",
+        "child_zone_id": "",
+        "weight": 0.0,
+    }]))
+    return len(rows)
+
+
 def _f(v):
     try:
         return float(v)
@@ -39,7 +69,7 @@ def _f(v):
         return None
 
 
-def _zone_timeseries_projection() -> str:
+def _raw_zone_timeseries_projection() -> str:
     source = cfg.parquet_scan(cfg.ZONE_TS)
     if cfg.DATASET_KEY == "elnino_2024_mar_apr":
         return f"""
@@ -60,12 +90,53 @@ def _zone_timeseries_projection() -> str:
     return f"SELECT * FROM read_parquet('{source}', hive_partitioning=true)"
 
 
+def _zone_timeseries_projection() -> str:
+    raw = _raw_zone_timeseries_projection()
+    if not redistribution_enabled() or not _scope_child_weights_rows():
+        return raw
+    return f"""
+      WITH raw_zone_ts AS ({raw}),
+           aggregate_ids AS (
+             SELECT DISTINCT aggregate_zone_id FROM scope_child_weights WHERE weight > 0
+           ),
+           kept AS (
+             SELECT * FROM raw_zone_ts
+             WHERE zone_id NOT IN (SELECT aggregate_zone_id FROM aggregate_ids)
+           ),
+           redistributed AS (
+             SELECT z.timestep_index,
+                    z.timestamp_local,
+                    z.year, z.month, z.day, z.hour, z.minute,
+                    z.scenario_id,
+                    w.child_zone_id AS zone_id,
+                    z.lights_electricity_kw * w.weight AS lights_electricity_kw,
+                    z.equipment_electricity_kw * w.weight AS equipment_electricity_kw,
+                    z.final_hvac_electricity_kw * w.weight AS final_hvac_electricity_kw,
+                    z.lights_electricity_kwh_interval * w.weight
+                      AS lights_electricity_kwh_interval,
+                    z.equipment_electricity_kwh_interval * w.weight
+                      AS equipment_electricity_kwh_interval,
+                    z.final_hvac_electricity_kwh_interval * w.weight
+                      AS final_hvac_electricity_kwh_interval,
+                    z.final_total_zone_electricity_kwh_interval * w.weight
+                      AS final_total_zone_electricity_kwh_interval
+             FROM raw_zone_ts z
+             JOIN scope_child_weights w ON z.zone_id = w.aggregate_zone_id
+             WHERE w.weight > 0
+           )
+      SELECT * FROM kept
+      UNION ALL
+      SELECT * FROM redistributed
+    """
+
+
 def run() -> dict[str, int]:
     cfg.ensure_dirs()
     con = gold.duckdb_con()
     con.execute("PRAGMA memory_limit='4GB'")
     con.execute(f"SET temp_directory='{(cfg.OUT_ELEC).as_posix()}/_duck_tmp'")
     con.register("alloc_wide", _alloc_wide())
+    register_scope_child_weights(con)
 
     contrib = f"""
       SELECT a.board_id, z.timestep_index, z.timestamp_local,

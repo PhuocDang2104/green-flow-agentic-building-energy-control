@@ -11,6 +11,7 @@ from collections import defaultdict
 
 from . import canonical as C
 from . import config as cfg
+from ..zone_naming import zone_display_name_from_mapping
 
 ENTITY_CARDS = cfg.OUT_KG / "graph_rag_entity_cards.jsonl"
 REL_CARDS = cfg.OUT_KG / "graph_rag_relationship_cards.jsonl"
@@ -73,13 +74,14 @@ def run() -> dict[str, int]:
         zb = zone_boards.get(zid, [])
         bset = sorted({x[0] for x in zb})
         confs = sorted({x[3] for x in zb})
-        text = (f"Thermal zone {z.get('long_name')} ({z.get('room_type')}) on floor {z.get('floor_id')}, "
+        zone_name = zone_display_name_from_mapping(z)
+        text = (f"Thermal zone {zone_name} ({z.get('room_type')}) on floor {z.get('storey') or z.get('floor_id')}, "
                 f"area {z.get('area_m2')} m². EnergyPlus zone {z.get('eplus_zone_name')}. "
                 f"Lights/equipment/HVAC electricity is EnergyPlus-simulated. Estimated to be supplied by "
                 f"boards {', '.join(b for b in bset if b != cfg.UNMAPPED_BOARD_ID) or 'unmapped'} "
                 f"(allocation confidence: {', '.join(confs)}).")
         cards.append({"card_id": zid, "card_type": "entity", "entity_type": "ThermalZone",
-                      "title": f"Zone {z.get('long_name')} ({z.get('eplus_zone_name')})", "text": text,
+                      "title": f"Zone {zone_name}", "text": text,
                       "properties": {k: z.get(k) for k in ("eplus_zone_name", "room_type", "area_m2",
                                      "floor_id", "usage_type")},
                       "provenance": "IFC space + EnergyPlus simulated energy",

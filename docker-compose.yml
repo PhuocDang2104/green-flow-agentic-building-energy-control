@@ -51,6 +51,7 @@ services:
       GREENFLOW_ELECTRICAL_OUT: /app/storage/electrical_distribution_elnino
       GREENFLOW_KG_OUT: /app/storage/knowledge_graph_build
       GREENFLOW_ENERGY_SCOPE_MODE: ${GREENFLOW_ENERGY_SCOPE_MODE:-audit}
+      GREENFLOW_TELEMETRY_SCOPE_MODE: ${GREENFLOW_TELEMETRY_SCOPE_MODE:-audit}
       MLFLOW_TRACKING_URI: http://mlflow:5000
       GREENFLOW_MODEL_SOURCE: mlflow
       IDF_PATH: /app/data/greenflow_archetype.idf
