@@ -141,19 +141,6 @@ export default function ElectricalPage() {
 
       {/* Energy & performance analytics (moved here from the dashboard) */}
       <EnergyAnalyticsSection />
-      {overview?.excluded_aggregate_kwh > 0 && (
-        <div className="card flex flex-wrap items-center justify-between gap-3 border-amber-300 bg-amber-50 px-4 py-3 text-[12px]">
-          <div>
-            <p className="font-medium text-amber-900">
-              {overview.energy_scope_mode === "dedup" ? "Aggregate zones excluded from reported totals" : "Aggregate-zone audit preview"}
-            </p>
-            <p className="text-amber-800">Raw {fmtKwh(f(overview.raw_total_kwh))} · candidate deduped {fmtKwh(f(overview.deduped_total_kwh))}</p>
-          </div>
-          <span className="rounded-full bg-amber-100 px-2 py-1 font-medium text-amber-900">
-            {fmtKwh(f(overview.excluded_aggregate_kwh))} {overview.energy_scope_mode === "dedup" ? "excluded" : "flagged"}
-          </span>
-        </div>
-      )}
 
       {/* ===== 3D TWIN ===== */}
       <Reveal>
