@@ -8,12 +8,12 @@ import { usePollMs } from "@/hooks/usePollMs";
 
 const TZ = { timeZone: "Asia/Ho_Chi_Minh" } as const;
 
-// weekday · dd/mm/yyyy · hh:mm in building-local (Vietnam) time
+// weekday · dd/mm/yyyy · hh:mm in building-local (Vietnam) time, rendered in English
 function fmt(ms: number): string {
   const d = new Date(ms);
-  const wd = d.toLocaleDateString("vi-VN", { ...TZ, weekday: "long" });
-  const date = d.toLocaleDateString("vi-VN", { ...TZ, day: "2-digit", month: "2-digit", year: "numeric" });
-  const time = d.toLocaleTimeString("vi-VN", { ...TZ, hour: "2-digit", minute: "2-digit", hour12: false });
+  const wd = d.toLocaleDateString("en-GB", { ...TZ, weekday: "long" });
+  const date = d.toLocaleDateString("en-GB", { ...TZ, day: "2-digit", month: "2-digit", year: "numeric" });
+  const time = d.toLocaleTimeString("en-GB", { ...TZ, hour: "2-digit", minute: "2-digit", hour12: false });
   return `${wd}, ${date} ${time}`;
 }
 
@@ -74,7 +74,7 @@ export default function LiveClock() {
   return (
     <span className="hidden items-center gap-1.5 text-xs text-text-secondary md:flex tabular-nums">
       <Clock size={13} className={`text-teal ${streaming ? "animate-pulse" : ""}`} />
-      <span className="capitalize">{label}</span>
+      <span>{label}</span>
     </span>
   );
 }
