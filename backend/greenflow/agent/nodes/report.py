@@ -10,7 +10,7 @@ from ..tools import simulation_tool, timeseries_tool
 from ..tools.report_tool import save_report
 
 TITLES = {
-    "building_semantic_report": "Building Semantic Report",
+    "building_semantic_report": "GreenFlow Building Performance & Semantic Report",
     "hvac_elec_report": "HVAC & Electrical Report",
     "peak_strategy_report": "Peak-Hour Strategy Report",
     "baseline_vs_optimized_report": "Baseline vs Optimized Report",
@@ -49,6 +49,92 @@ def _header(title: str, state: GreenFlowState) -> str:
             f"{datetime.now().strftime('%Y-%m-%d %H:%M')}\n\n")
 
 
+def _cell(value, max_len: int = 140) -> str:
+    text = "" if value is None else str(value)
+    text = " ".join(text.replace("|", "/").split())
+    return text if len(text) <= max_len else text[:max_len - 3] + "..."
+
+
+def _num(value, default: float = 0.0) -> float:
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return default
+
+
+def _fmt(value, suffix: str = "", digits: int = 1) -> str:
+    if value in (None, ""):
+        return "-"
+    n = _num(value, None)
+    if n is None:
+        return _cell(value)
+    if abs(n - round(n)) < 0.05:
+        return f"{int(round(n)):,}{suffix}"
+    return f"{n:,.{digits}f}{suffix}"
+
+
+def _score_status(score) -> str:
+    n = _num(score, 0)
+    if n >= 80:
+        return "Good"
+    if n >= 60:
+        return "Watch"
+    return "Critical"
+
+
+def _severity_rank(severity: str) -> int:
+    order = {"critical": 0, "high": 1, "warning": 2, "medium": 2, "low": 3, "info": 4}
+    return order.get((severity or "").lower(), 5)
+
+
+def _recommendation_for_finding(finding: dict) -> str:
+    ftype = (finding.get("finding_type") or "").lower()
+    detail = (finding.get("detail") or "").lower()
+    if "co2" in ftype or "co2" in detail or "air" in ftype:
+        return "Inspect ventilation schedule, outside-air path, and CO2 sensor calibration."
+    if "comfort" in ftype or "temperature" in detail:
+        return "Check setpoint, zone load, and terminal-unit response for affected zones."
+    if "peak" in ftype or "demand" in detail or "load" in detail:
+        return "Move flexible load outside peak window and review demand-response sequence."
+    if "metadata" in ftype or "mapping" in detail:
+        return "Complete zone-device mapping before using this point for automated control."
+    if "fault" in ftype or "sensor" in detail or "device" in detail:
+        return "Triage BMS fault, verify device status, then resolve or suppress stale alerts."
+    return "Assign facility engineer for verification and close-out evidence."
+
+
+def _recommended_actions(health: dict, kpis: dict, findings: list[dict],
+                         missing: list[dict]) -> list[tuple[str, str, str, str]]:
+    dims = {d.get("key"): d for d in health.get("dimensions", [])}
+    rows: list[tuple[str, str, str, str]] = []
+
+    if _num(dims.get("energy", {}).get("score"), 100) < 85:
+        rows.append(("Demand management",
+                     "Run peak-demand mitigation for high-risk zones before the next peak window.",
+                     "Facility energy lead", "Today"))
+    if _num(dims.get("air", {}).get("score"), 100) < 80:
+        rows.append(("Indoor air quality",
+                     "Review CO2 excursions, ventilation schedule, and economizer/outside-air availability.",
+                     "BMS operator", "24 hours"))
+    if _num(dims.get("comfort", {}).get("score"), 100) < 82:
+        rows.append(("Thermal comfort",
+                     "Inspect zones in high or watch comfort risk and verify setpoint compliance.",
+                     "Operations team", "24 hours"))
+    if _num(dims.get("reliability", {}).get("score"), 100) < 85:
+        rows.append(("Reliability",
+                     "Separate device faults from sensor-watch alerts; close resolved alerts in BMS.",
+                     "Maintenance lead", "48 hours"))
+    if missing:
+        rows.append(("Data quality",
+                     "Close semantic mapping gaps so controls and reports use traceable source points.",
+                     "Digital twin owner", "This week"))
+    if not rows and not findings:
+        rows.append(("Continuous monitoring",
+                     "Maintain current control strategy; keep weekly BPI review and alert hygiene.",
+                     "Operations team", "Weekly"))
+    return rows[:6]
+
+
 def _building_semantic_md(state: GreenFlowState) -> str:
     b = state.get("building_summary", {})
     zones = state.get("zones", [])
@@ -56,54 +142,133 @@ def _building_semantic_md(state: GreenFlowState) -> str:
     findings = state.get("abnormal_findings", [])
     missing = state.get("missing_metadata", [])
     equipment_map = state.get("zone_equipment_map", {})
+    health = timeseries_tool.get_building_health(state["building_id"]) or {}
+    kpis = timeseries_tool.get_building_kpis(state["building_id"]) or {}
+    dims = {d.get("key"): d for d in health.get("dimensions", [])}
+    generated_at = datetime.now().strftime("%Y-%m-%d %H:%M")
+    source_ts = health.get("timestamp") or kpis.get("timestamp") or "latest available"
+    total_zones = int(b.get("zone_count") or health.get("zones") or len(zones) or 0)
+    total_devices = int(b.get("device_count") or 0)
+    score = health.get("score")
+    grade = health.get("grade") or _score_status(score)
 
-    md = _header("Building Semantic Report", state)
-    md += ("## Building overview\n\n"
-           f"| Metric | Value |\n|---|---|\n"
-           f"| Floors | {b.get('floor_count', 0)} |\n"
-           f"| Thermal zones | {b.get('zone_count', 0)} |\n"
-           f"| Devices | {b.get('device_count', 0)} |\n"
-           f"| Total area | {b.get('total_area_m2', 0):.0f} m2 |\n"
-           f"| Source dataset | {b.get('source_dataset', 'n/a')} |\n\n")
+    md = _header("GreenFlow Building Performance & Semantic Report", state)
+    md += ("## Executive summary\n\n"
+           f"- Overall Building Performance Index is **{_fmt(score)}/100 ({grade})** "
+           f"against the latest replay anchor: **{_cell(source_ts)}**.\n"
+           f"- Current building load is **{_fmt(kpis.get('total_kw'), ' kW')}** with "
+           f"**{_fmt(kpis.get('occupancy'), ' occupants')}** represented in telemetry.\n"
+           f"- The report covers **{total_zones:,} thermal zones**, "
+           f"**{total_devices:,} devices**, and semantic mappings from the current backend state.\n"
+           f"- Priority exceptions: **{len(findings):,} abnormal findings** and "
+           f"**{len(missing):,} semantic/data-quality gaps** require review.\n\n")
 
-    md += "## Zone hierarchy and state\n\n"
-    md += "| Zone | Type | Area m2 | Occupancy | Temp C | Load kW | Comfort |\n"
-    md += "|---|---|---|---|---|---|---|\n"
+    md += ("## Report scope and asset profile\n\n"
+           "| Item | Value |\n|---|---|\n"
+           f"| Building | {_cell(b.get('name', 'n/a'))} |\n"
+           f"| Location | {_cell(b.get('location_name', 'n/a'))} |\n"
+           f"| Generated | {generated_at} |\n"
+           f"| Floors | {_fmt(b.get('floor_count'))} |\n"
+           f"| Thermal zones | {total_zones:,} |\n"
+           f"| Devices | {total_devices:,} |\n"
+           f"| Gross modeled area | {_fmt(b.get('total_area_m2'), ' m2', 0)} |\n"
+           f"| Source dataset | {_cell(b.get('source_dataset', 'n/a'))} |\n\n")
+
+    md += "## Building Performance Index scorecard\n\n"
+    md += "| Dimension | Score | Target | Status | Backend evidence |\n"
+    md += "|---|---|---|---|---|\n"
+    score_rows = [
+        ("Overall score", score, 80, grade, f"{len(findings)} findings; {len(missing)} metadata gaps"),
+        ("Air quality", dims.get("air", {}).get("score"), 80, None, dims.get("air", {}).get("detail")),
+        ("Energy / demand", dims.get("energy", {}).get("score"), 85, None, dims.get("energy", {}).get("detail")),
+        ("Thermal comfort", dims.get("comfort", {}).get("score"), 82, None, dims.get("comfort", {}).get("detail")),
+        ("Equipment health", dims.get("reliability", {}).get("score"), 85, None,
+         dims.get("reliability", {}).get("detail")),
+    ]
+    for label, row_score, target, status, evidence in score_rows:
+        status = status or _score_status(row_score)
+        md += (f"| {_cell(label)} | {_fmt(row_score)} | {target} | "
+               f"{_cell(status)} | {_cell(evidence)} |\n")
+
+    md += "\n## Operational snapshot\n\n"
+    md += "| Metric | Current value | Why it matters |\n|---|---|---|\n"
+    md += (f"| Total demand | {_fmt(kpis.get('total_kw'), ' kW')} | Real-time electrical load used by the demand score. |\n"
+           f"| Calendar-day energy | {_fmt(kpis.get('kwh'), ' kWh')} | Day-to-date consumption from counted zones. |\n"
+           f"| Operating cost | {_fmt(kpis.get('cost'), ' VND', 0)} | Day-to-date energy cost estimate. |\n"
+           f"| Occupancy | {_fmt(kpis.get('occupancy'), ' people')} | People load used to interpret comfort and IAQ risk. |\n"
+           f"| Comfort high risk | {_fmt(kpis.get('comfort_high'), ' zones')} | Zones outside acceptable comfort conditions. |\n"
+           f"| Peak-demand risk | {_fmt(kpis.get('peak_high'), ' zones')} | Zones contributing to demand-window exposure. |\n")
+
+    md += "\n## Priority findings and risk register\n\n"
+    if findings:
+        md += "| Priority | Severity | Finding | Evidence | Recommended action |\n"
+        md += "|---|---|---|---|---|\n"
+        for idx, f in enumerate(sorted(findings, key=lambda x: _severity_rank(x.get("severity")))[:12], 1):
+            md += (f"| {idx} | {_cell(f.get('severity'))} | {_cell(f.get('finding_type'))} | "
+                   f"{_cell(f.get('detail'), 90)} | {_cell(_recommendation_for_finding(f), 110)} |\n")
+    else:
+        md += "- No abnormal findings at the latest backend replay anchor.\n"
+
+    md += "\n## Recommended action plan\n\n"
+    md += "| Workstream | Action | Owner | Target window |\n|---|---|---|---|\n"
+    for workstream, action, owner, window in _recommended_actions(health, kpis, findings, missing):
+        md += f"| {_cell(workstream)} | {_cell(action, 130)} | {_cell(owner)} | {_cell(window)} |\n"
+
+    md += "\n## Semantic coverage and data quality\n\n"
+    mapped_zone_count = len([1 for devices in equipment_map.values() if devices])
+    coverage = (mapped_zone_count / total_zones * 100) if total_zones else 0
+    md += ("| Data domain | Coverage / issue | Interpretation |\n|---|---|---|\n"
+           f"| Zone-device mapping | {_fmt(coverage, '%')} mapped | Share of zones with at least one mapped device relation. |\n"
+           f"| Missing metadata | {len(missing):,} gaps | Items that reduce traceability or automation confidence. |\n"
+           f"| Open findings | {len(findings):,} findings | Active exceptions generated from semantic graph and telemetry. |\n")
+    if missing:
+        md += "\nTop metadata gaps:\n"
+        for m in missing[:8]:
+            md += f"- **{_cell(m.get('type'))}** - {_cell(m.get('detail'), 160)}\n"
+    else:
+        md += "\n- All zones and devices are fully mapped in the current semantic graph.\n"
+
+    md += ("\n## Methodology and data provenance\n\n"
+           "- Scores are generated from live backend tools, not frontend mock data.\n"
+           "- BPI scoring uses transparent 0-100 sub-scores: air quality, energy/demand, "
+           "thermal comfort, and equipment reliability.\n"
+           "- Status bands are Critical 0-59, Watch 60-79, and Good 80+; dimension targets "
+           "match the dashboard cards.\n"
+           "- Energy and comfort values come from counted telemetry zones at the replay anchor; "
+           "semantic coverage comes from the zone-device graph.\n"
+           "- This export is an operations report for triage and decision support; it is not a "
+           "third-party audit certificate.\n")
+
+    zone_rows = []
     for z in zones:
         st = zone_state.get(z["entity_key"], {})
-        md += (f"| {z['name']} | {z['room_type']} | {z.get('area_m2', 0):.0f} "
-               f"| {st.get('occupancy_count', '-')} | {st.get('temperature_c', '-')} "
-               f"| {st.get('total_power_kw', '-')} | {st.get('comfort_risk', '-')} |\n")
+        zone_rows.append((z, st, _num(st.get("total_power_kw"), 0)))
+    zone_rows.sort(key=lambda item: item[2], reverse=True)
+    md += "\n## Appendix A - Zone snapshot, top load zones\n\n"
+    md += "| Zone | Type | Area m2 | Occupancy | Temp C | Load kW | Comfort |\n"
+    md += "|---|---|---|---|---|---|---|\n"
+    for z, st, _ in zone_rows[:30]:
+        md += (f"| {_cell(z.get('name'))} | {_cell(z.get('room_type'))} | "
+               f"{_fmt(z.get('area_m2'), '', 0)} | {_fmt(st.get('occupancy_count'), '', 0)} | "
+               f"{_fmt(st.get('temperature_c'), '', 1)} | {_fmt(st.get('total_power_kw'), '', 1)} | "
+               f"{_cell(st.get('comfort_risk', '-'))} |\n")
 
-    md += "\n## Zone-equipment mapping\n\n| Zone | Devices |\n|---|---|\n"
-    for zk, devices in equipment_map.items():
-        names = ", ".join(sorted({d["name"] for d in devices}))
-        md += f"| {zk} | {names} |\n"
+    md += "\n## Appendix B - Zone-equipment mapping sample\n\n"
+    md += "| Zone | Devices |\n|---|---|\n"
+    for zk, devices in list(sorted(equipment_map.items()))[:30]:
+        names = ", ".join(sorted({_cell(d.get("name"), 50) for d in devices})) or "-"
+        md += f"| {_cell(zk)} | {_cell(names, 180)} |\n"
 
-    md += "\n## Abnormal state summary\n\n"
-    if findings:
-        for f in findings:
-            md += f"- **[{f['severity']}] {f['finding_type']}** - {f['detail']}\n"
-    else:
-        md += "- No abnormal findings.\n"
-
-    md += "\n## Missing metadata / mapping quality\n\n"
-    if missing:
-        for m in missing:
-            md += f"- {m['type']}: {m['detail']}\n"
-    else:
-        md += "- All zones and devices are fully mapped.\n"
-
-    md += ("\n## EnergyPlus readiness\n\n"
-           "- Geometry, constructions, schedules and internal loads parsed from IDF.\n"
-           "- IdealLoadsAirSystem zone HVAC; baseline runs available.\n"
-           "- Synthetic fallback engine active when the EnergyPlus binary is absent.\n")
+    md += ("\n## EnergyPlus and simulation readiness\n\n"
+           "- Geometry, constructions, schedules and internal loads are parsed from IDF inputs.\n"
+           "- IdealLoadsAirSystem zone HVAC is available for baseline and counterfactual runs.\n"
+           "- The report preserves source-state provenance so control decisions remain auditable.\n")
 
     summary_fallback = (f"The building has {b.get('zone_count', 0)} zones with "
                         f"{len(findings)} abnormal findings and "
                         f"{len(missing)} metadata gaps.")
-    md += "\n## Assessment\n\n" + llm_text(
-        "Summarize this building operations report in 3 sentences:\n" + md,
+    md += "\n## Management assessment\n\n" + llm_text(
+        "Write a concise executive assessment in 3 sentences for this building operations report:\n" + md,
         summary_fallback) + "\n"
     return md
 
