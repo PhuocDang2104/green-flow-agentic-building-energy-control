@@ -330,6 +330,7 @@ def main() -> None:
         cost = round(float(kwh or 0) * tariff_vnd(hour))
         records.append({
             "ts": dt, "b": BUILDING_ID, "f": z["floor_id"], "z": z["id"],
+            "key": key,
             "occ": occ, "st": state, "conf": 0.85, "temp": round(temp, 2),
             "rh": round(rh, 1), "co2": co2, "hvac": round(hvac, 4),
             "light": round(light, 4), "plug": round(equip, 4), "total": round(total, 4),
