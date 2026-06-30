@@ -6,7 +6,6 @@ export default function SimulationBaselinePage() {
     <div data-wide-page className="pb-4">
       <PageHeader
         title="Validation Experiment"
-        subtitle="El Nino 2024 - Hanoi: EnergyPlus baseline compared with the validated predictive MPC replay."
       />
       <CampaignWhatIf />
     </div>

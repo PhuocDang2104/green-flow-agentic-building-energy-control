@@ -134,7 +134,6 @@ export default function AgentActionsPage() {
     <div className="pb-4">
       <PageHeader
         title="Agents & Actions"
-        subtitle="Chat with the building agent. It watches the building, proposes actions, and reports back to you."
         actions={
           <>
             <button className="btn-secondary" disabled={running}

@@ -66,7 +66,6 @@ export default function DashboardPage() {
     <div className="pb-4 elevate-surface">
       <PageHeader
         title="Dashboard & 3D View"
-        subtitle="Real-time digital twin overview for zone, energy, comfort and device state."
         actions={
           <div className="flex items-center gap-2">
             {reportUrl && (
