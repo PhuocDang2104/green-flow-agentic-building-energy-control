@@ -27,6 +27,19 @@ function bandLabel(s: number) {
   return s >= 85 ? "Excellent" : s >= 70 ? "Efficient" : s >= 50 ? "Average" : "Poor";
 }
 
+function compactZoneName(name: string) {
+  return name
+    .replace(/\s*·\s*/g, " ")
+    .replace(/\s+/g, " ")
+    .replace(/\bOFFICE\b/gi, "Office")
+    .replace(/^Level\s+/i, "L")
+    .trim();
+}
+
+function truncateLabel(value: string, max = 26) {
+  return value.length <= max ? value : `${value.slice(0, max - 1)}…`;
+}
+
 /** Red→green benchmark gauge for EUI. Center value is raw EUI: lower is better. */
 function Gauge({ score, euiAnnual }: { score: number; euiAnnual: number }) {
   const R = 46, C = 2 * Math.PI * R, color = STROKE[band(score)];
@@ -119,7 +132,11 @@ export default function EnergyAnalyticsSection() {
   const topZones = [...energyZones]
     .sort((a, b) => ((b.latest_state?.total_power_kw) || 0) - ((a.latest_state?.total_power_kw) || 0))
     .slice(0, 6)
-    .map((z) => ({ name: z.name, kw: Number(((z.latest_state?.total_power_kw) || 0).toFixed(2)) }));
+    .map((z) => ({
+      name: z.name,
+      shortName: truncateLabel(compactZoneName(z.name)),
+      kw: Number(((z.latest_state?.total_power_kw) || 0).toFixed(2)),
+    }));
 
   const chart = (series || []).map((p) => ({
     time: new Date(p.timestamp).toLocaleTimeString("en-GB", { hour: "2-digit", minute: "2-digit" }),
@@ -205,15 +222,19 @@ export default function EnergyAnalyticsSection() {
         {/* top consuming zones */}
         <div className="card px-5 py-4">
           <p className="text-[13px] font-medium text-text-secondary">Top consuming zones</p>
-          <div className="mt-1 h-[132px]">
+          <div className="mt-1 h-[156px]">
             {ready ? (
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={topZones} layout="vertical" margin={{ top: 2, right: 12, bottom: 0, left: 0 }}>
+                <BarChart data={topZones} layout="vertical" margin={{ top: 4, right: 12, bottom: 2, left: 8 }}>
                   <CartesianGrid stroke="#EEF2F7" horizontal={false} />
                   <XAxis type="number" tick={{ fontSize: 10, fill: "#94A3B8" }} tickLine={false} axisLine={false} unit=" kW" />
-                  <YAxis type="category" dataKey="name" width={104} tick={{ fontSize: 10, fill: "#64748B" }}
+                  <YAxis type="category" dataKey="shortName" width={152} tick={{ fontSize: 10, fill: "#64748B" }}
                          tickLine={false} axisLine={false} />
-                  <Tooltip {...tip} formatter={(v: any) => [`${Number(v).toFixed(2)} kW`, "Load"]} />
+                  <Tooltip
+                    {...tip}
+                    formatter={(v: any) => [`${Number(v).toFixed(2)} kW`, "Load"]}
+                    labelFormatter={(_, payload: any) => payload?.[0]?.payload?.name || ""}
+                  />
                   <Bar dataKey="kw" fill="#0F766E" radius={[0, 4, 4, 0]} barSize={12} />
                 </BarChart>
               </ResponsiveContainer>
