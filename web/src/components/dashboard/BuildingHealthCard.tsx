@@ -269,6 +269,7 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
   const comfortWatchZones = kpis?.comfort_watch ?? extractNumber(comfort?.detail, /.\s*(\d+)\s+watch/i);
   const deviceFaults = extractNumber(reliability?.detail, /(\d+)\s+device/i);
   const sensorFaults = extractNumber(reliability?.detail, /.\s*(\d+)\s+sensor/i);
+  const updatedAt = health.timestamp ?? "latest replay anchor";
 
   return [
     {
@@ -276,14 +277,14 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
       score: overall,
       target: 80,
       accent: "#087A3E",
-      detail: `Composite score from live backend dimensions: comfort, air quality, energy demand and equipment reliability. Backend timestamp: ${health.timestamp ?? "latest replay anchor"}.`,
+      detail: `Overall live building score from /api/kpi/health-score. Weighted blend: Thermal Comfort 30%, Air Quality 20%, Energy / Demand 25%, Equipment Health 25%. Updated at ${updatedAt}.`,
     },
     {
       title: "Air Quality",
       score: airScore,
       target: 80,
       accent: "#0D63D8",
-      detail: air?.detail ?? "Live CO2 risk score from /api/kpi/health-score.",
+      detail: `Indoor air-quality score from /api/kpi/health-score. It penalizes the share of zones with CO2 above 1000 ppm and half-penalizes zones in the 800-1000 ppm watch band. Backend detail: ${air?.detail ?? "unavailable"}.`,
       rows: [
         {
           icon: Cloud,
@@ -291,7 +292,7 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
           value: `${co2RiskZones} zones`,
           note: ">1000 ppm",
           band: co2RiskZones > 0 ? "critical" : "good",
-          detail: air?.detail ?? "Zones above 1000 ppm from backend health-score detail.",
+          detail: `CO2 Risk counts zones currently above 1000 ppm. These zones need ventilation or occupancy reduction first because they apply the full air-quality penalty. Source: /api/kpi/health-score. Backend detail: ${air?.detail ?? "unavailable"}.`,
         },
         {
           icon: Waves,
@@ -299,7 +300,7 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
           value: `${co2WatchZones} zones`,
           note: "800-1000 ppm",
           band: co2WatchZones > 0 ? "watch" : "good",
-          detail: air?.detail ?? "Zones in CO2 watch band from backend health-score detail.",
+          detail: `Elevated CO2 counts zones between 800 and 1000 ppm. They are not critical yet, but each zone contributes half penalty to the air-quality score and should be monitored before crossing 1000 ppm. Source: /api/kpi/health-score.`,
         },
       ],
     },
@@ -308,14 +309,14 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
       score: energyScore,
       target: 85,
       accent: "#12A985",
-      detail: energy?.detail ?? "Live demand-risk score from /api/kpi/health-score.",
+      detail: `Demand-risk score from /api/kpi/health-score. It measures how many zones are currently in peak-demand risk, softened so a concentrated peak event does not zero the whole building. Backend detail: ${energy?.detail ?? "unavailable"}.`,
       rows: [
         {
           icon: Zap,
           label: "Peak Demand",
           value: `${formatKw(totalKw ?? kpis?.total_kw)} kW`,
           band: energyScore >= 80 ? "good" : energyScore >= 60 ? "watch" : "critical",
-          detail: `Current total load from /api/kpi/current or websocket replay: ${formatKw(totalKw ?? kpis?.total_kw)} kW.`,
+          detail: `Peak Demand is the current whole-building electrical load. It uses websocket replay data when available, otherwise /api/kpi/current. Current load: ${formatKw(totalKw ?? kpis?.total_kw)} kW. Use this with Peak Risk to decide load-shed or pre-cooling actions.`,
         },
         {
           icon: AlertTriangle,
@@ -323,7 +324,7 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
           value: `${peakRiskZones} zones`,
           note: "above threshold",
           band: peakRiskZones > 0 ? "watch" : "good",
-          detail: energy?.detail ?? "Peak-risk zone count from backend health-score detail.",
+          detail: `Peak Risk counts zones marked as peak-demand risk by backend telemetry. A high count means demand is broad across the building, not isolated to one space. Source: /api/kpi/current and /api/kpi/health-score. Backend detail: ${energy?.detail ?? "unavailable"}.`,
         },
       ],
     },
@@ -332,14 +333,14 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
       score: comfortScore,
       target: 82,
       accent: "#0D63D8",
-      detail: comfort?.detail ?? "Live comfort-risk score from /api/kpi/health-score.",
+      detail: `Thermal-comfort score from /api/kpi/health-score. High-risk zones apply full penalty; watch zones apply half penalty. This is weighted by current occupied-zone conditions, not just average temperature. Backend detail: ${comfort?.detail ?? "unavailable"}.`,
       rows: [
         {
           icon: Thermometer,
           label: "Temp Deviation",
           value: `${comfortHighZones} zones`,
           band: comfortHighZones > 0 ? "critical" : "good",
-          detail: comfort?.detail ?? "High comfort-risk zone count from /api/kpi/current.",
+          detail: `Temp Deviation counts zones in high thermal-comfort risk. These are the first candidates for HVAC setpoint/airflow investigation because they apply full comfort penalty. Source: /api/kpi/current. Backend detail: ${comfort?.detail ?? "unavailable"}.`,
         },
         {
           icon: Clock,
@@ -347,7 +348,7 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
           value: `${comfortWatchZones} zones`,
           note: "watch band",
           band: comfortWatchZones > 0 ? "watch" : "good",
-          detail: comfort?.detail ?? "Watch comfort-risk zone count from /api/kpi/current.",
+          detail: `Comfort Watch counts zones close to the comfort limit. They apply half penalty and are useful for early intervention before occupants feel discomfort. Source: /api/kpi/current. Backend detail: ${comfort?.detail ?? "unavailable"}.`,
         },
       ],
     },
@@ -356,21 +357,21 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
       score: reliabilityScore,
       target: 85,
       accent: "#0BAE27",
-      detail: reliability?.detail ?? "Live equipment and sensor fault score from /api/kpi/health-score.",
+      detail: `Equipment Health combines hard device faults and sensor-watch alerts from open backend alerts. Device faults are treated as hard failures; sensor_stuck is treated as a data-quality warning by affected-zone share so flat simulated temperatures do not imply every device is broken. Backend detail: ${reliability?.detail ?? "unavailable"}.`,
       rows: [
         {
           icon: Wrench,
           label: "Active Faults",
           value: `${deviceFaults} assets`,
           band: deviceFaults > 0 ? "watch" : "good",
-          detail: reliability?.detail ?? "Open device faults from backend alerts.",
+          detail: `Active Faults counts open device_fault alerts. These are physical or operational equipment faults and carry stronger penalty than sensor-watch alerts. Source: alerts table via /api/kpi/health-score. Backend detail: ${reliability?.detail ?? "unavailable"}.`,
         },
         {
           icon: Bell,
           label: "Sensor Watch",
           value: `${sensorFaults} alerts`,
           band: sensorFaults > 0 ? "watch" : "good",
-          detail: reliability?.detail ?? "Open sensor watch alerts from backend.",
+          detail: `Sensor Watch counts open sensor_stuck alerts. The rule detects zone temperature values unchanged for 120+ minutes. In simulated/replay data this is a data-quality watch signal, not proof that ${sensorFaults} physical sensors are broken. Source: anomaly engine alerts via /api/kpi/health-score.`,
         },
       ],
     },
