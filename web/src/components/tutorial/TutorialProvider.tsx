@@ -31,6 +31,8 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
   const pathname = usePathname();
   const pathRef = useRef(pathname);
   useEffect(() => { pathRef.current = pathname; }, [pathname]);
+  // trap Tab focus only for true modals (centered/read-only), not hands-on steps
+  const trapFocusRef = useRef(false);
 
   const reduceMotion = useReducedMotion() ?? false;
   const running = status === "running";
@@ -39,6 +41,14 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
     running ? step?.target : undefined,
     step?.id ?? "",
   );
+  const anchored = !!step?.target;
+  const found = targetStatus === "found";
+  // while the page/run is still settling, hold on a "preparing" card instead of
+  // jumping the spotlight; once the target mounts we bound the box.
+  const pending = anchored && targetStatus === "pending";
+  // every anchored step is interactive (the region stays usable) unless opted out
+  const interactive = anchored && !step?.blockInteraction;
+  trapFocusRef.current = !interactive; // only modal/read-only steps trap focus
 
   const navigate = useCallback((route: string) => {
     if (pathRef.current !== route) router.push(route);
@@ -80,6 +90,7 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
     const onKey = (e: KeyboardEvent) => {
       if (e.key === "Escape") { e.preventDefault(); skip(); return; }
       if (e.key === "Tab") {
+        if (!trapFocusRef.current) return; // hands-on steps: let Tab reach the page
         const panel = document.querySelector<HTMLElement>("[data-gf-tutorial-panel]");
         if (!panel) return;
         const focusables = panel.querySelectorAll<HTMLElement>(
@@ -104,15 +115,17 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
       {running && step && (
         <>
           <TutorialOverlay
-            rect={targetStatus === "found" ? rect : null}
-            interactive={!!step.allowInteraction}
+            rect={found ? rect : null}
+            interactive={interactive}
+            pulse={interactive}
             reduceMotion={reduceMotion}
           />
           <TutorialPanel
             step={step}
             index={stepIndex}
             total={STEPS.length}
-            rect={targetStatus === "found" ? rect : null}
+            rect={found ? rect : null}
+            pending={pending}
             reduceMotion={reduceMotion}
             onBack={goBack}
             onNext={goNext}

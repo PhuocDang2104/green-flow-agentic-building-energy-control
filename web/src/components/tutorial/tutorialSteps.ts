@@ -2,8 +2,9 @@ import type { TutorialStep } from "./types";
 
 /**
  * The 26-step GreenFlow product walkthrough (spec §8), mapped to the real routes
- * and data-tour-id selectors. Copy is condensed to 2-3 lines per panel. Steps
- * with no `target` render as a centered card.
+ * and data-tour-id selectors. Every anchored step is interactive — the
+ * spotlighted region stays usable — and `hint` gives a "try it" cue. Steps with
+ * no `target` render as a centered card.
  */
 export const tutorialSteps: TutorialStep[] = [
   // ---------------- Chapter 1 — Observe: Dashboard & 3D View ----------------
@@ -12,9 +13,9 @@ export const tutorialSteps: TutorialStep[] = [
     chapter: "observe",
     route: "/dashboard",
     title: "Welcome to GreenFlow",
-    body: "GreenFlow lets operators see building performance, inspect the digital twin, run risk-controlled optimization, and validate energy impact. This tour shows the full loop.",
+    body: "GreenFlow lets operators see building performance, inspect the digital twin, run risk-controlled optimization, and validate energy impact. This tour is hands-on — try things as you go.",
     placement: "center",
-    before: [{ type: "switchTab", route: "/dashboard" }, { type: "stopAgentPreview" }],
+    before: [{ type: "switchTab", route: "/dashboard" }, { type: "stopAgentPreview" }, { type: "setElectricalShowcase", on: false }],
   },
   {
     id: "dashboard-health-index",
@@ -25,6 +26,7 @@ export const tutorialSteps: TutorialStep[] = [
     body: "This view summarizes the building across air quality, energy & load demand, thermal comfort, and equipment health. Higher scores mean better operating condition.",
     placement: "bottom",
     chips: ["Air Quality", "Energy", "Comfort", "Equipment"],
+    hint: "Hover a card's ⓘ to see how each score is derived.",
   },
   {
     id: "digital-twin-viewer",
@@ -34,6 +36,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "The 3D Digital Twin",
     body: "The digital twin turns BIM and operational data into an explorable model — from whole-building context down to a single zone.",
     placement: "left",
+    hint: "Drag to orbit · scroll to zoom the model.",
     before: [
       { type: "setLayers", layers: { architecture: false, spaces: false, fenestration: false, structural: true, hvac: false, electrical: false } },
       { type: "setHeatmap", heatmap: "electrical", enabled: false },
@@ -48,13 +51,10 @@ export const tutorialSteps: TutorialStep[] = [
     route: "/dashboard",
     target: "digital-twin-layers",
     title: "Explore by Layer",
-    body: "Layers separate architecture, structure, electrical, HVAC and spaces, so operators inspect only what matters for the decision at hand.",
+    body: "Layers separate architecture, structure, electrical, HVAC and spaces. Watch them combine automatically, then mix your own.",
     placement: "right",
-    before: [
-      { type: "setLayer", layer: "structural", enabled: true },
-      { type: "setLayer", layer: "electrical", enabled: true },
-      { type: "setLayer", layer: "hvac", enabled: true },
-    ],
+    hint: "The layers are cycling — tick any box to override.",
+    before: [{ type: "showcaseLayers" }],
   },
   {
     id: "system-heatmaps",
@@ -64,6 +64,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "System Heatmaps",
     body: "Technical systems show their own heatmaps — electrical load percentage and HVAC power — keeping system-level risk separate from zone comfort scores.",
     placement: "left",
+    hint: "Toggle the Electrical / HVAC heatmaps to compare.",
     before: [
       { type: "setLayer", layer: "electrical", enabled: true },
       { type: "setLayer", layer: "hvac", enabled: true },
@@ -79,10 +80,11 @@ export const tutorialSteps: TutorialStep[] = [
     title: "Inspect a Zone",
     body: "Selecting a zone opens its technical state: temperature, setpoint, occupancy, load, HVAC, lighting, area, comfort status and peak risk.",
     placement: "left",
+    hint: "Click different zones in the 3D model to compare them.",
     before: [
       { type: "setHeatmap", heatmap: "electrical", enabled: false },
       { type: "setHeatmap", heatmap: "hvac", enabled: false },
-      { type: "setLayer", layer: "spaces", enabled: true },
+      { type: "setLayers", layers: { architecture: false, spaces: true, fenestration: false, structural: true, hvac: false, electrical: false } },
       { type: "selectZone" },
       { type: "setCamera", preset: "zone-focus" },
     ],
@@ -104,6 +106,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "Zone Table & Filtering",
     body: "The zone table turns 3D context into an operational list — sort and filter zones by occupancy, temperature, load, comfort and peak risk.",
     placement: "top",
+    hint: "Search or filter by type / comfort / peak risk.",
     before: [{ type: "setCamera", preset: "building-overview" }],
   },
   {
@@ -126,7 +129,13 @@ export const tutorialSteps: TutorialStep[] = [
     title: "Electrical Distribution Twin",
     body: "The Electrical Twin summarizes energy, cost, peak demand, emissions intensity, load risk, system mix and the top consuming zones.",
     placement: "bottom",
-    before: [{ type: "switchTab", route: "/electrical" }],
+    before: [
+      { type: "switchTab", route: "/electrical" },
+      { type: "setElectricalShowcase", on: true },
+      { type: "setElectricalColorMode", mode: "status" },
+      { type: "focusElectricalBoard", which: "clear" },
+      { type: "setElectricalLinks", on: true },
+    ],
   },
   {
     id: "electrical-graph-canvas",
@@ -134,17 +143,24 @@ export const tutorialSteps: TutorialStep[] = [
     route: "/electrical",
     target: "electrical-graph-canvas",
     title: "Distribution Graph",
-    body: "The 3D graph shows how power moves from distribution boards through circuits to the connected loads across every floor.",
+    body: "The 3D graph shows how power moves from distribution boards through circuits to the connected loads across every floor. It slowly orbits so you can read the topology.",
     placement: "left",
+    hint: "Drag to orbit · scroll to zoom · click a board.",
   },
   {
     id: "electrical-node-inspector",
     chapter: "understand",
     route: "/electrical",
     target: "electrical-node-inspector",
-    title: "Panel-Level Inspection",
-    body: "Selecting a board reveals voltage, phase, demand, annual energy, its upstream feed and the downstream loads it serves.",
+    title: "Panel-Level Distribution",
+    body: "We isolated the main board: its supply lines and served zones stay lit while the rest dims — this is exactly how one panel is distributed downstream.",
     placement: "left",
+    hint: "Click any other board to isolate it instead.",
+    before: [
+      { type: "setElectricalColorMode", mode: "feeder" },
+      { type: "setElectricalLinks", on: true },
+      { type: "focusElectricalBoard", which: "top" },
+    ],
   },
   {
     id: "electrical-filter-controls",
@@ -152,8 +168,14 @@ export const tutorialSteps: TutorialStep[] = [
     route: "/electrical",
     target: "electrical-filter-controls",
     title: "Filters & Load Heat",
-    body: "Overload, Feeder and Load-heat views let operators move from high-level topology to detailed load analysis without losing electrical context.",
+    body: "Overload, Feeder and Load-heat recolour the model; supply lines can be toggled on and off; floors, zones and loads filter what's shown. The view is now in Load-heat.",
     placement: "bottom",
+    hint: "Try Overload / Feeder / Load heat and toggle Links.",
+    before: [
+      { type: "focusElectricalBoard", which: "clear" },
+      { type: "setElectricalColorMode", mode: "load" },
+      { type: "setElectricalLinks", on: true },
+    ],
   },
   {
     id: "ai-chatbot-panel",
@@ -163,7 +185,8 @@ export const tutorialSteps: TutorialStep[] = [
     title: "Ask the Building Copilot",
     body: "Operators can ask for insight by text or voice. The copilot answers from the live digital twin, not from generic assumptions.",
     placement: "left",
-    before: [{ type: "openChatbot", open: true }],
+    hint: "Type a question, e.g. \"What is the peak load today?\"",
+    before: [{ type: "setElectricalShowcase", on: false }, { type: "openChatbot", open: true }],
     after: [{ type: "openChatbot", open: false }],
   },
 
@@ -176,7 +199,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "The Agent Workspace",
     body: "This tab is where GreenFlow explains what it sees, proposes actions, and shows the reasoning behind every decision.",
     placement: "left",
-    before: [{ type: "switchTab", route: "/agent-actions" }, { type: "stopAgentPreview" }],
+    before: [{ type: "switchTab", route: "/agent-actions" }, { type: "setElectricalShowcase", on: false }, { type: "stopAgentPreview" }],
   },
   {
     id: "run-optimization-button",
@@ -186,7 +209,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "Run a Safe Optimization",
     body: "Run Optimization starts a risk-controlled workflow. In tutorial mode this is a preview only — it never executes real building controls.",
     placement: "bottom",
-    allowInteraction: true,
+    hint: "Click Run Optimization to launch the preview.",
     after: [{ type: "startAgentPreview" }],
   },
   {
@@ -197,6 +220,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "Building Semantic Agent",
     body: "The Building Semantic Agent reads the current timestep — zones, devices, abnormal findings, heatmaps and semantic-graph relationships.",
     placement: "right",
+    hint: "Toggle ELEC / HVAC / Heatmap in the 3D preview.",
     before: [{ type: "startAgentPreview" }],
   },
   {
@@ -232,7 +256,7 @@ export const tutorialSteps: TutorialStep[] = [
     route: "/agent-actions",
     target: "action-queue",
     title: "Human Approval Queue",
-    body: "Actions that affect real operation wait for human approval — each with estimated savings, peak reduction, comfort impact and an audit trail.",
+    body: "Actions that affect real operation wait for human approval — each with estimated savings, peak reduction, comfort impact and an audit trail. Approve/Reject are disabled in the tour.",
     placement: "left",
     after: [{ type: "stopAgentPreview" }],
   },
@@ -256,6 +280,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "Severe Climate Context",
     body: "The El Niño overlay shows how the system responds under heat stress, when cooling demand and peak pressure become more severe.",
     placement: "bottom",
+    hint: "Tick El Niño, or switch the metric to compare.",
     before: [{ type: "setValidationMetric", metric: "energy" }, { type: "toggleElNino", on: true }],
   },
   {
@@ -274,8 +299,9 @@ export const tutorialSteps: TutorialStep[] = [
     route: "/simulation-baseline",
     target: "building-semantic-report-button",
     title: "Generate a Monthly Report",
-    body: "Finally, operators can generate a monthly building performance report for internal review, ESG reporting or stakeholder communication. (Preview only in tutorial mode.)",
+    body: "Finally, operators can generate a monthly building performance report for internal review, ESG reporting or stakeholder communication.",
     placement: "bottom",
+    blockInteraction: true,
   },
   {
     id: "completion",

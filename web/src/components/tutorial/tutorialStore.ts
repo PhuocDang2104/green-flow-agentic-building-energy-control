@@ -1,7 +1,7 @@
 "use client";
 
 import { create } from "zustand";
-import type { CameraPreset } from "./types";
+import type { CameraPreset, ElectricalColorMode } from "./types";
 
 export type TutorialStatus = "idle" | "running" | "completed" | "exited";
 
@@ -14,6 +14,11 @@ interface TutorialState {
   validationMetric: string | null;   // CampaignWhatIf metric select
   elNinoOverride: boolean | null;    // CampaignWhatIf El-Niño checkbox
   agentPreview: boolean;             // agent-actions scripted timeline
+  // electrical twin (tab 2) showcase
+  elecColorMode: ElectricalColorMode | null;
+  elecFocusBoard: "top" | "clear" | null;
+  elecLinks: boolean | null;
+  elecShowcase: boolean;             // gentle auto-rotate while demoing
 
   start: () => void;
   complete: () => void;
@@ -24,6 +29,10 @@ interface TutorialState {
   setValidationMetric: (m: string | null) => void;
   setElNinoOverride: (v: boolean | null) => void;
   setAgentPreview: (v: boolean) => void;
+  setElecColorMode: (m: ElectricalColorMode | null) => void;
+  setElecFocusBoard: (v: "top" | "clear" | null) => void;
+  setElecLinks: (v: boolean | null) => void;
+  setElecShowcase: (v: boolean) => void;
 }
 
 // clearing every command bridge (used on start/exit/complete so a stale
@@ -33,6 +42,10 @@ const CLEARED = {
   validationMetric: null as string | null,
   elNinoOverride: null as boolean | null,
   agentPreview: false,
+  elecColorMode: null as ElectricalColorMode | null,
+  elecFocusBoard: null as "top" | "clear" | null,
+  elecLinks: null as boolean | null,
+  elecShowcase: false,
 };
 
 export const useTutorialStore = create<TutorialState>((set) => ({
@@ -49,6 +62,10 @@ export const useTutorialStore = create<TutorialState>((set) => ({
   setValidationMetric: (validationMetric) => set({ validationMetric }),
   setElNinoOverride: (elNinoOverride) => set({ elNinoOverride }),
   setAgentPreview: (agentPreview) => set({ agentPreview }),
+  setElecColorMode: (elecColorMode) => set({ elecColorMode }),
+  setElecFocusBoard: (elecFocusBoard) => set({ elecFocusBoard }),
+  setElecLinks: (elecLinks) => set({ elecLinks }),
+  setElecShowcase: (elecShowcase) => set({ elecShowcase }),
 }));
 
 /** Convenience for non-React callers (e.g. layout guards). */

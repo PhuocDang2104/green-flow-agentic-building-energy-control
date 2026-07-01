@@ -21,6 +21,8 @@ export type ValidationMetric = "energy" | "power" | "temperature" | "setpoint" |
  * a few drive component-local state via the tutorialStore command bridge
  * (camera, validation metric/El-Niño, scripted agent preview).
  */
+export type ElectricalColorMode = "status" | "feeder" | "load";
+
 export type TutorialAction =
   | { type: "switchTab"; route: TutorialRoute }
   | { type: "setLayer"; layer: string; enabled: boolean }
@@ -30,11 +32,17 @@ export type TutorialAction =
   | { type: "selectZone"; zoneId?: string }
   | { type: "clearZone" }
   | { type: "setCamera"; preset: CameraPreset }
+  | { type: "showcaseLayers" }
   | { type: "openChatbot"; open: boolean }
   | { type: "startAgentPreview" }
   | { type: "stopAgentPreview" }
   | { type: "setValidationMetric"; metric: ValidationMetric }
-  | { type: "toggleElNino"; on: boolean };
+  | { type: "toggleElNino"; on: boolean }
+  // ---- electrical (tab 2) showcase bridge ----
+  | { type: "setElectricalColorMode"; mode: ElectricalColorMode }
+  | { type: "focusElectricalBoard"; which: "top" | "clear" }
+  | { type: "setElectricalLinks"; on: boolean }
+  | { type: "setElectricalShowcase"; on: boolean };
 
 export interface TutorialStep {
   id: string;
@@ -47,12 +55,17 @@ export interface TutorialStep {
   placement?: TutorialPlacement;
   /** small labelled chips under the body (e.g. "Air Quality", "Energy"). */
   chips?: string[];
+  /** a "try it" call-to-action shown in the panel for hands-on steps. */
+  hint?: string;
   /** run before the step is shown (navigation, layer toggles, etc.). */
   before?: TutorialAction[];
   /** run when leaving the step forward. */
   after?: TutorialAction[];
-  /** allow the spotlighted target to stay clickable (e.g. Run Optimization). */
-  allowInteraction?: boolean;
+  /**
+   * By default every anchored step is interactive: the spotlighted region stays
+   * fully usable. Set this to make a step read-only (block clicks on the target).
+   */
+  blockInteraction?: boolean;
 }
 
 export const CHAPTERS: { id: TutorialChapter; label: string; accent: string }[] = [

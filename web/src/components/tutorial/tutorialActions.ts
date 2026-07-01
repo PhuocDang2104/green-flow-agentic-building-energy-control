@@ -11,15 +11,39 @@ function pickDemoZone(): string | null {
   return office ?? keys[0];
 }
 
+// A running layer showcase is cancelled whenever new actions run (step change),
+// so its queued timers never fight the next step's layer setup.
+let showcaseToken = 0;
+function runLayerShowcase() {
+  const my = ++showcaseToken;
+  const app = useAppStore.getState();
+  const base = { architecture: false, spaces: false, fenestration: false };
+  const frames: Record<string, boolean>[] = [
+    { ...base, structural: true, electrical: false, hvac: false },
+    { ...base, structural: true, electrical: true, hvac: false },
+    { ...base, structural: true, electrical: true, hvac: true },
+    { ...base, structural: false, architecture: true, spaces: true, electrical: false, hvac: false },
+    { ...base, structural: true, electrical: true, hvac: true }, // settle: full technical stack
+  ];
+  frames.forEach((layers, i) => {
+    setTimeout(() => {
+      if (showcaseToken !== my) return; // superseded
+      app.setLayers(layers);
+    }, i * 1150);
+  });
+}
+
 /**
  * Interpret a step's before/after actions. Most reuse existing appStore
- * handlers; camera / validation / agent-preview go through the tutorialStore
- * command bridge. `navigate` is the router.push passed in from the provider.
+ * handlers; camera / validation / agent-preview / electrical-showcase go through
+ * the tutorialStore command bridge. `navigate` is router.push from the provider.
  */
 export function runTutorialActions(
   actions: TutorialAction[] | undefined,
   navigate: (route: string) => void,
 ): void {
+  // Any step transition cancels an in-flight layer showcase.
+  showcaseToken += 1;
   if (!actions?.length) return;
   const app = useAppStore.getState();
   const tut = useTutorialStore.getState();
@@ -52,6 +76,9 @@ export function runTutorialActions(
       case "setCamera":
         tut.setCameraPreset(action.preset);
         break;
+      case "showcaseLayers":
+        runLayerShowcase();
+        break;
       case "openChatbot":
         app.setChatbotOpen(action.open);
         break;
@@ -66,6 +93,18 @@ export function runTutorialActions(
         break;
       case "toggleElNino":
         tut.setElNinoOverride(action.on);
+        break;
+      case "setElectricalColorMode":
+        tut.setElecColorMode(action.mode);
+        break;
+      case "focusElectricalBoard":
+        tut.setElecFocusBoard(action.which);
+        break;
+      case "setElectricalLinks":
+        tut.setElecLinks(action.on);
+        break;
+      case "setElectricalShowcase":
+        tut.setElecShowcase(action.on);
         break;
     }
   }

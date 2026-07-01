@@ -1,27 +1,37 @@
 "use client";
 
+import { useEffect, useState } from "react";
 import { motion, useReducedMotion } from "motion/react";
-import { Check, ChevronRight, ShieldCheck } from "lucide-react";
+import { Check, ChevronRight, Loader2, ShieldCheck } from "lucide-react";
 import { SemanticMiniViewer } from "@/components/chatbot/InlineRunSteps";
+
+const NODES = [
+  { key: "semantic", tour: "simulation-agent-block", title: "Building Semantic Agent",
+    message: "Reading the current timestep — 308 zones, devices, abnormal findings and semantic-graph relationships." },
+  { key: "prediction", tour: "prediction-agent-block", title: "Prediction Agent",
+    message: "Forecasting demand, peak-load zones and comfort risk over the horizon." },
+  { key: "control", tour: "control-agent-block", title: "Control Agent",
+    message: "Building candidate control trajectories for the next 8 timesteps." },
+  { key: "policy", tour: "policy-engine-block", title: "Simulation & Policy Engine",
+    message: "Simulated the top-4 plans and checked risk constraints — 2 candidates passed." },
+];
 
 /**
  * Deterministic, canned agent execution timeline shown on /agent-actions while a
  * tutorial "optimization preview" is active. It mirrors the real InlineRunSteps
- * look but never calls any backend/execution endpoint — it exists purely so the
- * tour can spotlight each agent step. Carries the agent data-tour-id anchors.
+ * look but never calls any backend/execution endpoint. Nodes reveal one-by-one
+ * (a simulated run) so the tour genuinely "waits for the run to finish" before
+ * each anchor appears. Carries the agent data-tour-id anchors.
  */
 export default function TutorialAgentTimeline() {
   const reduce = useReducedMotion();
-  const nodes = [
-    { key: "semantic", tour: "simulation-agent-block", title: "Building Semantic Agent",
-      message: "Reading the current timestep — 308 zones, devices, abnormal findings and semantic-graph relationships." },
-    { key: "prediction", tour: "prediction-agent-block", title: "Prediction Agent",
-      message: "Forecasting demand, peak-load zones and comfort risk over the horizon." },
-    { key: "control", tour: "control-agent-block", title: "Control Agent",
-      message: "Building candidate control trajectories for the next 8 timesteps." },
-    { key: "policy", tour: "policy-engine-block", title: "Simulation & Policy Engine",
-      message: "Simulated the top-4 plans and checked risk constraints — 2 candidates passed." },
-  ];
+  const [revealed, setRevealed] = useState(0);
+  const done = revealed >= NODES.length;
+
+  useEffect(() => {
+    const timers = NODES.map((_, i) => setTimeout(() => setRevealed(i + 1), 500 + i * 750));
+    return () => timers.forEach(clearTimeout);
+  }, []);
 
   return (
     <div
@@ -30,20 +40,20 @@ export default function TutorialAgentTimeline() {
     >
       <div className="mb-2.5 flex items-center justify-between">
         <p className="text-[14px] font-semibold tracking-tight text-text-primary">Execution timeline</p>
-        <span className="rounded-full bg-teal-soft px-2.5 py-1 text-[11px] font-semibold text-teal">
-          preview
+        <span className={`rounded-full px-2.5 py-1 text-[11px] font-semibold ${done ? "bg-teal-soft text-teal" : "bg-warning/15 text-warning"}`}>
+          {done ? "preview" : "running…"}
         </span>
       </div>
 
       <div className="relative">
         <div className="absolute bottom-2 left-[13px] top-2 w-px bg-slate-200" />
-        {nodes.map((n, i) => (
+        {NODES.slice(0, revealed).map((n) => (
           <motion.div
             key={n.key}
             data-tour-id={n.tour}
             initial={reduce ? false : { opacity: 0, y: 6 }}
             animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.28, delay: reduce ? 0 : i * 0.28 }}
+            transition={{ duration: 0.28 }}
             className="relative mb-2.5 pl-9"
           >
             <span className="absolute left-0 top-1 z-10 grid h-7 w-7 place-items-center rounded-full bg-success text-white">
@@ -59,9 +69,17 @@ export default function TutorialAgentTimeline() {
             </div>
           </motion.div>
         ))}
+        {!done && (
+          <div className="relative flex items-center gap-2 pl-9 text-[11px] text-text-muted">
+            <span className="absolute left-1 top-0.5 grid h-6 w-6 place-items-center rounded-full bg-white text-teal ring-1 ring-teal/25">
+              <Loader2 className="h-3.5 w-3.5 animate-spin" />
+            </span>
+            reasoning…
+          </div>
+        )}
       </div>
 
-      <ApprovalQueuePreview />
+      {done && <ApprovalQueuePreview />}
     </div>
   );
 }

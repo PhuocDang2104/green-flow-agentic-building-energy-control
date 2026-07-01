@@ -3,7 +3,7 @@
 import { CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "motion/react";
-import { ArrowLeft, ArrowRight, RotateCcw, Sparkles, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Loader2, MousePointerClick, RotateCcw, Sparkles, X } from "lucide-react";
 import { CHAPTERS, type TutorialStep } from "./types";
 
 const GAP = 16;
@@ -15,6 +15,7 @@ export default function TutorialPanel({
   index,
   total,
   rect,
+  pending,
   reduceMotion,
   onBack,
   onNext,
@@ -26,6 +27,7 @@ export default function TutorialPanel({
   index: number;
   total: number;
   rect: DOMRect | null;
+  pending: boolean;
   reduceMotion: boolean;
   onBack: () => void;
   onNext: () => void;
@@ -36,7 +38,7 @@ export default function TutorialPanel({
   const ref = useRef<HTMLDivElement>(null);
   const nextRef = useRef<HTMLButtonElement>(null);
   const [pos, setPos] = useState<{ left: number; top: number } | null>(null);
-  const centered = !rect || step.placement === "center";
+  const centered = pending || !rect || step.placement === "center";
 
   const chapter = CHAPTERS.find((c) => c.id === step.chapter)!;
   const isFirst = index === 0;
@@ -70,7 +72,28 @@ export default function TutorialPanel({
   }, [rect, step.placement, step.id, centered]);
 
   // focus the primary action when the step changes
-  useLayoutEffect(() => { nextRef.current?.focus(); }, [step.id]);
+  useLayoutEffect(() => { if (!pending) nextRef.current?.focus(); }, [step.id, pending]);
+
+  // While the page/run settles, show a small centered "preparing" card so the
+  // spotlight only appears once the target is actually ready.
+  if (pending) {
+    return createPortal(
+      <div
+        data-gf-tutorial-panel
+        role="status"
+        className="pointer-events-auto fixed left-1/2 top-1/2 z-[10000] flex -translate-x-1/2 -translate-y-1/2 items-center gap-2.5 rounded-card border bg-white px-4 py-3 shadow-floating"
+        style={{ borderColor: "rgba(10,125,95,0.16)" }}
+      >
+        <Loader2 size={16} className="animate-spin text-teal" />
+        <span className="text-[13px] font-medium text-text-secondary">Preparing this view…</span>
+        <button onClick={onSkip} aria-label="Exit tutorial"
+          className="ml-1 grid h-6 w-6 place-items-center rounded-full text-text-muted transition hover:bg-surface-muted hover:text-text-primary">
+          <X size={14} />
+        </button>
+      </div>,
+      document.body,
+    );
+  }
 
   const style: CSSProperties = centered
     ? { left: "50%", top: "50%", transform: "translate(-50%, -50%)", width: PANEL_W }
@@ -87,7 +110,7 @@ export default function TutorialPanel({
       initial={reduceMotion ? false : { opacity: 0, y: 8, scale: 0.98 }}
       animate={{ opacity: 1, y: 0, scale: 1 }}
       transition={{ duration: 0.22, ease: [0.22, 1, 0.36, 1] }}
-      className="pointer-events-auto fixed z-[9999] max-w-[calc(100vw-24px)] overflow-hidden rounded-card border bg-white shadow-floating"
+      className="pointer-events-auto fixed z-[10000] max-w-[calc(100vw-24px)] overflow-hidden rounded-card border bg-white shadow-floating"
       style={{ ...style, borderColor: "rgba(10,125,95,0.16)" }}
     >
       {/* accent header strip */}
@@ -132,6 +155,13 @@ export default function TutorialPanel({
                 {chip}
               </span>
             ))}
+          </div>
+        )}
+
+        {step.hint && (
+          <div className="mt-3 flex items-center gap-2 rounded-lg border border-teal/25 bg-teal-soft/70 px-2.5 py-1.5 text-[11.5px] font-medium text-teal">
+            <MousePointerClick size={14} className="shrink-0" />
+            <span>{step.hint}</span>
           </div>
         )}
 

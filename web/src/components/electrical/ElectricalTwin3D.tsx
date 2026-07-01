@@ -289,7 +289,7 @@ function LoadPoints({ loads }: { loads: any[] }) {
 
 export default function ElectricalTwin3D({
   scene, colorMode = "status", show, floors, zoneTypes, loadKinds,
-  selectedId, onSelect, focusBoard, className,
+  selectedId, onSelect, focusBoard, className, autoRotate = false,
 }: {
   scene: any;
   colorMode?: ColorMode;
@@ -301,6 +301,7 @@ export default function ElectricalTwin3D({
   onSelect?: (e: any | null) => void;
   focusBoard?: string | null;   // when set: isolate this board's links/zones/loads
   className?: string;
+  autoRotate?: boolean;         // gentle orbit for the tutorial showcase
 }) {
   const vis = { boards: true, links: true, floors: true, ...show };
 
@@ -380,6 +381,7 @@ export default function ElectricalTwin3D({
           dim={!!focusBoard} onPick={(e) => onSelect?.(e)} />}
 
         <OrbitControls makeDefault enableDamping dampingFactor={0.08}
+          autoRotate={autoRotate} autoRotateSpeed={0.55}
           maxPolarAngle={Math.PI / 2.05} minDistance={r * 0.4} maxDistance={cam * 5}
           target={[0, prepped.bounds?.height ? prepped.bounds.height / 2 : 8, 0]} />
       </Canvas>

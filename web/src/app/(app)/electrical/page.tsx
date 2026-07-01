@@ -10,6 +10,7 @@ import EnergyAnalyticsSection from "@/components/dashboard/EnergyAnalyticsSectio
 import { api } from "@/lib/api";
 import { fmtKw, fmtKwh, titleCase } from "@/lib/format";
 import type { ColorMode } from "@/components/electrical/ElectricalTwin3D";
+import { useTutorialStore } from "@/components/tutorial/tutorialStore";
 
 const Twin3D = dynamic(() => import("@/components/electrical/ElectricalTwin3D"), {
   ssr: false,
@@ -77,6 +78,22 @@ export default function ElectricalPage() {
   const [zoneSel, setZoneSel] = useState<Set<string>>(new Set());
   const [loadSel, setLoadSel] = useState<Set<string>>(new Set(["lighting", "plug", "alarm"]));
   const [openMenu, setOpenMenu] = useState<string | null>(null);
+
+  // Tutorial Mode drives the electrical showcase (color mode, board focus, links,
+  // gentle auto-rotate) so the tour can demonstrate distribution + heatmaps.
+  const tElecColor = useTutorialStore((s) => s.elecColorMode);
+  const tElecFocus = useTutorialStore((s) => s.elecFocusBoard);
+  const tElecLinks = useTutorialStore((s) => s.elecLinks);
+  const tElecShowcase = useTutorialStore((s) => s.elecShowcase);
+  useEffect(() => { if (tElecColor) setColorMode(tElecColor); }, [tElecColor]);
+  useEffect(() => { if (tElecLinks !== null) setLayers((l) => ({ ...l, links: tElecLinks })); }, [tElecLinks]);
+  useEffect(() => {
+    if (tElecFocus === "clear") { setSelected(null); return; }
+    if (tElecFocus === "top" && boards.length) {
+      const top = [...boards].sort((a, b) => (f(b.peak_total_kw) ?? 0) - (f(a.peak_total_kw) ?? 0))[0];
+      if (top) setSelected({ type: "board", id: top.board_id, tag: top.device_tag, ...top });
+    }
+  }, [tElecFocus, boards]);
 
   useEffect(() => {
     api.elecOverview().then(setOverview).catch((e) => setErr(String(e)));
@@ -150,7 +167,7 @@ export default function ElectricalPage() {
             {scene ? (
               <Twin3D scene={scene} colorMode={colorMode}
                 show={layers} floors={floorSel} zoneTypes={zoneSel} loadKinds={loadSel}
-                selectedId={selected?.id}
+                selectedId={selected?.id} autoRotate={tElecShowcase}
                 focusBoard={selected?.type === "board" ? selected.id : null}
                 onSelect={(e) => setSelected(e)} />
             ) : (
