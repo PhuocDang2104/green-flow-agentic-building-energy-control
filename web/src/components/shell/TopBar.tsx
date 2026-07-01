@@ -1,6 +1,7 @@
 import LiveClock from "./LiveClock";
 import SearchBar from "./SearchBar";
 import UserMenu from "./UserMenu";
+import TutorialEntryButton from "@/components/tutorial/TutorialEntryButton";
 
 export default function TopBar() {
   return (
@@ -21,7 +22,8 @@ export default function TopBar() {
           <SearchBar />
         </div>
 
-        {/* right: virtual clock + user menu */}
+        {/* right: tutorial + virtual clock + user menu */}
+        <TutorialEntryButton />
         <LiveClock />
         <UserMenu />
       </div>

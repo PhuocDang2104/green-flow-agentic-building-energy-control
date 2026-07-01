@@ -208,7 +208,7 @@ export default function ClimateScenarioSection() {
     : Math.min(0.4, 0.1 + Math.max(0, heatIndex - 30) / 38);
 
   return (
-    <section className="mt-4" aria-labelledby="weather-heading">
+    <section data-tour-id="weather-context-panel" className="mt-4" aria-labelledby="weather-heading">
       <div className="mb-3 flex flex-wrap items-center justify-between gap-2">
         <div className="flex items-center gap-2">
           <CloudSun size={16} className="text-teal" />

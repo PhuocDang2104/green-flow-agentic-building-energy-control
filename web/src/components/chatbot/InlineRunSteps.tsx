@@ -142,7 +142,7 @@ function PredictionBlock({ st }: { st: any }) {
   );
 }
 
-function SemanticMiniViewer() {
+export function SemanticMiniViewer() {
   const canvasRef = useRef<HTMLCanvasElement | null>(null);
   const viewerRef = useRef<any>(null);
   const modelsRef = useRef<Record<string, any>>({});

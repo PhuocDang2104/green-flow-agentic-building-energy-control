@@ -17,6 +17,7 @@ import { MANIFEST_URL } from "@/lib/constants";
 import type { ObjectMapEntry, ViewerManifest } from "@/lib/types";
 import { api } from "@/lib/api";
 import { useAppStore } from "@/stores/appStore";
+import { useTutorialStore } from "@/components/tutorial/tutorialStore";
 import { usePollMs } from "@/hooks/usePollMs";
 import LayerPanel from "./LayerPanel";
 import AnalysisBar from "./AnalysisBar";
@@ -109,6 +110,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const viewerUpdates = useAppStore((s) => s.viewerUpdates);
   const selectEntity = useAppStore((s) => s.selectEntity);
   const setLayers = useAppStore((s) => s.setLayers);
+  const tutorialCameraPreset = useTutorialStore((s) => s.cameraPreset);
   const pollMs = usePollMs(15000);
 
   // --- init viewer once ---------------------------------------------------
@@ -606,8 +608,30 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     return () => el.removeEventListener("wheel", onWheel);
   }, []);
 
+  // --- tutorial camera bridge: fly to a preset requested by Tutorial Mode -----
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !ready || !tutorialCameraPreset) return;
+    if (tutorialCameraPreset === "zone-focus" && selectedEntityKey) {
+      const hit = Object.entries(objectMapRef.current)
+        .find(([, e]) => e.entity_key === selectedEntityKey);
+      const aabb = normalizeAABB(hit ? viewer.scene.objects[hit[0]]?.aabb : null);
+      if (aabb) {
+        const [xmin, ymin, zmin, xmax, ymax, zmax] = aabb;
+        const cx = (xmin + xmax) / 2, cy = (ymin + ymax) / 2, cz = (zmin + zmax) / 2;
+        const diag = Math.max(4, Math.hypot(xmax - xmin, ymax - ymin, zmax - zmin));
+        viewer.cameraFlight.flyTo({
+          eye: [cx + diag * 1.5, cy + diag * 1.15, cz + diag * 1.7],
+          look: [cx, cy, cz], up: [0, 1, 0], duration: 1.1,
+        });
+        return;
+      }
+    }
+    flyToStructurePresentationView(viewer, objectMapRef.current, modelsRef.current, 1.1);
+  }, [tutorialCameraPreset, ready, selectedEntityKey]);
+
   return (
-    <div ref={wrapRef} className={`relative w-full overflow-hidden rounded-card border border-border bg-gradient-to-b from-slate-50 to-white ${heightClass}`}>
+    <div ref={wrapRef} data-tour-id="digital-twin-viewer" className={`relative w-full overflow-hidden rounded-card border border-border bg-gradient-to-b from-slate-50 to-white ${heightClass}`}>
       <canvas ref={canvasRef} className="viewer-canvas" />
       {!ready && !error && (
         <div className="absolute inset-0 grid place-items-center">

@@ -43,7 +43,7 @@ export default function AnalysisBar() {
   const setMetric = useAppStore((s) => s.setMetric);
 
   return (
-    <div className="pointer-events-none absolute bottom-3 right-3 flex max-w-[calc(100%-1.5rem)] flex-col items-end gap-2">
+    <div data-tour-id="system-heatmaps" className="pointer-events-none absolute bottom-3 right-3 flex max-w-[calc(100%-1.5rem)] flex-col items-end gap-2">
       {layers.electrical && (
         <div className="pointer-events-auto">
           <HeatmapChip layer="electrical" label="Electrical % Load" ramp={["#22c55e", "#eab308", "#ef4444"]} />

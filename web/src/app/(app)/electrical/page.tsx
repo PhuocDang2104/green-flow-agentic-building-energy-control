@@ -146,7 +146,7 @@ export default function ElectricalPage() {
       {/* ===== 3D TWIN ===== */}
       <Reveal>
         <div className="grid gap-4 xl:grid-cols-[1fr_340px]">
-          <div className="card relative overflow-hidden p-0" style={{ height: 620 }}>
+          <div data-tour-id="electrical-graph-canvas" className="card relative overflow-hidden p-0" style={{ height: 620 }}>
             {scene ? (
               <Twin3D scene={scene} colorMode={colorMode}
                 show={layers} floors={floorSel} zoneTypes={zoneSel} loadKinds={loadSel}
@@ -170,7 +170,7 @@ export default function ElectricalPage() {
                   </button>
                 ))}
               </div>
-              <div className="pointer-events-auto flex flex-wrap items-start justify-end gap-1.5">
+              <div data-tour-id="electrical-filter-controls" className="pointer-events-auto flex flex-wrap items-start justify-end gap-1.5">
                 <FilterMenu id="floors" label="Floors" icon={Layers}
                   options={floorOpts} selected={floorSel}
                   open={openMenu === "floors"} setOpen={(o) => setOpenMenu(o ? "floors" : null)}
@@ -221,7 +221,9 @@ export default function ElectricalPage() {
           </div>
 
           {/* inspector */}
-          <Inspector selected={selected} boards={boards} />
+          <div data-tour-id="electrical-node-inspector">
+            <Inspector selected={selected} boards={boards} />
+          </div>
         </div>
       </Reveal>
 

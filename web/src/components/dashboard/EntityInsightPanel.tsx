@@ -31,7 +31,7 @@ export default function EntityInsightPanel() {
 
   if (!selectedEntityKey) {
     return (
-      <div className="card h-full px-5 py-4">
+      <div data-tour-id="zone-inspector" className="card h-full px-5 py-4">
         <h3 className="text-sm font-semibold">Inspector</h3>
         <EmptyState
           title="Select a zone in the 3D view"
@@ -45,7 +45,7 @@ export default function EntityInsightPanel() {
   const st = live || entity?.latest_state;
 
   return (
-    <div className="card flex h-full flex-col gap-3 overflow-y-auto px-5 py-4">
+    <div data-tour-id="zone-inspector" className="card flex h-full flex-col gap-3 overflow-y-auto px-5 py-4">
       <div className="flex items-start justify-between">
         <div>
           <h3 className="text-sm font-semibold leading-snug">
@@ -87,7 +87,7 @@ export default function EntityInsightPanel() {
           </div>
 
           {entity.cameras?.some((c: Camera) => c.video_source) && (
-            <div>
+            <div data-tour-id="cctv-occupancy-preview">
               <h4 className="mb-1.5 text-xs font-semibold text-text-secondary">
                 CCTV occupancy feed
               </h4>

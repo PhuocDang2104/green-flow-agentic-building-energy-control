@@ -9,6 +9,7 @@ import { BarChart3, CalendarDays, Info, Loader2, Sun, Zap } from "lucide-react";
 import { motion } from "motion/react";
 import { api } from "@/lib/api";
 import { fmtVnd } from "@/lib/format";
+import { useTutorialStore } from "@/components/tutorial/tutorialStore";
 
 type WhatIfData = Awaited<ReturnType<typeof api.whatifCache>>;
 type DateRange = { start: string; end: string };
@@ -431,6 +432,12 @@ export default function CampaignWhatIf() {
   const [error, setError] = useState<string | null>(null);
   const [showElNino, setShowElNino] = useState(true);
 
+  // Tutorial Mode can drive the metric + El-Niño overlay from its step actions.
+  const tutorialMetric = useTutorialStore((s) => s.validationMetric);
+  const tutorialElNino = useTutorialStore((s) => s.elNinoOverride);
+  useEffect(() => { if (tutorialMetric) setMetricId(tutorialMetric); }, [tutorialMetric]);
+  useEffect(() => { if (tutorialElNino !== null) setShowElNino(tutorialElNino); }, [tutorialElNino]);
+
   const run = useCallback(() => {
     const selected = clampRange(dateFrom, dateTo);
     setLoading(true);
@@ -527,7 +534,7 @@ export default function CampaignWhatIf() {
         </div>
       ) : (
         <>
-          <div className="mt-3 grid items-stretch gap-2.5 xl:grid-cols-[1.45fr_1fr]">
+          <div data-tour-id="validation-summary-cards" className="mt-3 grid items-stretch gap-2.5 xl:grid-cols-[1.45fr_1fr]">
             <MetricComparisonCard
               index={0}
               metric={metric}
@@ -555,6 +562,7 @@ export default function CampaignWhatIf() {
                 <MetricHelp text="Choose which baseline-vs-AI time-series metric to inspect. The visual style stays consistent across metrics." />
               </div>
               <select
+                data-tour-id="validation-metric-selector"
                 value={metricId}
                 onChange={(event) => setMetricId(event.target.value)}
                 className="min-w-[250px] rounded-lg border border-teal/30 bg-white px-3 py-2 text-[13px] font-semibold text-text-primary shadow-sm outline-none transition focus:border-teal focus:ring-2 focus:ring-teal/15"
@@ -563,7 +571,7 @@ export default function CampaignWhatIf() {
                   <option key={m.id} value={m.id}>{m.label}</option>
                 ))}
               </select>
-              <label className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-amber-300/70 bg-amber-50/70 px-2.5 py-2 text-[12px] font-medium text-amber-800 transition hover:bg-amber-50">
+              <label data-tour-id="validation-el-nino-toggle" className="flex cursor-pointer items-center gap-1.5 rounded-lg border border-amber-300/70 bg-amber-50/70 px-2.5 py-2 text-[12px] font-medium text-amber-800 transition hover:bg-amber-50">
                 <input type="checkbox" checked={showElNino}
                        onChange={(event) => setShowElNino(event.target.checked)}
                        className="h-3.5 w-3.5 accent-amber-500" />
@@ -581,7 +589,7 @@ export default function CampaignWhatIf() {
               </div>
             </div>
           </div>
-          <div className="mt-2 h-[260px]">
+          <div data-tour-id="validation-timeseries-chart" className="mt-2 h-[260px]">
             {chartData.length ? (
               <ResponsiveContainer width="100%" height="100%">
                 <ComposedChart data={chartData} margin={{ top: 6, right: 10, bottom: 0, left: 8 }}>

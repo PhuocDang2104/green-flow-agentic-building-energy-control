@@ -17,6 +17,8 @@ import { useAgentRun } from "@/hooks/useAgentRun";
 import { api } from "@/lib/api";
 import { displayPromptInEnglish } from "@/lib/constants";
 import type { ActionItem, Approval, ChatSessionSummary } from "@/lib/types";
+import TutorialAgentTimeline from "@/components/tutorial/TutorialAgentTimeline";
+import { useTutorialStore } from "@/components/tutorial/tutorialStore";
 
 /** One glanceable stat for the status line (plain inline, no card). The value
  *  springs in when it changes; `live` adds a pulsing dot for real running state. */
@@ -130,6 +132,12 @@ export default function AgentActionsPage() {
   const activeSession = sessions.find((s) => s.id === sessionId) || null;
   const pending = approvals.length;
 
+  // Tutorial Mode: show a scripted, deterministic agent timeline instead of a
+  // real run, and never fire the live optimization endpoint during a tour.
+  const tutorialActive = useTutorialStore((s) => s.status === "running");
+  const agentPreview = useTutorialStore((s) => s.agentPreview);
+  const setAgentPreview = useTutorialStore((s) => s.setAgentPreview);
+
   return (
     <div className="pb-4">
       <PageHeader
@@ -140,8 +148,8 @@ export default function AgentActionsPage() {
                     onClick={() => triggerRun("run_prediction")}>
               <TrendingUp size={15} /> Run Prediction
             </button>
-            <button className="btn-primary" disabled={running}
-                    onClick={() => triggerRun("run_optimization")}>
+            <button data-tour-id="run-optimization-button" className="btn-primary" disabled={running}
+                    onClick={() => (tutorialActive ? setAgentPreview(true) : triggerRun("run_optimization"))}>
               {running ? <Loader2 size={15} className="animate-spin" /> : <Play size={15} />}
               Run Optimization
             </button>
@@ -159,7 +167,7 @@ export default function AgentActionsPage() {
       {/* three purposeful zones: sessions, conversation, actions */}
       <div className="grid gap-4 lg:grid-cols-[208px_1fr_384px]">
         {/* sessions */}
-        <aside className="card-elevated flex h-[200px] flex-col p-0 lg:h-[640px]">
+        <aside data-tour-id="agent-session-list" className="card-elevated flex h-[200px] flex-col p-0 lg:h-[640px]">
           <div className="flex items-center justify-between border-b border-border/70 px-3.5 py-3">
             <span className="text-[13px] font-semibold tracking-tight">Sessions</span>
             <button onClick={() => setSessionId(null)} title="New session"
@@ -193,7 +201,7 @@ export default function AgentActionsPage() {
         </aside>
 
         {/* conversation (hero): chat with agent run traces streaming inline */}
-        <section className="card-elevated flex h-[560px] flex-col p-0 lg:h-[640px]">
+        <section data-tour-id="agent-main-chat" className="card-elevated flex h-[560px] flex-col p-0 lg:h-[640px]">
           <div className="flex items-center gap-2.5 border-b border-border/70 px-4 py-3.5">
             <span className="grid h-8 w-8 place-items-center rounded-full bg-teal text-white shadow-[0_4px_12px_-4px_rgba(13,148,136,0.5)]">
               <Bot size={16} />
@@ -211,8 +219,14 @@ export default function AgentActionsPage() {
               </p>
             </div>
           </div>
-          <ChatThread sessionId={sessionId} onSessionId={onSessionId}
-            runEvent={chatRunEvent} />
+          {agentPreview ? (
+            <div className="flex-1 overflow-y-auto p-3">
+              <TutorialAgentTimeline />
+            </div>
+          ) : (
+            <ChatThread sessionId={sessionId} onSessionId={onSessionId}
+              runEvent={chatRunEvent} />
+          )}
         </section>
 
         {/* actions */}

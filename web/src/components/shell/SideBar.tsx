@@ -9,10 +9,10 @@ import {
 import { useAppStore } from "@/stores/appStore";
 
 const MAIN = [
-  { href: "/dashboard", label: "Dashboard & 3D View", icon: Boxes },
-  { href: "/electrical", label: "Electrical Graph", icon: Zap },
-  { href: "/agent-actions", label: "Agents & Actions", icon: Bot },
-  { href: "/simulation-baseline", label: "Validation", icon: FlaskConical },
+  { href: "/dashboard", label: "Dashboard & 3D View", icon: Boxes, tourId: "nav-dashboard-3d" },
+  { href: "/electrical", label: "Electrical Graph", icon: Zap, tourId: "nav-electrical-graph" },
+  { href: "/agent-actions", label: "Agents & Actions", icon: Bot, tourId: "nav-agents-actions" },
+  { href: "/simulation-baseline", label: "Validation", icon: FlaskConical, tourId: "nav-validation" },
 ];
 
 const BOTTOM = [
@@ -24,11 +24,12 @@ export default function SideBar() {
   const pathname = usePathname();
   const setChatbotOpen = useAppStore((s) => s.setChatbotOpen);
 
-  const NavItem = ({ href, label, icon: Icon }: { href: string; label: string; icon: any }) => {
+  const NavItem = ({ href, label, icon: Icon, tourId }: { href: string; label: string; icon: any; tourId?: string }) => {
     const active = pathname?.startsWith(href);
     return (
       <Link
         href={href}
+        data-tour-id={tourId}
         className={`group flex items-center gap-3 rounded-xl px-3 py-2.5 text-[13px] font-medium transition
           ${active ? "bg-teal-soft text-teal" : "text-text-secondary hover:bg-surface-muted hover:text-text-primary"}`}
       >

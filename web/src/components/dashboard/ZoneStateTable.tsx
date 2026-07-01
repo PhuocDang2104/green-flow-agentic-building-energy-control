@@ -141,7 +141,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
   };
 
   return (
-    <section className="card overflow-hidden" aria-labelledby="zone-state-heading">
+    <section data-tour-id="zone-state-table" className="card overflow-hidden" aria-labelledby="zone-state-heading">
       <div className="border-b border-border px-5 py-2.5">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div>

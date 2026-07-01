@@ -21,13 +21,13 @@ function LayerRow({ layer, label, onColor }: { layer: string; label?: string; on
 
 export default function LayerPanel() {
   return (
-    <div className="absolute left-3 top-3 w-52 rounded-2xl border border-border bg-white/95 p-3 shadow-card backdrop-blur">
+    <div data-tour-id="digital-twin-layers" className="absolute left-3 top-3 w-52 rounded-2xl border border-border bg-white/95 p-3 shadow-card backdrop-blur">
       <div className="mb-1.5 flex items-center gap-1.5 text-xs font-semibold text-text-secondary">
         <Layers size={13} /> Layers
       </div>
 
       {/* Group 1 — Technical Systems */}
-      <div className="rounded-xl border border-border/70 p-1.5">
+      <div data-tour-id="layer-technical-systems" className="rounded-xl border border-border/70 p-1.5">
         <div className="mb-0.5 flex items-center gap-1.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-text-muted">
           <Cpu size={11} /> Technical Systems
         </div>
@@ -37,7 +37,7 @@ export default function LayerPanel() {
       </div>
 
       {/* Group 2 — Spatial / Zone Analytics */}
-      <div className="mt-2 rounded-xl border border-border/70 p-1.5">
+      <div data-tour-id="layer-spatial-analytics" className="mt-2 rounded-xl border border-border/70 p-1.5">
         <div className="mb-0.5 flex items-center gap-1.5 px-1 text-[10px] font-semibold uppercase tracking-wide text-text-muted">
           <Boxes size={11} /> Spatial / Zone Analytics
         </div>

@@ -129,7 +129,7 @@ export default function EnergyAnalyticsSection() {
     : `${Number(cost).toLocaleString("vi-VN")} ₫`;
 
   return (
-    <section className="mt-4">
+    <section data-tour-id="electrical-kpis" className="mt-4">
       <div className="mb-3 flex items-center gap-2">
         <Zap size={16} className="text-teal" />
         <h2 className="text-sm font-semibold">Energy &amp; performance analytics</h2>

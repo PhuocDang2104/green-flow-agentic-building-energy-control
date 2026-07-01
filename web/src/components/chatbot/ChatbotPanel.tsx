@@ -61,6 +61,7 @@ export default function ChatbotPanel() {
     const bot = BOT_STATES[botIndex];
     return (
       <button
+        data-tour-id="ai-chatbot-launcher"
         onClick={() => setOpen(true)}
         onMouseEnter={() => setBotHover(true)}
         onMouseLeave={() => setBotHover(false)}
@@ -84,7 +85,7 @@ export default function ChatbotPanel() {
   }
 
   return (
-    <div className="fixed bottom-5 right-5 z-50 flex h-[600px] w-[400px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-card border border-border bg-white shadow-floating">
+    <div data-tour-id="ai-chatbot-panel" className="fixed bottom-5 right-5 z-50 flex h-[600px] w-[400px] max-w-[calc(100vw-2rem)] flex-col overflow-hidden rounded-card border border-border bg-white shadow-floating">
       <div className="flex items-center justify-between border-b border-border bg-teal-soft px-4 py-3">
         <div className="flex items-center gap-2">
           <img

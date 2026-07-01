@@ -41,7 +41,7 @@ export default function SimulationBaselinePage() {
                 <FileDown size={15} /> Open PDF
               </a>
             )}
-            <button onClick={downloadReport} disabled={reportBusy} className="btn-primary">
+            <button data-tour-id="building-semantic-report-button" onClick={downloadReport} disabled={reportBusy} className="btn-primary">
               {reportBusy ? <Loader2 size={15} className="animate-spin" /> : <FileDown size={15} />}
               {reportBusy ? "Generating..." : "Building Semantic Report"}
             </button>
