@@ -201,11 +201,11 @@ def _building_semantic_md(state: GreenFlowState) -> str:
 
     md += "\n## Priority findings and risk register\n\n"
     if findings:
-        md += "| Priority | Severity | Finding | Evidence | Recommended action |\n"
-        md += "|---|---|---|---|---|\n"
         for idx, f in enumerate(sorted(findings, key=lambda x: _severity_rank(x.get("severity")))[:12], 1):
-            md += (f"| {idx} | {_cell(f.get('severity'))} | {_cell(f.get('finding_type'))} | "
-                   f"{_cell(f.get('detail'), 70)} | {_cell(_recommendation_for_finding(f), 72)} |\n")
+            md += (f"### {idx}. {_cell(f.get('finding_type'))} "
+                   f"({_cell(f.get('severity'))})\n\n"
+                   f"- Evidence: {_cell(f.get('detail'), 260)}\n"
+                   f"- Recommended action: {_recommendation_for_finding(f)}\n\n")
     else:
         md += "- No abnormal findings at the latest backend replay anchor.\n"
 
