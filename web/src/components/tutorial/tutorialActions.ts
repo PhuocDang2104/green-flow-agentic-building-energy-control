@@ -1,6 +1,6 @@
 import { useAppStore } from "@/stores/appStore";
 import { useTutorialStore } from "./tutorialStore";
-import type { TutorialAction } from "./types";
+import type { CameraPreset, TutorialAction } from "./types";
 
 /** Pick a stable live zone to demo (prefer an office-like zone, else the first). */
 function pickDemoZone(): string | null {
@@ -17,19 +17,41 @@ let showcaseToken = 0;
 function runLayerShowcase() {
   const my = ++showcaseToken;
   const app = useAppStore.getState();
-  const base = { architecture: false, spaces: false, fenestration: false };
-  const frames: Record<string, boolean>[] = [
-    { ...base, structural: true, electrical: false, hvac: false },
-    { ...base, structural: true, electrical: true, hvac: false },
-    { ...base, structural: true, electrical: true, hvac: true },
-    { ...base, structural: false, architecture: true, spaces: true, electrical: false, hvac: false },
-    { ...base, structural: true, electrical: true, hvac: true }, // settle: full technical stack
+  const tut = useTutorialStore.getState();
+  const frames: Array<{ layers: Record<string, boolean>; camera: CameraPreset }> = [
+    {
+      // Start by removing the structural shell, then rebuild the mental model
+      // through visible discipline layers. This keeps the showcase from looking
+      // like a static structural view with boxes ticking on top.
+      layers: { architecture: true, spaces: false, fenestration: true, structural: false, electrical: false, hvac: false },
+      camera: "layer-architecture",
+    },
+    {
+      layers: { architecture: true, spaces: false, fenestration: true, structural: false, electrical: true, hvac: false },
+      camera: "layer-electrical",
+    },
+    {
+      layers: { architecture: true, spaces: false, fenestration: true, structural: false, electrical: false, hvac: true },
+      camera: "layer-hvac",
+    },
+    {
+      layers: { architecture: false, spaces: true, fenestration: false, structural: false, electrical: false, hvac: false },
+      camera: "layer-spaces",
+    },
+    {
+      layers: { architecture: true, spaces: true, fenestration: true, structural: false, electrical: true, hvac: true },
+      camera: "technical-stack",
+    },
   ];
-  frames.forEach((layers, i) => {
+  app.setTechHeatmap("electrical", false);
+  app.setTechHeatmap("hvac", false);
+  app.setMetric("none");
+  frames.forEach((frame, i) => {
     setTimeout(() => {
       if (showcaseToken !== my) return; // superseded
-      app.setLayers(layers);
-    }, i * 1150);
+      app.setLayers(frame.layers);
+      tut.setCameraPreset(frame.camera);
+    }, i * 1250);
   });
 }
 

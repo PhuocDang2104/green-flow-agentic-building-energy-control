@@ -627,7 +627,13 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
         return;
       }
     }
-    flyToStructurePresentationView(viewer, objectMapRef.current, modelsRef.current, 1.1);
+    flyToTutorialCameraPreset(
+      viewer,
+      objectMapRef.current,
+      modelsRef.current,
+      tutorialCameraPreset,
+      1.1,
+    );
   }, [tutorialCameraPreset, ready, selectedEntityKey]);
 
   return (
@@ -708,6 +714,63 @@ function flyToStructurePresentationView(
   viewer.cameraFlight.flyTo({
     eye: [cx + diag * 0.52, cy + Math.max(34, dy * 1.12), cz + diag * 0.72],
     look: [cx + dx * 0.03, cy + dy * 0.1, cz],
+    up: [0, 1, 0],
+    duration,
+  });
+}
+
+function flyToTutorialCameraPreset(
+  viewer: any,
+  objectMap: Record<string, ObjectMapEntry>,
+  models: Record<string, any>,
+  preset: string,
+  duration = 0.9,
+) {
+  if (preset === "building-overview" || preset === "zone-focus") {
+    flyToStructurePresentationView(viewer, objectMap, models, duration);
+    return;
+  }
+
+  const aabb = getBuildingAABB(viewer, objectMap, models);
+  if (!aabb) return;
+
+  const [xmin, ymin, zmin, xmax, ymax, zmax] = aabb;
+  const dx = Math.max(1, xmax - xmin);
+  const dy = Math.max(1, ymax - ymin);
+  const dz = Math.max(1, zmax - zmin);
+  const cx = (xmin + xmax) / 2;
+  const cy = (ymin + ymax) / 2;
+  const cz = (zmin + zmax) / 2;
+  const diag = Math.hypot(dx, dy, dz);
+  const lift = (v: number) => cy + Math.max(26, dy * v);
+
+  const views: Record<string, { eye: [number, number, number]; look: [number, number, number] }> = {
+    "layer-architecture": {
+      eye: [cx + diag * 0.62, lift(0.86), cz + diag * 0.92],
+      look: [cx + dx * 0.03, cy + dy * 0.12, cz],
+    },
+    "layer-electrical": {
+      eye: [cx - diag * 0.48, lift(0.54), cz + diag * 0.78],
+      look: [cx + dx * 0.05, cy + dy * 0.18, cz - dz * 0.02],
+    },
+    "layer-hvac": {
+      eye: [cx + diag * 0.74, lift(0.78), cz - diag * 0.5],
+      look: [cx - dx * 0.04, cy + dy * 0.2, cz],
+    },
+    "layer-spaces": {
+      eye: [cx + diag * 0.34, lift(0.42), cz + diag * 0.5],
+      look: [cx, cy + dy * 0.2, cz],
+    },
+    "technical-stack": {
+      eye: [cx - diag * 0.58, lift(0.72), cz + diag * 0.66],
+      look: [cx, cy + dy * 0.18, cz],
+    },
+  };
+
+  const view = views[preset] ?? views["technical-stack"];
+  viewer.cameraFlight.flyTo({
+    eye: view.eye,
+    look: view.look,
     up: [0, 1, 0],
     duration,
   });

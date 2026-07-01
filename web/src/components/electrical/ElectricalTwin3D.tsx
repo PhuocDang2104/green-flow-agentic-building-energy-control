@@ -12,8 +12,8 @@
  * isolates that board: only its links, its served zones and its loads are shown.
  */
 
-import { useLayoutEffect, useMemo, useRef } from "react";
-import { Canvas, ThreeEvent } from "@react-three/fiber";
+import { useEffect, useLayoutEffect, useMemo, useRef, type RefObject } from "react";
+import { Canvas, ThreeEvent, useThree } from "@react-three/fiber";
 import { OrbitControls, Html } from "@react-three/drei";
 import * as THREE from "three";
 
@@ -287,6 +287,62 @@ function LoadPoints({ loads }: { loads: any[] }) {
   );
 }
 
+function CameraDirector({
+  boards,
+  focusBoard,
+  radius,
+  height,
+  controlsRef,
+}: {
+  boards: any[];
+  focusBoard?: string | null;
+  radius: number;
+  height: number;
+  controlsRef: RefObject<any>;
+}) {
+  const camera = useThree((state) => state.camera);
+
+  useEffect(() => {
+    const board = focusBoard ? boards.find((b: any) => b.id === focusBoard) : null;
+    const target = board
+      ? new THREE.Vector3(board.pos[0], board.pos[1] + 2.2, board.pos[2])
+      : new THREE.Vector3(0, height / 2, 0);
+    const distance = board ? Math.max(12, radius * 0.42) : radius * 1.7;
+    const desired = board
+      ? new THREE.Vector3(
+        target.x + distance * 0.85,
+        target.y + distance * 0.58,
+        target.z + distance * 0.72,
+      )
+      : new THREE.Vector3(distance, distance * 0.8, distance);
+    const startPosition = camera.position.clone();
+    const startTarget = controlsRef.current?.target?.clone?.() ?? new THREE.Vector3(0, height / 2, 0);
+    const start = performance.now();
+    const duration = board ? 950 : 720;
+    let frame = 0;
+
+    const ease = (t: number) => 1 - Math.pow(1 - t, 3);
+    const animate = (now: number) => {
+      const t = Math.min(1, (now - start) / duration);
+      const k = ease(t);
+      camera.position.lerpVectors(startPosition, desired, k);
+      const nextTarget = startTarget.clone().lerp(target, k);
+      if (controlsRef.current?.target) {
+        controlsRef.current.target.copy(nextTarget);
+        controlsRef.current.update?.();
+      } else {
+        camera.lookAt(nextTarget);
+      }
+      if (t < 1) frame = requestAnimationFrame(animate);
+    };
+
+    frame = requestAnimationFrame(animate);
+    return () => cancelAnimationFrame(frame);
+  }, [boards, camera, controlsRef, focusBoard, height, radius]);
+
+  return null;
+}
+
 export default function ElectricalTwin3D({
   scene, colorMode = "status", show, floors, zoneTypes, loadKinds,
   selectedId, onSelect, focusBoard, className, autoRotate = false,
@@ -304,6 +360,7 @@ export default function ElectricalTwin3D({
   autoRotate?: boolean;         // gentle orbit for the tutorial showcase
 }) {
   const vis = { boards: true, links: true, floors: true, ...show };
+  const controlsRef = useRef<any>(null);
 
   const prepped = useMemo(() => {
     if (!scene) return null;
@@ -379,8 +436,15 @@ export default function ElectricalTwin3D({
         {vLoads.length > 0 && <LoadPoints loads={vLoads} />}
         {vis.boards && <Boards boards={vBoards} mode={colorMode} selectedId={selectedId}
           dim={!!focusBoard} onPick={(e) => onSelect?.(e)} />}
+        <CameraDirector
+          boards={prepped.boards}
+          focusBoard={focusBoard}
+          radius={r}
+          height={prepped.bounds?.height ?? 16}
+          controlsRef={controlsRef}
+        />
 
-        <OrbitControls makeDefault enableDamping dampingFactor={0.08}
+        <OrbitControls ref={controlsRef} makeDefault enableDamping dampingFactor={0.08}
           autoRotate={autoRotate} autoRotateSpeed={0.55}
           maxPolarAngle={Math.PI / 2.05} minDistance={r * 0.4} maxDistance={cam * 5}
           target={[0, prepped.bounds?.height ? prepped.bounds.height / 2 : 8, 0]} />

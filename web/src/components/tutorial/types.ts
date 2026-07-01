@@ -11,7 +11,15 @@ export type TutorialRoute =
 
 export type TutorialPlacement = "top" | "right" | "bottom" | "left" | "center";
 
-export type CameraPreset = "building-overview" | "zone-focus" | null;
+export type CameraPreset =
+  | "building-overview"
+  | "zone-focus"
+  | "layer-architecture"
+  | "layer-electrical"
+  | "layer-hvac"
+  | "layer-spaces"
+  | "technical-stack"
+  | null;
 
 export type ZoneMetric = "none" | "energy" | "comfort" | "occupancy" | "faults";
 export type ValidationMetric = "energy" | "power" | "temperature" | "setpoint" | "loading";

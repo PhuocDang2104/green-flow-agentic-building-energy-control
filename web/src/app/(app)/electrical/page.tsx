@@ -88,6 +88,19 @@ export default function ElectricalPage() {
   useEffect(() => { if (tElecColor) setColorMode(tElecColor); }, [tElecColor]);
   useEffect(() => { if (tElecLinks !== null) setLayers((l) => ({ ...l, links: tElecLinks })); }, [tElecLinks]);
   useEffect(() => {
+    if (!tElecShowcase) return;
+    let i = 0;
+    const modes: ColorMode[] = ["feeder", "load"];
+    const tick = () => {
+      setColorMode(modes[i % modes.length]);
+      setLayers((l) => ({ ...l, links: i % 2 === 0 }));
+      i += 1;
+    };
+    tick();
+    const timer = window.setInterval(tick, 1350);
+    return () => window.clearInterval(timer);
+  }, [tElecShowcase]);
+  useEffect(() => {
     if (tElecFocus === "clear") { setSelected(null); return; }
     if (tElecFocus === "top" && boards.length) {
       const top = [...boards].sort((a, b) => (f(b.peak_total_kw) ?? 0) - (f(a.peak_total_kw) ?? 0))[0];
@@ -209,7 +222,8 @@ export default function ElectricalPage() {
                 {(["boards", "links"] as (keyof typeof layers)[]).map((k) => (
                   <button key={k} onClick={() => setLayers((s) => ({ ...s, [k]: !s[k] }))}
                     className={`rounded bg-slate-900/80 px-2 py-1.5 text-[11px] capitalize backdrop-blur transition ${
-                      layers[k] ? "text-white" : "text-slate-500"}`}>{k}</button>
+                      layers[k] ? "text-white" : "text-slate-500"} ${
+                      k === "links" && tElecShowcase ? "animate-pulse ring-2 ring-teal/70 shadow-[0_0_20px_rgba(20,184,166,0.45)]" : ""}`}>{k}</button>
                 ))}
               </div>
             </div>

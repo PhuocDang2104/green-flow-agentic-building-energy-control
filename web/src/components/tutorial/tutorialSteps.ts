@@ -1,7 +1,7 @@
 import type { TutorialStep } from "./types";
 
 /**
- * The 26-step GreenFlow product walkthrough (spec §8), mapped to the real routes
+ * The 29-step GreenFlow product walkthrough (spec §8), mapped to the real routes
  * and data-tour-id selectors. Every anchored step is interactive — the
  * spotlighted region stays usable — and `hint` gives a "try it" cue. Steps with
  * no `target` render as a centered card.
@@ -49,27 +49,29 @@ export const tutorialSteps: TutorialStep[] = [
     id: "digital-twin-layers",
     chapter: "observe",
     route: "/dashboard",
-    target: "digital-twin-layers",
+    target: "digital-twin-viewer",
     title: "Explore by Layer",
     body: "Layers separate architecture, structure, electrical, HVAC and spaces. Watch them combine automatically, then mix your own.",
     placement: "right",
-    hint: "The layers are cycling — tick any box to override.",
+    hint: "The full 3D frame is cycling layers and camera angles — tick any box to override.",
     before: [{ type: "showcaseLayers" }],
   },
   {
     id: "system-heatmaps",
     chapter: "observe",
     route: "/dashboard",
-    target: "system-heatmaps",
+    target: "digital-twin-viewer",
     title: "System Heatmaps",
     body: "Technical systems show their own heatmaps — electrical load percentage and HVAC power — keeping system-level risk separate from zone comfort scores.",
     placement: "left",
     hint: "Toggle the Electrical / HVAC heatmaps to compare.",
     before: [
+      { type: "setLayers", layers: { architecture: true, spaces: false, fenestration: true, structural: false, hvac: true, electrical: true } },
       { type: "setLayer", layer: "electrical", enabled: true },
       { type: "setLayer", layer: "hvac", enabled: true },
       { type: "setHeatmap", heatmap: "electrical", enabled: true },
       { type: "setHeatmap", heatmap: "hvac", enabled: true },
+      { type: "setCamera", preset: "technical-stack" },
     ],
   },
   {
@@ -84,7 +86,7 @@ export const tutorialSteps: TutorialStep[] = [
     before: [
       { type: "setHeatmap", heatmap: "electrical", enabled: false },
       { type: "setHeatmap", heatmap: "hvac", enabled: false },
-      { type: "setLayers", layers: { architecture: false, spaces: true, fenestration: false, structural: true, hvac: false, electrical: false } },
+      { type: "setLayers", layers: { architecture: true, spaces: true, fenestration: true, structural: false, hvac: false, electrical: false } },
       { type: "selectZone" },
       { type: "setCamera", preset: "zone-focus" },
     ],
@@ -122,6 +124,16 @@ export const tutorialSteps: TutorialStep[] = [
 
   // ---------------- Chapter 2 — Understand: Electrical Graph ----------------
   {
+    id: "go-to-electrical-tab",
+    chapter: "understand",
+    route: "/dashboard",
+    target: "nav-electrical-graph",
+    title: "Next: Electrical Graph",
+    body: "The next tab explains how power is distributed through the building. Click Electrical Graph in the sidebar so the route change is explicit, then continue.",
+    placement: "right",
+    hint: "Click the highlighted Electrical Graph tab.",
+  },
+  {
     id: "electrical-kpis",
     chapter: "understand",
     route: "/electrical",
@@ -130,8 +142,7 @@ export const tutorialSteps: TutorialStep[] = [
     body: "The Electrical Twin summarizes energy, cost, peak demand, emissions intensity, load risk, system mix and the top consuming zones.",
     placement: "bottom",
     before: [
-      { type: "switchTab", route: "/electrical" },
-      { type: "setElectricalShowcase", on: true },
+      { type: "setElectricalShowcase", on: false },
       { type: "setElectricalColorMode", mode: "status" },
       { type: "focusElectricalBoard", which: "clear" },
       { type: "setElectricalLinks", on: true },
@@ -146,12 +157,18 @@ export const tutorialSteps: TutorialStep[] = [
     body: "The 3D graph shows how power moves from distribution boards through circuits to the connected loads across every floor. It slowly orbits so you can read the topology.",
     placement: "left",
     hint: "Drag to orbit · scroll to zoom · click a board.",
+    before: [
+      { type: "setElectricalShowcase", on: true },
+      { type: "setElectricalColorMode", mode: "feeder" },
+      { type: "setElectricalLinks", on: true },
+      { type: "focusElectricalBoard", which: "top" },
+    ],
   },
   {
     id: "electrical-node-inspector",
     chapter: "understand",
     route: "/electrical",
-    target: "electrical-node-inspector",
+    target: "electrical-graph-canvas",
     title: "Panel-Level Distribution",
     body: "We isolated the main board: its supply lines and served zones stay lit while the rest dims — this is exactly how one panel is distributed downstream.",
     placement: "left",
@@ -166,14 +183,14 @@ export const tutorialSteps: TutorialStep[] = [
     id: "electrical-filter-controls",
     chapter: "understand",
     route: "/electrical",
-    target: "electrical-filter-controls",
+    target: "electrical-graph-canvas",
     title: "Filters & Load Heat",
-    body: "Overload, Feeder and Load-heat recolour the model; supply lines can be toggled on and off; floors, zones and loads filter what's shown. The view is now in Load-heat.",
-    placement: "bottom",
-    hint: "Try Overload / Feeder / Load heat and toggle Links.",
+    body: "Overload, Feeder and Load-heat recolour the model; supply lines can be toggled on and off; floors, zones and loads filter what's shown. The tour alternates Feeder and Load heat so the encoding is visible in context.",
+    placement: "left",
+    hint: "Watch Feeder / Load heat and the Links toggle, then try the controls yourself.",
     before: [
-      { type: "focusElectricalBoard", which: "clear" },
-      { type: "setElectricalColorMode", mode: "load" },
+      { type: "setElectricalShowcase", on: true },
+      { type: "focusElectricalBoard", which: "top" },
       { type: "setElectricalLinks", on: true },
     ],
   },
@@ -192,6 +209,17 @@ export const tutorialSteps: TutorialStep[] = [
 
   // ---------------- Chapter 3 — Optimize: Agents & Actions ----------------
   {
+    id: "go-to-agents-tab",
+    chapter: "optimize",
+    route: "/electrical",
+    target: "nav-agents-actions",
+    title: "Next: Agents & Actions",
+    body: "The next tab shows how GreenFlow turns observations into safe optimization proposals. Click Agents & Actions in the sidebar, then continue.",
+    placement: "right",
+    hint: "Click the highlighted Agents & Actions tab.",
+    before: [{ type: "setElectricalShowcase", on: false }, { type: "focusElectricalBoard", which: "clear" }],
+  },
+  {
     id: "agent-main-chat",
     chapter: "optimize",
     route: "/agent-actions",
@@ -199,7 +227,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "The Agent Workspace",
     body: "This tab is where GreenFlow explains what it sees, proposes actions, and shows the reasoning behind every decision.",
     placement: "left",
-    before: [{ type: "switchTab", route: "/agent-actions" }, { type: "setElectricalShowcase", on: false }, { type: "stopAgentPreview" }],
+    before: [{ type: "setElectricalShowcase", on: false }, { type: "stopAgentPreview" }],
   },
   {
     id: "run-optimization-button",
@@ -263,6 +291,17 @@ export const tutorialSteps: TutorialStep[] = [
 
   // ---------------- Chapter 4 — Validate: Validation Experiment ----------------
   {
+    id: "go-to-validation-tab",
+    chapter: "validate",
+    route: "/agent-actions",
+    target: "nav-validation",
+    title: "Next: Validation",
+    body: "The last tab proves whether the proposed control strategy actually improves operation. Click Validation in the sidebar, then continue.",
+    placement: "right",
+    hint: "Click the highlighted Validation tab.",
+    before: [{ type: "stopAgentPreview" }],
+  },
+  {
     id: "validation-summary-cards",
     chapter: "validate",
     route: "/simulation-baseline",
@@ -270,7 +309,7 @@ export const tutorialSteps: TutorialStep[] = [
     title: "Validation Experiment",
     body: "The Validation tab compares baseline operation with GreenFlow optimization on recorded 2024 data — impact is measured here, not just claimed.",
     placement: "bottom",
-    before: [{ type: "switchTab", route: "/simulation-baseline" }, { type: "stopAgentPreview" }],
+    before: [{ type: "stopAgentPreview" }],
   },
   {
     id: "validation-el-nino-toggle",
