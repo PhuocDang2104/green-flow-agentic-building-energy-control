@@ -38,8 +38,9 @@ PIPER_ONNX = PIPER_DIR / "en_US-amy-medium.onnx"
 PIPER_JSON = PIPER_DIR / "en_US-amy-medium.onnx.json"
 PIPER_URL = ("https://huggingface.co/rhasspy/piper-voices/resolve/main/"
              "en/en_US/amy/medium/")
-# Piper speech rate: length_scale < 1.0 speaks faster (1.0 = default). Tune here.
-PIPER_LENGTH_SCALE = "0.9"
+# Piper speech rate: length_scale < 1.0 speaks faster (1.0 = default).
+# 0.8333 is approximately 1.2x playback speed.
+PIPER_LENGTH_SCALE = "0.8333"
 
 _whisper = None
 
