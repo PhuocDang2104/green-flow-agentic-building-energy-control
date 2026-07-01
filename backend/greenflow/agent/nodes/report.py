@@ -150,7 +150,7 @@ def _building_semantic_md(state: GreenFlowState) -> str:
     total_zones = int(b.get("zone_count") or health.get("zones") or len(zones) or 0)
     total_devices = int(b.get("device_count") or 0)
     score = health.get("score")
-    grade = health.get("grade") or _score_status(score)
+    grade = _score_status(score)
 
     md = _header("GreenFlow Building Performance & Semantic Report", state)
     md += ("## Executive summary\n\n"
@@ -201,18 +201,18 @@ def _building_semantic_md(state: GreenFlowState) -> str:
 
     md += "\n## Priority findings and risk register\n\n"
     if findings:
-        md += "| Priority | Severity | Finding | Evidence | Recommended action |\n"
-        md += "|---|---|---|---|---|\n"
         for idx, f in enumerate(sorted(findings, key=lambda x: _severity_rank(x.get("severity")))[:12], 1):
-            md += (f"| {idx} | {_cell(f.get('severity'))} | {_cell(f.get('finding_type'))} | "
-                   f"{_cell(f.get('detail'), 90)} | {_cell(_recommendation_for_finding(f), 110)} |\n")
+            md += (f"### {idx}. {_cell(f.get('finding_type'))} "
+                   f"({_cell(f.get('severity'))})\n\n"
+                   f"- Evidence: {_cell(f.get('detail'), 260)}\n"
+                   f"- Recommended action: {_recommendation_for_finding(f)}\n\n")
     else:
         md += "- No abnormal findings at the latest backend replay anchor.\n"
 
     md += "\n## Recommended action plan\n\n"
     md += "| Workstream | Action | Owner | Target window |\n|---|---|---|---|\n"
     for workstream, action, owner, window in _recommended_actions(health, kpis, findings, missing):
-        md += f"| {_cell(workstream)} | {_cell(action, 130)} | {_cell(owner)} | {_cell(window)} |\n"
+        md += f"| {_cell(workstream)} | {_cell(action, 92)} | {_cell(owner)} | {_cell(window)} |\n"
 
     md += "\n## Semantic coverage and data quality\n\n"
     mapped_zone_count = len([1 for devices in equipment_map.values() if devices])
@@ -247,8 +247,8 @@ def _building_semantic_md(state: GreenFlowState) -> str:
     md += "\n## Appendix A - Zone snapshot, top load zones\n\n"
     md += "| Zone | Type | Area m2 | Occupancy | Temp C | Load kW | Comfort |\n"
     md += "|---|---|---|---|---|---|---|\n"
-    for z, st, _ in zone_rows[:30]:
-        md += (f"| {_cell(z.get('name'))} | {_cell(z.get('room_type'))} | "
+    for z, st, _ in zone_rows[:18]:
+        md += (f"| {_cell(z.get('name'), 56)} | {_cell(z.get('room_type'), 32)} | "
                f"{_fmt(z.get('area_m2'), '', 0)} | {_fmt(st.get('occupancy_count'), '', 0)} | "
                f"{_fmt(st.get('temperature_c'), '', 1)} | {_fmt(st.get('total_power_kw'), '', 1)} | "
                f"{_cell(st.get('comfort_risk', '-'))} |\n")

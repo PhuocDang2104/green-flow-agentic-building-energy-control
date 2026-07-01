@@ -169,7 +169,7 @@ function MetricRow({ row, index }: { row: MetricRowData; index: number }) {
   const Icon = row.icon;
   return (
     <div
-      className="gf-bpi-metric group/metric relative grid min-h-[74px] grid-cols-[1fr_auto] items-center gap-3 border-t border-slate-200 px-4 transition hover:bg-slate-50"
+      className="gf-bpi-metric group/metric relative grid min-h-[74px] grid-cols-[minmax(0,1fr)_auto] items-center gap-3 border-t border-slate-200 px-4 transition hover:bg-slate-50"
       style={{ "--gf-bpi-row-delay": `${260 + index * 70}ms` } as CSSProperties}
       tabIndex={0}
       aria-label={`${row.label}: ${row.detail}`}
@@ -180,7 +180,7 @@ function MetricRow({ row, index }: { row: MetricRowData; index: number }) {
           <Icon size={22} strokeWidth={2.2} aria-hidden="true" />
         </span>
         <span className="min-w-0">
-          <span className={`block truncate text-[13px] font-semibold ${rowLabelTint(row.band)}`}>
+          <span className={`block text-[13px] font-semibold leading-tight ${rowLabelTint(row.band)}`}>
             {row.label}
           </span>
           {row.note && <span className="block truncate text-[10px] font-medium text-slate-500">{row.note}</span>}
@@ -278,6 +278,7 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
   const deviceFaults = extractNumber(reliability?.detail, /(\d+)\s+device/i);
   const sensorFaults = extractNumber(reliability?.detail, /.\s*(\d+)\s+sensor/i);
   const updatedAt = health.timestamp ?? "latest replay anchor";
+  const zoneCount = health.zones || 0;
 
   return [
     {
@@ -313,11 +314,11 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
       ],
     },
     {
-      title: "Energy Health",
+      title: "Demand Health",
       score: energyScore,
       target: 85,
       accent: "#12A985",
-      detail: `Energy Health is a 0-100 score where higher is better. It penalizes peak-demand risk across zones, so a low score means the building needs load shifting, pre-cooling, or other demand-control actions. Backend detail: ${energy?.detail ?? "unavailable"}.`,
+      detail: `Demand Health is a 0-100 current peak-risk score where higher is better. It penalizes zones currently above their demand threshold, so a low score means the building needs load shifting, pre-cooling, or other demand-control actions. Backend detail: ${energy?.detail ?? "unavailable"}.`,
       rows: [
         {
           icon: Zap,
@@ -328,11 +329,11 @@ function buildPanels(health: HealthScore, kpis: Kpis | null, totalKw?: number): 
         },
         {
           icon: AlertTriangle,
-          label: "Peak Risk",
-          value: `${peakRiskZones} zones`,
+          label: "Peak-Risk Zones",
+          value: zoneCount ? `${peakRiskZones}/${zoneCount}` : `${peakRiskZones}`,
           note: "above threshold",
           band: peakRiskZones > 25 ? "critical" : peakRiskZones > 0 ? "watch" : "good",
-          detail: `Peak Risk counts zones marked as peak-demand risk by backend telemetry. A high count means demand is broad across the building, not isolated to one space. Source: /api/kpi/current and /api/kpi/health-score. Backend detail: ${energy?.detail ?? "unavailable"}.`,
+          detail: `Zones at Peak Risk counts zones marked as peak-demand risk by backend telemetry. A high share means demand is broad across the building, not isolated to one space. Source: /api/kpi/current and /api/kpi/health-score. Backend detail: ${energy?.detail ?? "unavailable"}.`,
         },
       ],
     },
