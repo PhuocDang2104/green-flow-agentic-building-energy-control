@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 import re
 import uuid
 from datetime import datetime
@@ -16,6 +17,8 @@ from ...db import db_conn
 TEAL = (15, 118, 110)
 SLATE = (15, 23, 42)
 GRAY = (100, 116, 139)
+LIGHT_GRAY = (226, 232, 240)
+MUTED = (148, 163, 184)
 
 
 def save_report(building_id: str, report_type: str, title: str,
@@ -116,6 +119,12 @@ def _markdown_to_pdf(title: str, markdown: str, out_path: Path) -> None:
     table_buffer: list[list[str]] = []
     for raw_line in markdown.splitlines():
         line = raw_line.rstrip()
+        if line.startswith("[[gf_chart "):
+            if table_buffer:
+                _emit_table(pdf, table_buffer)
+                table_buffer = []
+            _emit_chart_directive(pdf, line)
+            continue
         if line.startswith("|"):
             cells = [c.strip() for c in line.strip("|").split("|")]
             if all(re.fullmatch(r":?-{2,}:?", c) for c in cells if c):
@@ -159,6 +168,101 @@ def _emit_line(pdf: FPDF, line: str) -> None:
         pdf.set_font("Helvetica", "", 9.5)
         pdf.set_text_color(*SLATE)
         pdf.multi_cell(0, 5.5, _latin(_strip_md(stripped)))
+
+
+def _emit_chart_directive(pdf: FPDF, line: str) -> None:
+    payload = line.removeprefix("[[gf_chart ").removesuffix("]]").strip()
+    try:
+        chart = json.loads(payload)
+    except json.JSONDecodeError:
+        return
+    _emit_line_chart(pdf, chart)
+
+
+def _emit_line_chart(pdf: FPDF, chart: dict) -> None:
+    points = [p for p in chart.get("points", []) if p.get("baseline") is not None
+              and p.get("optimized") is not None]
+    if len(points) < 2:
+        return
+    if pdf.get_y() + 62 > pdf.h - pdf.b_margin:
+        pdf.add_page()
+
+    title = _latin(str(chart.get("title") or "Chart"))
+    unit = _latin(str(chart.get("unit") or ""))
+    x = pdf.l_margin
+    y = pdf.get_y() + 2
+    w = pdf.w - pdf.l_margin - pdf.r_margin
+    h = 52
+    plot_x = x + 10
+    plot_y = y + 11
+    plot_w = w - 16
+    plot_h = h - 22
+
+    vals = [float(p["baseline"]) for p in points] + [float(p["optimized"]) for p in points]
+    vmin, vmax = min(vals), max(vals)
+    if abs(vmax - vmin) < 1e-9:
+        vmax = vmin + 1
+    pad = (vmax - vmin) * 0.08
+    vmin -= pad
+    vmax += pad
+
+    def sx(idx: int) -> float:
+        return plot_x + (plot_w * idx / max(len(points) - 1, 1))
+
+    def sy(value: float) -> float:
+        return plot_y + plot_h - ((value - vmin) / (vmax - vmin) * plot_h)
+
+    pdf.set_draw_color(*LIGHT_GRAY)
+    pdf.set_fill_color(255, 255, 255)
+    pdf.rect(x, y, w, h, "D")
+    pdf.set_font("Helvetica", "B", 9)
+    pdf.set_text_color(*SLATE)
+    pdf.set_xy(x + 3, y + 2)
+    pdf.cell(w - 6, 5, title, new_x="LMARGIN", new_y="NEXT")
+
+    pdf.set_font("Helvetica", "", 7.2)
+    pdf.set_text_color(*GRAY)
+    pdf.set_xy(x + 3, y + h - 7)
+    first = _latin(str(points[0].get("label", "")))
+    last = _latin(str(points[-1].get("label", "")))
+    pdf.cell(w / 2, 4, first)
+    pdf.cell(w / 2 - 6, 4, last, align="R")
+
+    for i in range(4):
+        gy = plot_y + plot_h * i / 3
+        pdf.set_draw_color(241, 245, 249)
+        pdf.line(plot_x, gy, plot_x + plot_w, gy)
+
+    def draw_series(key: str, color: tuple[int, int, int], dashed: bool = False) -> None:
+        pdf.set_draw_color(*color)
+        prev: tuple[float, float] | None = None
+        dash_on = True
+        for idx, point in enumerate(points):
+            current = (sx(idx), sy(float(point[key])))
+            if prev:
+                if dashed:
+                    dash_on = not dash_on
+                    if dash_on:
+                        pdf.line(prev[0], prev[1], current[0], current[1])
+                else:
+                    pdf.line(prev[0], prev[1], current[0], current[1])
+            prev = current
+
+    draw_series("baseline", MUTED, dashed=True)
+    draw_series("optimized", TEAL)
+
+    pdf.set_font("Helvetica", "", 7.2)
+    pdf.set_text_color(*MUTED)
+    pdf.set_xy(x + w - 70, y + 2)
+    pdf.cell(28, 4, "Without AI")
+    pdf.set_text_color(*TEAL)
+    pdf.cell(28, 4, "With AI")
+    pdf.set_text_color(*GRAY)
+    pdf.set_xy(x + 3, y + 7)
+    pdf.cell(0, 4, f"{vmax:.1f} {unit}")
+    pdf.set_xy(x + 3, y + h - 13)
+    pdf.cell(0, 4, f"{vmin:.1f} {unit}")
+    pdf.set_y(y + h + 2)
 
 
 def _emit_table(pdf: FPDF, rows: list[list[str]]) -> None:

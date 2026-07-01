@@ -2,6 +2,7 @@
 
 from __future__ import annotations
 
+import json
 from datetime import datetime
 
 from ..llm import llm_text
@@ -135,6 +136,126 @@ def _recommended_actions(health: dict, kpis: dict, findings: list[dict],
     return rows[:6]
 
 
+def _avg(values: list[float | None]) -> float | None:
+    clean = [v for v in values if v is not None]
+    return sum(clean) / len(clean) if clean else None
+
+
+def _max(values: list[float | None]) -> float | None:
+    clean = [v for v in values if v is not None]
+    return max(clean) if clean else None
+
+
+def _short_date(value: str) -> str:
+    parts = str(value).split("-")
+    return f"{parts[2]}/{parts[1]}" if len(parts) == 3 else str(value)[:10]
+
+
+def _chart_directive(title: str, unit: str, rows: list[dict],
+                     base_key: str, opt_key: str) -> str:
+    points = []
+    for row in rows:
+        base = row.get(base_key)
+        opt = row.get(opt_key)
+        if base is None or opt is None:
+            continue
+        points.append({
+            "label": _short_date(row.get("date")),
+            "baseline": round(_num(base), 4),
+            "optimized": round(_num(opt), 4),
+        })
+    payload = json.dumps({
+        "title": title,
+        "unit": unit,
+        "points": points,
+    }, separators=(",", ":"))
+    return f"[[gf_chart {payload}]]\n\n" if len(points) >= 2 else ""
+
+
+def _validation_charts_md() -> str:
+    """Mirror Validation tab predictive-replay charts in the PDF export."""
+    try:
+        from ...control.whatif_cache import read_cache_response
+
+        replay = read_cache_response(
+            mode="predictive_replay",
+            date_from="2024-03-01",
+            date_to="2024-05-01",
+            horizon_steps=8,
+            top_k=4,
+            resolution="daily",
+        )
+    except Exception as exc:  # noqa: BLE001 - report should still export on cache miss
+        return ("\n## Validation experiment charts\n\n"
+                f"- Predictive replay cache is unavailable, so the five Validation tab charts "
+                f"could not be embedded in this export. Reason: {_cell(exc, 180)}\n\n")
+
+    daily = replay.get("daily") or []
+    kpi = replay.get("kpi") or {}
+    metadata = replay.get("metadata") or {}
+    if not daily:
+        return ("\n## Validation experiment charts\n\n"
+                "- Predictive replay cache returned no daily rows for the Validation tab range.\n\n")
+
+    start = daily[0].get("date")
+    end = daily[-1].get("date")
+    md = ("\n## Validation experiment charts\n\n"
+          f"These five charts mirror tab 4 (Validation Experiment) for "
+          f"**{_cell(start)} to {_cell(end)}**, using predictive MPC replay cache "
+          f"`{_cell(metadata.get('cache_key', 'n/a'), 80)}`.\n\n")
+
+    md += "| Improvement indicator | Baseline | With AI | Improvement |\n"
+    md += "|---|---|---|---|\n"
+    md += (f"| Energy use | {_fmt(kpi.get('baseline_kwh'), ' kWh')} | "
+           f"{_fmt(kpi.get('optimized_kwh'), ' kWh')} | "
+           f"{_fmt(kpi.get('saving_kwh'), ' kWh')} ({_fmt(kpi.get('saving_percent'), '%')}) saved |\n")
+    md += (f"| Operating cost | - | - | "
+           f"{_fmt(kpi.get('cost_saving_vnd'), ' VND', 0)} avoided |\n")
+    md += (f"| Average peak-demand reduction | - | - | "
+           f"{_fmt(kpi.get('peak_reduction_kw'), ' kW')} lower |\n")
+    md += (f"| CO2 emissions | - | - | "
+           f"{_fmt(kpi.get('co2_avoided_kg'), ' kg')} avoided |\n")
+    md += (f"| Added comfort violation | "
+           f"{_fmt(kpi.get('baseline_comfort_violation_min'), ' min')} | "
+           f"{_fmt(kpi.get('ai_added_comfort_violation_min'), ' min')} added | "
+           f"{_fmt(kpi.get('comfort_violation_delta_min'), ' min')} total AI violation |\n")
+    md += (f"| End-use saving split | - | - | "
+           f"Lighting {_fmt(kpi.get('lighting_saving_kwh'), ' kWh')}; "
+           f"HVAC {_fmt(kpi.get('hvac_saving_kwh'), ' kWh')} |\n\n")
+
+    chart_specs = [
+        ("Energy Use - baseline vs AI", "kWh", "baseline_kwh", "optimized_kwh"),
+        ("Power / Demand - baseline vs AI", "kW", "peak_baseline_kw", "peak_optimized_kw"),
+        ("Comfort / Indoor Temperature", "C", "baseline_temperature_c", "optimized_temperature_c"),
+        ("HVAC Control / Setpoint", "C", "baseline_setpoint_c", "optimized_setpoint_c"),
+        ("Electrical Loading", "%", "baseline_loading_pct", "optimized_loading_pct"),
+    ]
+    for title, unit, base_key, opt_key in chart_specs:
+        md += _chart_directive(title, unit, daily, base_key, opt_key)
+
+    md += "### Chart-level improvement summary\n\n"
+    md += "| Chart | Baseline summary | With AI summary | Improvement signal |\n"
+    md += "|---|---|---|---|\n"
+    summaries = [
+        ("Energy Use", sum(_num(r.get("baseline_kwh")) for r in daily),
+         sum(_num(r.get("optimized_kwh")) for r in daily), " kWh", "lower total consumption"),
+        ("Power / Demand", _avg([_num(r.get("peak_baseline_kw"), None) for r in daily]),
+         _avg([_num(r.get("peak_optimized_kw"), None) for r in daily]), " kW", "lower average daily peak"),
+        ("Comfort / Indoor Temperature", _avg([_num(r.get("baseline_temperature_c"), None) for r in daily]),
+         _avg([_num(r.get("optimized_temperature_c"), None) for r in daily]), " C", "comfort band preserved"),
+        ("HVAC Control / Setpoint", _avg([_num(r.get("baseline_setpoint_c"), None) for r in daily]),
+         _avg([_num(r.get("optimized_setpoint_c"), None) for r in daily]), " C", "MPC setpoint shift applied"),
+        ("Electrical Loading", _max([_num(r.get("baseline_loading_pct"), None) for r in daily]),
+         _max([_num(r.get("optimized_loading_pct"), None) for r in daily]), "%", "lower normalized stress"),
+    ]
+    for label, baseline, optimized, unit, signal in summaries:
+        delta = None if baseline is None or optimized is None else baseline - optimized
+        md += (f"| {label} | {_fmt(baseline, unit)} | {_fmt(optimized, unit)} | "
+               f"{_fmt(delta, unit)}; {_cell(signal)} |\n")
+    md += "\n"
+    return md
+
+
 def _building_semantic_md(state: GreenFlowState) -> str:
     b = state.get("building_summary", {})
     zones = state.get("zones", [])
@@ -162,6 +283,8 @@ def _building_semantic_md(state: GreenFlowState) -> str:
            f"**{total_devices:,} devices**, and semantic mappings from the current backend state.\n"
            f"- Priority exceptions: **{len(findings):,} abnormal findings** and "
            f"**{len(missing):,} semantic/data-quality gaps** require review.\n\n")
+
+    md += _validation_charts_md()
 
     md += ("## Report scope and asset profile\n\n"
            "| Item | Value |\n|---|---|\n"
