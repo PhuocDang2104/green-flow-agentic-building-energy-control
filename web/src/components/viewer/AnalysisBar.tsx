@@ -8,7 +8,7 @@ import { useAppStore } from "@/stores/appStore";
  * Floating analysis controls (bottom-right of the 3D card), kept OUT of the
  * Layers card. Each control only appears when its layer tickbox is enabled:
  *  - Electrical / HVAC heatmap toggles (Technical Systems) — when that layer is on
- *  - Zone analysis-mode bar (Default/Energy/Comfort/Occupancy/Faults) — when Spaces is on
+ *  - Zone analysis-mode bar (Default/Energy/Comfort/Faults) — when Spaces is on
  */
 
 function HeatmapChip({ layer, label, ramp }: {

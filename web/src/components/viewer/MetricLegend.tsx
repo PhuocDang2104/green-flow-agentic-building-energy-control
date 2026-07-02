@@ -19,13 +19,6 @@ const LEGENDS: Record<string, { label: string; stops: { color: string; text: str
       { color: "#DC2626", text: "high" },
     ],
   },
-  occupancy: {
-    label: "Occupancy",
-    stops: [
-      { color: "#93C5FD", text: "empty" },
-      { color: "#2563EB", text: "busy" },
-    ],
-  },
   faults: {
     label: "Open faults",
     stops: [

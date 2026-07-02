@@ -31,7 +31,6 @@ export const METRICS = [
   { id: "none", label: "Default" },
   { id: "energy", label: "Energy" },
   { id: "comfort", label: "Comfort" },
-  { id: "occupancy", label: "Occupancy" },
   { id: "faults", label: "Faults" },
 ] as const;
 

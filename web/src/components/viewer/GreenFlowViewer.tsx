@@ -90,7 +90,6 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const objectMapRef = useRef<Record<string, ObjectMapEntry>>({});
   const metaTypeByObjectRef = useRef<Record<string, string>>({});
   const xeokitRef = useRef<{ SceneModel: any; buildSphereGeometry: any } | null>(null);
-  const occupancyModelRef = useRef<any>(null);
   const alertModelRef = useRef<any>(null);
   const structureContextModelRef = useRef<any>(null);
   const structureContextUsedFallbackRef = useRef(false);
@@ -285,7 +284,6 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
     return () => {
       disposed = true;
       cleanups.forEach((fn) => fn());
-      occupancyModelRef.current = null;
       alertModelRef.current = null;
       structureContextModelRef.current?.destroy?.();
       structureContextModelRef.current = null;
@@ -463,50 +461,6 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       }
     });
   }, [techHeatmap, ready, layers]);
-
-  // --- occupancy dots: one red dot per person, scattered in the zone footprint
-  useEffect(() => {
-    const viewer = viewerRef.current;
-    const xk = xeokitRef.current;
-    if (!viewer || !ready || !xk) return;
-
-    occupancyModelRef.current?.destroy?.();
-    occupancyModelRef.current = null;
-    if (activeMetric !== "occupancy") return;
-
-    const model = new xk.SceneModel(viewer.scene, { id: "occupancy_dots", isModel: true });
-    const dotGeo = xk.buildSphereGeometry({ radius: 0.45, heightSegments: 8, widthSegments: 8 });
-    model.createGeometry({ id: "dot", primitive: "triangles", positions: dotGeo.positions,
-      normals: dotGeo.normals, indices: dotGeo.indices });
-
-    const MAX_DOTS_PER_ZONE = 60;
-    let meshCount = 0;
-    for (const [id, entry] of Object.entries(objectMapRef.current)) {
-      if (entry.layer !== "spaces" || !entry.live) continue;
-      const st = zoneStates[entry.entity_key];
-      const count = Math.min(st?.occupancy_count || 0, MAX_DOTS_PER_ZONE);
-      if (count <= 0) continue;
-      const entity = viewer.scene.objects[id];
-      const aabb = entity?.aabb;
-      if (!aabb) continue;
-      const [xmin, ymin, zmin, xmax, , zmax] = aabb;
-      // small inset so dots don't spawn flush against walls
-      const padX = (xmax - xmin) * 0.08;
-      const padZ = (zmax - zmin) * 0.08;
-      for (let i = 0; i < count; i++) {
-        const rnd = seededRandom(`${entry.entity_key}_${i}`);
-        const x = xmin + padX + rnd() * Math.max(0.01, xmax - xmin - 2 * padX);
-        const z = zmin + padZ + rnd() * Math.max(0.01, zmax - zmin - 2 * padZ);
-        const meshId = `dot_${id}_${i}`;
-        model.createMesh({ id: meshId, geometryId: "dot", position: [x, ymin + 0.5, z],
-          color: [0.86, 0.15, 0.15] });
-        model.createEntity({ id: meshId, meshIds: [meshId], isObject: false, pickable: false });
-        meshCount++;
-      }
-    }
-    if (meshCount > 0) model.finalize();
-    occupancyModelRef.current = model;
-  }, [zoneStates, activeMetric, ready]);
 
   // --- open alerts -> per-zone severity (powers the Faults overlay) ---------
   useEffect(() => {
@@ -1648,12 +1602,6 @@ function applyMetricColor(entity: any, st: any, metric: string): boolean {
     const level = st.comfort_risk === "high" ? 1 : st.comfort_risk === "watch" ? 0.55 : 0.12;
     entity.colorize = ramp(level);
     entity.opacity = 0.55;
-    return true;
-  }
-  if (metric === "occupancy") {
-    const v = Math.min(1, (st.occupancy_count || 0) / 20);
-    entity.colorize = [0.15 + 0.1 * v, 0.35 + 0.35 * v, 0.75 - 0.25 * v];
-    entity.opacity = 0.3 + 0.4 * v;
     return true;
   }
   return false;

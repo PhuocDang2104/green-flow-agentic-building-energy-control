@@ -3,7 +3,7 @@
 import { RotateCcw } from "lucide-react";
 
 /**
- * Camera reset (top-right). The Default/Energy/Comfort/Occupancy/Faults mode bar
+ * Camera reset (top-right). The Default/Energy/Comfort/Faults mode bar
  * now lives inside the LayerPanel's Spatial / Zone Analytics group, so the
  * analysis modes are clearly scoped to zones (not the technical layers).
  */
