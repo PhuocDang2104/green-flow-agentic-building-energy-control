@@ -3,7 +3,7 @@
 import { CSSProperties, useLayoutEffect, useRef, useState } from "react";
 import { createPortal } from "react-dom";
 import { motion } from "motion/react";
-import { ArrowLeft, ArrowRight, Loader2, MousePointerClick, RotateCcw, Sparkles, X } from "lucide-react";
+import { ArrowLeft, ArrowRight, Compass, Loader2, MousePointerClick, Play, RotateCcw, Sparkles, X } from "lucide-react";
 import { CHAPTERS, type TutorialStep } from "./types";
 
 const GAP = 16;
@@ -85,12 +85,56 @@ export default function TutorialPanel({
         style={{ borderColor: "rgba(10,125,95,0.16)" }}
       >
         <Loader2 size={16} className="animate-spin text-teal" />
-        <span className="text-[13px] font-medium text-text-secondary">Preparing this view…</span>
+        <span className="text-[13px] font-medium text-text-secondary">Preparing this view...</span>
         <button onClick={onSkip} aria-label="Exit tutorial"
           className="ml-1 grid h-6 w-6 place-items-center rounded-full text-text-muted transition hover:bg-surface-muted hover:text-text-primary">
           <X size={14} />
         </button>
       </div>,
+      document.body,
+    );
+  }
+
+  if (step.id === "welcome") {
+    return createPortal(
+      <motion.div
+        ref={ref}
+        data-gf-tutorial-panel
+        role="dialog"
+        aria-modal="true"
+        aria-labelledby="gf-tut-title"
+        aria-describedby="gf-tut-body"
+        initial={reduceMotion ? false : { opacity: 0, y: 10, scale: 0.985 }}
+        animate={{ opacity: 1, y: 0, scale: 1 }}
+        transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
+        className="pointer-events-auto fixed left-1/2 top-1/2 z-[10000] flex w-[min(980px,calc(100vw-48px))] -translate-x-1/2 -translate-y-1/2 flex-col items-end gap-5"
+      >
+        <h2 id="gf-tut-title" className="sr-only">{step.title}</h2>
+        <p id="gf-tut-body" className="sr-only">{step.body}</p>
+        <img
+          src="/assets/tutorial/step_1.png"
+          alt=""
+          draggable={false}
+          className="w-full select-none rounded-[28px] shadow-[0_32px_90px_rgba(0,0,0,0.34)]"
+        />
+        <div className="flex flex-wrap justify-end gap-2.5">
+          <button
+            ref={nextRef}
+            onClick={onNext}
+            className="inline-flex h-12 items-center gap-2 rounded-[16px] bg-teal px-5 text-[15px] font-semibold text-white shadow-[0_14px_32px_rgba(15,118,110,0.34)] transition hover:bg-teal/90 focus:outline-none focus:ring-2 focus:ring-teal/40"
+          >
+            <Play size={18} fill="currentColor" />
+            Start tour
+          </button>
+          <button
+            onClick={onSkip}
+            className="inline-flex h-12 items-center gap-2 rounded-[16px] border-2 border-teal bg-white/95 px-5 text-[15px] font-semibold text-teal shadow-[0_12px_26px_rgba(2,44,34,0.14)] transition hover:bg-teal-soft focus:outline-none focus:ring-2 focus:ring-teal/35"
+          >
+            <Compass size={18} />
+            Explore freely
+          </button>
+        </div>
+      </motion.div>,
       document.body,
     );
   }
