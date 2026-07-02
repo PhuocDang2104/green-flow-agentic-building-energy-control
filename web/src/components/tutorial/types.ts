@@ -21,7 +21,7 @@ export type CameraPreset =
   | "technical-stack"
   | null;
 
-export type ZoneMetric = "none" | "energy" | "comfort" | "occupancy" | "faults";
+export type ZoneMetric = "none" | "energy" | "comfort" | "faults";
 export type ValidationMetric = "energy" | "power" | "temperature" | "setpoint" | "loading";
 
 /**
