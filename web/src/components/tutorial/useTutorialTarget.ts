@@ -14,7 +14,11 @@ export interface TargetState {
  * into view, then keep its rect in sync on scroll/resize. Only re-renders when
  * the measured rect actually changes.
  */
-export function useTutorialTarget(targetId: string | undefined, stepKey: string): TargetState {
+export function useTutorialTarget(
+  targetId: string | undefined,
+  stepKey: string,
+  block: ScrollLogicalPosition = "center",
+): TargetState {
   const [state, setState] = useState<TargetState>({
     rect: null,
     status: targetId ? "pending" : "none",
@@ -48,7 +52,7 @@ export function useTutorialTarget(targetId: string | undefined, stepKey: string)
       el = document.querySelector<HTMLElement>(selector);
       if (el) {
         try {
-          el.scrollIntoView({ behavior: "smooth", block: "center", inline: "center" });
+          el.scrollIntoView({ behavior: "smooth", block, inline: "center" });
         } catch {
           /* older browsers */
         }
@@ -74,7 +78,55 @@ export function useTutorialTarget(targetId: string | undefined, stepKey: string)
       window.removeEventListener("resize", onChange);
       window.removeEventListener("scroll", onChange, true);
     };
-  }, [targetId, stepKey]);
+  }, [targetId, stepKey, block]);
 
   return state;
+}
+
+/**
+ * Resolve a set of secondary `[data-tour-id]` targets (for steps that box more
+ * than one element). No scroll; tracks rects on scroll/resize. Returns only the
+ * targets currently mounted, in order.
+ */
+export function useSecondaryRects(ids: string[] | undefined, stepKey: string): DOMRect[] {
+  const [rects, setRects] = useState<DOMRect[]>([]);
+  const key = (ids ?? []).join("|");
+
+  useEffect(() => {
+    if (!ids || !ids.length) { setRects([]); return; }
+    let cancelled = false;
+    let tries = 0;
+    const timers: ReturnType<typeof setTimeout>[] = [];
+
+    const measure = () => {
+      if (cancelled) return;
+      const rs: DOMRect[] = [];
+      for (const id of ids) {
+        const el = document.querySelector<HTMLElement>(`[data-tour-id="${id}"]`);
+        if (el) rs.push(el.getBoundingClientRect());
+      }
+      setRects(rs);
+    };
+    const poll = () => {
+      if (cancelled) return;
+      measure();
+      tries += 1;
+      const missing = ids.some((id) => !document.querySelector(`[data-tour-id="${id}"]`));
+      if (missing && tries < 40) timers.push(setTimeout(poll, 140));
+    };
+    poll();
+
+    const onChange = () => measure();
+    window.addEventListener("resize", onChange);
+    window.addEventListener("scroll", onChange, true);
+    return () => {
+      cancelled = true;
+      timers.forEach(clearTimeout);
+      window.removeEventListener("resize", onChange);
+      window.removeEventListener("scroll", onChange, true);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [key, stepKey]);
+
+  return rects;
 }

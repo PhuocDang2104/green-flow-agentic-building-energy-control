@@ -111,6 +111,7 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
   const selectEntity = useAppStore((s) => s.selectEntity);
   const setLayers = useAppStore((s) => s.setLayers);
   const tutorialCameraPreset = useTutorialStore((s) => s.cameraPreset);
+  const tutorialViewerSpin = useTutorialStore((s) => s.viewerSpin);
   const pollMs = usePollMs(15000);
 
   // --- init viewer once ---------------------------------------------------
@@ -635,6 +636,30 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
       1.1,
     );
   }, [tutorialCameraPreset, ready, selectedEntityKey]);
+
+  // --- tutorial: continuous gentle orbit of the whole building ----------------
+  useEffect(() => {
+    const viewer = viewerRef.current;
+    if (!viewer || !ready || !tutorialViewerSpin) return;
+    let raf = 0;
+    let last = 0;
+    const SPEED = 0.14; // rad/sec
+    const spin = (now: number) => {
+      if (!last) last = now;
+      const dt = Math.min(0.05, (now - last) / 1000);
+      last = now;
+      const cam = viewer.camera;
+      const [ex, ey, ez] = cam.eye;
+      const [lx, , lz] = cam.look;
+      const dx = ex - lx, dz = ez - lz;
+      const a = SPEED * dt, cos = Math.cos(a), sin = Math.sin(a);
+      cam.eye = [lx + dx * cos - dz * sin, ey, lz + dx * sin + dz * cos];
+      raf = requestAnimationFrame(spin);
+    };
+    // let the initial fly-to settle before taking over the camera
+    const startAt = window.setTimeout(() => { raf = requestAnimationFrame(spin); }, 1250);
+    return () => { window.clearTimeout(startAt); cancelAnimationFrame(raf); };
+  }, [tutorialViewerSpin, ready]);
 
   return (
     <div ref={wrapRef} data-tour-id="digital-twin-viewer" className={`relative w-full overflow-hidden rounded-card border border-border bg-gradient-to-b from-slate-50 to-white ${heightClass}`}>

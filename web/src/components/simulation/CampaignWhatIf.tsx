@@ -304,7 +304,7 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
           </div>
         </div>
 
-        <div className="border-t border-border/70 pt-4 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
+        <div data-tour-id="validation-delta-card" className="border-t border-border/70 pt-4 lg:border-l lg:border-t-0 lg:pl-4 lg:pt-0">
           <div className="flex items-center gap-1.5 text-[12px] font-medium text-text-primary">
             <span>{metric.summary}</span>
             <MetricHelp text={metric.meaning} />
@@ -359,7 +359,7 @@ function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, d
             help="Estimated electricity cost impact over the selected period."
           />
         </div>
-        <div className="grid justify-items-center border-t border-border/70 pt-3 text-center sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
+        <div data-tour-id="validation-co2" className="grid justify-items-center border-t border-border/70 pt-3 text-center sm:border-l sm:border-t-0 sm:pl-3 sm:pt-0">
           <MetricReadout
             label="CO2 avoided"
             value={co2Avoided != null ? `${formatNumber(Math.round(co2Avoided))} kg` : "."}

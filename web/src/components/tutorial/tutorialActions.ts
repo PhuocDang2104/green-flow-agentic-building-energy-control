@@ -55,6 +55,25 @@ function runLayerShowcase() {
   });
 }
 
+// Auto-cycle the selected zone (drives the 3D highlight + the zone-table row) on
+// a loop; cancelled on any step transition like the layer showcase.
+let zoneToken = 0;
+function runZoneCycle() {
+  const my = ++zoneToken;
+  let i = 0;
+  const tick = () => {
+    if (zoneToken !== my) return;
+    const app = useAppStore.getState();
+    const keys = Object.keys(app.zoneStates ?? {});
+    if (keys.length) {
+      app.selectEntity(keys[i % keys.length]);
+      i += 1;
+    }
+    setTimeout(tick, 1700);
+  };
+  tick();
+}
+
 /**
  * Interpret a step's before/after actions. Most reuse existing appStore
  * handlers; camera / validation / agent-preview / electrical-showcase go through
@@ -64,8 +83,9 @@ export function runTutorialActions(
   actions: TutorialAction[] | undefined,
   navigate: (route: string) => void,
 ): void {
-  // Any step transition cancels an in-flight layer showcase.
+  // Any step transition cancels in-flight showcase/zone loops.
   showcaseToken += 1;
+  zoneToken += 1;
   if (!actions?.length) return;
   const app = useAppStore.getState();
   const tut = useTutorialStore.getState();
@@ -100,6 +120,12 @@ export function runTutorialActions(
         break;
       case "showcaseLayers":
         runLayerShowcase();
+        break;
+      case "setViewerSpin":
+        tut.setViewerSpin(action.on);
+        break;
+      case "cycleZones":
+        runZoneCycle();
         break;
       case "openChatbot":
         app.setChatbotOpen(action.open);

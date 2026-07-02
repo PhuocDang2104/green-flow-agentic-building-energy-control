@@ -82,10 +82,11 @@ function Floors({ floors, radius }: { floors: any[]; radius: number }) {
         <group key={f.floor_id} position={[0, f.y, 0]}>
           <mesh rotation={[-Math.PI / 2, 0, 0]}>
             <planeGeometry args={[radius * 1.8, radius * 1.8]} />
-            <meshStandardMaterial color="#e8eef6" transparent opacity={0.1}
+            <meshStandardMaterial color="#e8eef6" transparent opacity={0.035}
               side={THREE.DoubleSide} depthWrite={false} />
           </mesh>
-          <gridHelper args={[radius * 1.8, 24, "#d6dfeb", "#e9eef6"]} />
+          <gridHelper args={[radius * 1.8, 24, "#dbe3ee", "#eef2f8"]}
+            material-transparent material-opacity={0.14} />
         </group>
       ))}
     </group>

@@ -7,10 +7,11 @@ import { useTutorialStore } from "./tutorialStore";
 import { tutorialSteps } from "./tutorialSteps";
 import { runTutorialActions } from "./tutorialActions";
 import { markTutorialCompleted } from "./tutorialStorage";
-import { useTutorialTarget } from "./useTutorialTarget";
+import { useTutorialTarget, useSecondaryRects } from "./useTutorialTarget";
 import TutorialOverlay from "./TutorialOverlay";
 import TutorialPanel from "./TutorialPanel";
 import TutorialProgressRail from "./TutorialProgressRail";
+import TutorialMedia from "./TutorialMedia";
 
 const STEPS = tutorialSteps;
 
@@ -40,9 +41,15 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
   const { rect, status: targetStatus } = useTutorialTarget(
     running ? step?.target : undefined,
     step?.id ?? "",
+    step?.scrollBlock ?? "center",
+  );
+  const secondaryRects = useSecondaryRects(
+    running ? step?.spotlights : undefined,
+    step?.id ?? "",
   );
   const anchored = !!step?.target;
   const found = targetStatus === "found";
+  const overlayRects = found && rect ? [rect, ...secondaryRects] : [];
   // while the page/run is still settling, hold on a "preparing" card instead of
   // jumping the spotlight; once the target mounts we bound the box.
   const pending = anchored && targetStatus === "pending";
@@ -76,6 +83,11 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
 
   const goBack = useCallback(() => {
     if (stepIndex > 0) setStepIndex(stepIndex - 1);
+  }, [stepIndex, setStepIndex]);
+
+  // jump straight to a chapter's first step from the progress rail
+  const jumpTo = useCallback((i: number) => {
+    if (i !== stepIndex) setStepIndex(i);
   }, [stepIndex, setStepIndex]);
 
   const skip = useCallback(() => { exit(); restoreFocus(); }, [exit, restoreFocus]);
@@ -115,11 +127,14 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
       {running && step && (
         <>
           <TutorialOverlay
-            rect={found ? rect : null}
+            rects={overlayRects}
             interactive={interactive}
             pulse={interactive}
             reduceMotion={reduceMotion}
           />
+          {step.media && step.media.length > 0 && !pending && (
+            <TutorialMedia media={step.media} reduceMotion={reduceMotion} />
+          )}
           <TutorialPanel
             step={step}
             index={stepIndex}
@@ -133,7 +148,7 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
             onReplay={replay}
             onFinish={finish}
           />
-          <TutorialProgressRail steps={STEPS} index={stepIndex} />
+          <TutorialProgressRail steps={STEPS} index={stepIndex} onJump={jumpTo} />
         </>
       )}
     </>

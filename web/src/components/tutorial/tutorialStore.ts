@@ -11,6 +11,7 @@ interface TutorialState {
 
   // ---- command bridge: component-local UI subscribes to these ----
   cameraPreset: CameraPreset;        // GreenFlowViewer (dashboard 3D)
+  viewerSpin: boolean;               // continuous dashboard 3D orbit
   validationMetric: string | null;   // CampaignWhatIf metric select
   elNinoOverride: boolean | null;    // CampaignWhatIf El-Niño checkbox
   agentPreview: boolean;             // agent-actions scripted timeline
@@ -26,6 +27,7 @@ interface TutorialState {
   setStepIndex: (i: number) => void;
 
   setCameraPreset: (p: CameraPreset) => void;
+  setViewerSpin: (v: boolean) => void;
   setValidationMetric: (m: string | null) => void;
   setElNinoOverride: (v: boolean | null) => void;
   setAgentPreview: (v: boolean) => void;
@@ -39,6 +41,7 @@ interface TutorialState {
 // preview/camera/metric never leaks outside a tour).
 const CLEARED = {
   cameraPreset: null as CameraPreset,
+  viewerSpin: false,
   validationMetric: null as string | null,
   elNinoOverride: null as boolean | null,
   agentPreview: false,
@@ -59,6 +62,7 @@ export const useTutorialStore = create<TutorialState>((set) => ({
   setStepIndex: (i) => set({ stepIndex: i }),
 
   setCameraPreset: (cameraPreset) => set({ cameraPreset }),
+  setViewerSpin: (viewerSpin) => set({ viewerSpin }),
   setValidationMetric: (validationMetric) => set({ validationMetric }),
   setElNinoOverride: (elNinoOverride) => set({ elNinoOverride }),
   setAgentPreview: (agentPreview) => set({ agentPreview }),

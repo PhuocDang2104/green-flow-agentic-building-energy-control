@@ -1,6 +1,6 @@
 # GreenFlow Tutorial Mode — Engineering Reference
 
-> **TL;DR (VI):** Tutorial Mode là tour hướng dẫn 29 bước, tự lái web qua 4 tab
+> **TL;DR (VI):** Tutorial Mode là tour hướng dẫn 34 bước, tự lái web qua 4 tab
 > (Observe → Understand → Optimize → Validate). Nút bấm nằm bên trái top header. Mọi bước
 > **tương tác thật** (soft-spotlight, không khoá web), có "preparing…" chờ web
 > chạy xong mới khoanh vùng, thanh tiến độ **dọc góc dưới-trái**. Toàn bộ code
@@ -21,7 +21,7 @@ All code lives in **`web/src/components/tutorial/`**:
 | File | Responsibility |
 |---|---|
 | `types.ts` | `TutorialStep`, `TutorialAction`, `CHAPTERS`, enums |
-| `tutorialSteps.ts` | **The storyboard as data (29 steps).** Edit content here. |
+| `tutorialSteps.ts` | **The storyboard as data (34 steps).** Edit content here. |
 | `tutorialStore.ts` | Zustand store: run status, step index, **command-bridge** fields |
 | `tutorialActions.ts` | Interprets each step's `before`/`after` actions; `showcaseLayers` |
 | `tutorialStorage.ts` | localStorage completion + version gate |
@@ -111,16 +111,27 @@ type TutorialStep = {
   placement?: "top"|"right"|"bottom"|"left"|"center";
   chips?: string[];        // small labelled chips
   hint?: string;           // "try it" cue (green callout)
+  scrollBlock?: ScrollLogicalPosition; // how the target scrolls in (default "center")
+  spotlights?: string[];   // extra data-tour-ids to also box (multi-hole)
+  media?: TutorialMedia[]; // floating image/caption/bubble cards (TutorialMedia.tsx)
   before?: TutorialAction[]; after?: TutorialAction[];
   blockInteraction?: boolean; // read-only step (blocks the target); default = interactive
 };
+
+// TutorialMedia: { src?, title?, caption?, bullets?, anchor: "top-right"|…,
+//   width?, variant: "card"|"float"|"bubble" }  — decorative layer, z-9999.
 ```
 
 `TutorialAction` (interpreted in `tutorialActions.ts`):
 `switchTab · setLayer · setLayers · setHeatmap · setMetric · selectZone · clearZone
-· setCamera · showcaseLayers · openChatbot · startAgentPreview · stopAgentPreview
-· setValidationMetric · toggleElNino · setElectricalColorMode · focusElectricalBoard
-· setElectricalLinks · setElectricalShowcase`.
+· setCamera · showcaseLayers · setViewerSpin · cycleZones · openChatbot
+· startAgentPreview · stopAgentPreview · setValidationMetric · toggleElNino
+· setElectricalColorMode · focusElectricalBoard · setElectricalLinks · setElectricalShowcase`.
+
+`setViewerSpin` = continuous dashboard 3D orbit (GreenFlowViewer rAF loop);
+`cycleZones` = auto-select a new live zone on a loop (drives the 3D highlight +
+zone-table row). `spotlights` render extra bright boxes via an SVG-mask multi-hole
+overlay. The **progress rail is clickable** to jump between chapters.
 
 Most reuse existing `appStore` handlers; camera/validation/agent/electrical go via
 the store command bridge. `selectZone` with no id picks a live zone from
@@ -235,7 +246,7 @@ content changes so returning users are re-offered the tour (button still reads
 - Chapter accents (`types.ts` `CHAPTERS`): Observe/Understand green-teal, Optimize
   blue, Validate amber (El-Niño).
 - **Verify:** `cd web && npx tsc --noEmit` (clean) · `npm run build` (11 pages) ·
-  `npm run dev` → click **Tutorial**, walk all 29 steps; confirm interaction
+  `npm run dev` → click **Tutorial**, walk all 34 steps; confirm interaction
   works inside each spotlight, "Preparing…" waits for the run, and **no real agent
   run / approval / report fires**.
 

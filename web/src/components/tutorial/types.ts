@@ -46,11 +46,28 @@ export type TutorialAction =
   | { type: "stopAgentPreview" }
   | { type: "setValidationMetric"; metric: ValidationMetric }
   | { type: "toggleElNino"; on: boolean }
+  | { type: "setViewerSpin"; on: boolean }   // continuous dashboard 3D orbit
+  | { type: "cycleZones" }                    // auto-select a different zone on a loop
   // ---- electrical (tab 2) showcase bridge ----
   | { type: "setElectricalColorMode"; mode: ElectricalColorMode }
   | { type: "focusElectricalBoard"; which: "top" | "clear" }
   | { type: "setElectricalLinks"; on: boolean }
   | { type: "setElectricalShowcase"; on: boolean };
+
+/** A floating illustrative card/image shown at a screen corner during a step. */
+export type TutorialMediaAnchor =
+  | "top-right" | "bottom-right" | "top-left" | "bottom-left" | "top-center";
+
+export interface TutorialMedia {
+  src?: string;        // image src (card/float); omit for a bubble
+  alt?: string;
+  title?: string;      // bold heading (card / bubble)
+  caption?: string;    // paragraph under a card image
+  bullets?: string[];  // speech-bubble list
+  anchor: TutorialMediaAnchor;
+  width?: number;      // px (default 340)
+  variant?: "card" | "float" | "bubble"; // framed image+caption / bare PNG / speech bubble
+}
 
 export interface TutorialStep {
   id: string;
@@ -58,6 +75,12 @@ export interface TutorialStep {
   route: TutorialRoute;
   /** data-tour-id value of the element to spotlight; omit for a centered card. */
   target?: string;
+  /** how the primary target is scrolled into view (default "center"). */
+  scrollBlock?: ScrollLogicalPosition;
+  /** extra targets to also cut a bright box around (e.g. 3D viewer + table). */
+  spotlights?: string[];
+  /** floating illustrative image/caption cards for this step. */
+  media?: TutorialMedia[];
   title: string;
   body: string;
   placement?: TutorialPlacement;
