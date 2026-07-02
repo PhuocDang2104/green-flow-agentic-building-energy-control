@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import json
+import math
 import re
 import uuid
 from datetime import datetime
@@ -205,6 +206,8 @@ def _emit_line_chart(pdf: FPDF, chart: dict) -> None:
     pad = (vmax - vmin) * 0.08
     vmin -= pad
     vmax += pad
+    if chart.get("min_zero"):
+        vmin = max(0.0, vmin)
 
     def sx(idx: int) -> float:
         return plot_x + (plot_w * idx / max(len(points) - 1, 1))
@@ -235,34 +238,58 @@ def _emit_line_chart(pdf: FPDF, chart: dict) -> None:
 
     def draw_series(key: str, color: tuple[int, int, int], dashed: bool = False) -> None:
         pdf.set_draw_color(*color)
+        pdf.set_line_width(0.45 if dashed else 0.55)
         prev: tuple[float, float] | None = None
-        dash_on = True
         for idx, point in enumerate(points):
             current = (sx(idx), sy(float(point[key])))
             if prev:
                 if dashed:
-                    dash_on = not dash_on
-                    if dash_on:
-                        pdf.line(prev[0], prev[1], current[0], current[1])
+                    _draw_dashed_line(pdf, prev[0], prev[1], current[0], current[1])
                 else:
                     pdf.line(prev[0], prev[1], current[0], current[1])
             prev = current
+        pdf.set_line_width(0.2)
 
-    draw_series("baseline", MUTED, dashed=True)
     draw_series("optimized", TEAL)
+    draw_series("baseline", GRAY, dashed=True)
 
     pdf.set_font("Helvetica", "", 7.2)
-    pdf.set_text_color(*MUTED)
-    pdf.set_xy(x + w - 70, y + 2)
-    pdf.cell(28, 4, "Without AI")
+    legend_y = y + 2.8
+    pdf.set_draw_color(*GRAY)
+    _draw_dashed_line(pdf, x + w - 72, legend_y + 1.7, x + w - 61, legend_y + 1.7,
+                      dash_len=2.0, gap_len=1.0)
+    pdf.set_text_color(*GRAY)
+    pdf.set_xy(x + w - 59, y + 2)
+    pdf.cell(29, 4, "Without AI")
+    pdf.set_draw_color(*TEAL)
+    pdf.set_line_width(0.55)
+    pdf.line(x + w - 29, legend_y + 1.7, x + w - 18, legend_y + 1.7)
+    pdf.set_line_width(0.2)
     pdf.set_text_color(*TEAL)
-    pdf.cell(28, 4, "With AI")
+    pdf.set_xy(x + w - 16, y + 2)
+    pdf.cell(14, 4, "With AI")
     pdf.set_text_color(*GRAY)
     pdf.set_xy(x + 3, y + 7)
     pdf.cell(0, 4, f"{vmax:.1f} {unit}")
     pdf.set_xy(x + 3, y + h - 13)
     pdf.cell(0, 4, f"{vmin:.1f} {unit}")
     pdf.set_y(y + h + 2)
+
+
+def _draw_dashed_line(pdf: FPDF, x1: float, y1: float, x2: float, y2: float,
+                      dash_len: float = 3.0, gap_len: float = 1.5) -> None:
+    dx = x2 - x1
+    dy = y2 - y1
+    dist = math.hypot(dx, dy)
+    if dist <= 0:
+        return
+    ux = dx / dist
+    uy = dy / dist
+    pos = 0.0
+    while pos < dist:
+        end = min(pos + dash_len, dist)
+        pdf.line(x1 + ux * pos, y1 + uy * pos, x1 + ux * end, y1 + uy * end)
+        pos = end + gap_len
 
 
 def _emit_table(pdf: FPDF, rows: list[list[str]]) -> None:

@@ -167,6 +167,7 @@ def _chart_directive(title: str, unit: str, rows: list[dict],
     payload = json.dumps({
         "title": title,
         "unit": unit,
+        "min_zero": unit in {"kWh", "kW", "%"},
         "points": points,
     }, separators=(",", ":"))
     return f"[[gf_chart {payload}]]\n\n" if len(points) >= 2 else ""
@@ -199,6 +200,24 @@ def _validation_charts_md() -> str:
 
     start = daily[0].get("date")
     end = daily[-1].get("date")
+    try:
+        from ...control.whatif_cache import (
+            DEFAULT_AVG_TARIFF_VND_PER_KWH,
+            GRID_CO2_KG_PER_KWH,
+        )
+    except Exception:  # noqa: BLE001 - keep report export robust
+        DEFAULT_AVG_TARIFF_VND_PER_KWH = 1839
+        GRID_CO2_KG_PER_KWH = 0.6766
+
+    baseline_kwh = _num(kpi.get("baseline_kwh"))
+    optimized_kwh = _num(kpi.get("optimized_kwh"))
+    baseline_cost = baseline_kwh * DEFAULT_AVG_TARIFF_VND_PER_KWH
+    optimized_cost = optimized_kwh * DEFAULT_AVG_TARIFF_VND_PER_KWH
+    baseline_co2 = baseline_kwh * GRID_CO2_KG_PER_KWH
+    optimized_co2 = optimized_kwh * GRID_CO2_KG_PER_KWH
+    baseline_peak = _avg([_num(r.get("peak_baseline_kw"), None) for r in daily])
+    optimized_peak = _avg([_num(r.get("peak_optimized_kw"), None) for r in daily])
+
     md = ("\n## Validation experiment charts\n\n"
           f"These five charts mirror tab 4 (Validation Experiment) for "
           f"**{_cell(start)} to {_cell(end)}**, using predictive MPC replay cache "
@@ -209,11 +228,14 @@ def _validation_charts_md() -> str:
     md += (f"| Energy use | {_fmt(kpi.get('baseline_kwh'), ' kWh')} | "
            f"{_fmt(kpi.get('optimized_kwh'), ' kWh')} | "
            f"{_fmt(kpi.get('saving_kwh'), ' kWh')} ({_fmt(kpi.get('saving_percent'), '%')}) saved |\n")
-    md += (f"| Operating cost | - | - | "
+    md += (f"| Operating cost | {_fmt(baseline_cost, ' VND', 0)} | "
+           f"{_fmt(optimized_cost, ' VND', 0)} | "
            f"{_fmt(kpi.get('cost_saving_vnd'), ' VND', 0)} avoided |\n")
-    md += (f"| Average peak-demand reduction | - | - | "
+    md += (f"| Average peak-demand | {_fmt(baseline_peak, ' kW')} | "
+           f"{_fmt(optimized_peak, ' kW')} | "
            f"{_fmt(kpi.get('peak_reduction_kw'), ' kW')} lower |\n")
-    md += (f"| CO2 emissions | - | - | "
+    md += (f"| CO2 emissions | {_fmt(baseline_co2, ' kg')} | "
+           f"{_fmt(optimized_co2, ' kg')} | "
            f"{_fmt(kpi.get('co2_avoided_kg'), ' kg')} avoided |\n")
     md += (f"| Added comfort violation | "
            f"{_fmt(kpi.get('baseline_comfort_violation_min'), ' min')} | "
