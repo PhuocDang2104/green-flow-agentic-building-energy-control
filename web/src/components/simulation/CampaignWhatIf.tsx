@@ -561,6 +561,7 @@ export default function CampaignWhatIf() {
                 <span className="text-[11px] font-semibold uppercase tracking-[0.14em] text-text-muted">Metric view</span>
                 <MetricHelp text="Choose which baseline-vs-AI time-series metric to inspect. The visual style stays consistent across metrics." />
               </div>
+              <div data-tour-id="validation-metric-controls" className="flex flex-wrap items-center gap-2">
               <select
                 data-tour-id="validation-metric-selector"
                 value={metricId}
@@ -579,6 +580,7 @@ export default function CampaignWhatIf() {
                 El Niño
                 <MetricHelp text="Shade the chart background over the El Niño phase of the recorded period (from 1 Apr 2024 onward), when cooling-driven demand ramps up." />
               </label>
+              </div>
               <div className="ml-auto flex items-center gap-3 text-[11px] text-text-muted">
                 <span className="inline-flex items-center gap-1.5">
                   <span className="h-2 w-3 rounded-sm" style={{ background: "#94A3B8" }} /> Without AI

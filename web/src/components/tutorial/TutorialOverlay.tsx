@@ -39,9 +39,9 @@ export default function TutorialOverlay({
     ? {}
     : { transition: "left 320ms cubic-bezier(0.22,1,0.36,1), top 320ms cubic-bezier(0.22,1,0.36,1), width 320ms cubic-bezier(0.22,1,0.36,1), height 320ms cubic-bezier(0.22,1,0.36,1)" };
 
-  const holes: Hole[] = rects.map((r) => ({
+  const holes: Hole[] = mergeHoles(rects.map((r) => ({
     left: r.left - PAD, top: r.top - PAD, width: r.width + PAD * 2, height: r.height + PAD * 2,
-  }));
+  })));
 
   const content = (
     <div className="pointer-events-none fixed inset-0 z-[9998]" aria-hidden="true">
@@ -87,4 +87,37 @@ export default function TutorialOverlay({
   );
 
   return createPortal(content, document.body);
+}
+
+function mergeHoles(holes: Hole[]): Hole[] {
+  const merged: Hole[] = [];
+  for (const hole of holes) {
+    let current = hole;
+    for (let i = 0; i < merged.length; i++) {
+      if (!touchesOrOverlaps(current, merged[i])) continue;
+      current = unionHole(current, merged[i]);
+      merged.splice(i, 1);
+      i = -1;
+    }
+    merged.push(current);
+  }
+  return merged;
+}
+
+function touchesOrOverlaps(a: Hole, b: Hole) {
+  const gap = 8;
+  return (
+    a.left <= b.left + b.width + gap &&
+    a.left + a.width + gap >= b.left &&
+    a.top <= b.top + b.height + gap &&
+    a.top + a.height + gap >= b.top
+  );
+}
+
+function unionHole(a: Hole, b: Hole): Hole {
+  const left = Math.min(a.left, b.left);
+  const top = Math.min(a.top, b.top);
+  const right = Math.max(a.left + a.width, b.left + b.width);
+  const bottom = Math.max(a.top + a.height, b.top + b.height);
+  return { left, top, width: right - left, height: bottom - top };
 }

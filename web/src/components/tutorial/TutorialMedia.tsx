@@ -37,11 +37,18 @@ export default function TutorialMedia({
     <div className="pointer-events-none fixed inset-0 z-[9999]" aria-hidden="true">
       {media.map((m, i) => {
         const off = OFFSET[m.anchor];
+        const anchorStyle = {
+          ...ANCHOR[m.anchor],
+          left: typeof ANCHOR[m.anchor].left === "number" ? (ANCHOR[m.anchor].left as number) + (m.offsetX ?? 0) : ANCHOR[m.anchor].left,
+          right: typeof ANCHOR[m.anchor].right === "number" ? (ANCHOR[m.anchor].right as number) - (m.offsetX ?? 0) : ANCHOR[m.anchor].right,
+          top: typeof ANCHOR[m.anchor].top === "number" ? (ANCHOR[m.anchor].top as number) + (m.offsetY ?? 0) : ANCHOR[m.anchor].top,
+          bottom: typeof ANCHOR[m.anchor].bottom === "number" ? (ANCHOR[m.anchor].bottom as number) - (m.offsetY ?? 0) : ANCHOR[m.anchor].bottom,
+        };
         return (
           <motion.div
             key={`${m.src ?? m.variant ?? "media"}-${i}`}
             className="fixed max-w-[46vw]"
-            style={{ ...ANCHOR[m.anchor], width: m.width ?? 340 }}
+            style={{ ...anchorStyle, width: m.width ?? 340 }}
             initial={reduceMotion ? false : { opacity: 0, x: off.x, y: off.y, scale: 0.96 }}
             animate={{ opacity: 1, x: 0, y: 0, scale: 1 }}
             transition={{ duration: 0.45, ease: [0.22, 1, 0.36, 1], delay: 0.05 + i * 0.12 }}
@@ -70,6 +77,16 @@ function Bob({ children, reduceMotion, delay }: { children: React.ReactNode; red
 }
 
 function MediaItem({ m }: { m: TutorialMedia }) {
+  const lightText = m.textTone === "light" || m.textTone === "green-glow";
+  const titleClass = m.textTone === "green-glow"
+    ? "text-white drop-shadow-[0_0_16px_rgba(16,185,129,0.95)]"
+    : lightText
+      ? "text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.95)]"
+      : "text-text-primary";
+  const captionClass = lightText
+    ? "text-white drop-shadow-[0_3px_10px_rgba(0,0,0,0.95)]"
+    : "text-text-primary";
+
   if (m.variant === "bubble") {
     return (
       <div className="relative rounded-[26px] border border-border/60 bg-white px-5 py-4 shadow-floating">
@@ -99,17 +116,17 @@ function MediaItem({ m }: { m: TutorialMedia }) {
   return (
     <div className="flex flex-col gap-2.5">
       {m.title && (
-        <p className="text-[22px] font-bold leading-tight tracking-tight text-text-primary"
-           style={{ textShadow: "0 1px 10px rgba(255,255,255,0.6)" }}>
+        <p className={`text-[22px] font-bold leading-tight tracking-tight ${titleClass}`}
+           style={lightText ? undefined : { textShadow: "0 1px 10px rgba(255,255,255,0.6)" }}>
           {m.title}
         </p>
       )}
       {/* eslint-disable-next-line @next/next/no-img-element */}
       {m.src && <img src={m.src} alt={m.alt ?? ""}
-           className="w-full rounded-2xl border border-white/70 shadow-floating" draggable={false} />}
+           className={m.frameless ? "w-full drop-shadow-[0_18px_30px_rgba(0,0,0,0.22)]" : "w-full rounded-2xl border border-white/70 shadow-floating"} draggable={false} />}
       {m.caption && (
-        <p className="text-[15px] font-medium leading-relaxed text-text-primary"
-           style={{ textShadow: "0 1px 10px rgba(255,255,255,0.7)" }}>
+        <p className={`text-[15px] font-medium leading-relaxed ${captionClass}`}
+           style={lightText ? undefined : { textShadow: "0 1px 10px rgba(255,255,255,0.7)" }}>
           {m.caption}
         </p>
       )}

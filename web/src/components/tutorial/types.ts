@@ -66,6 +66,10 @@ export interface TutorialMedia {
   bullets?: string[];  // speech-bubble list
   anchor: TutorialMediaAnchor;
   width?: number;      // px (default 340)
+  offsetX?: number;    // fine-tune fixed anchor position
+  offsetY?: number;
+  frameless?: boolean; // remove image border/radius/card shadows
+  textTone?: "dark" | "light" | "green-glow";
   variant?: "card" | "float" | "bubble"; // framed image+caption / bare PNG / speech bubble
 }
 

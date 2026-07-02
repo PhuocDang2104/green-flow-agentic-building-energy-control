@@ -119,7 +119,8 @@ type TutorialStep = {
 };
 
 // TutorialMedia: { src?, title?, caption?, bullets?, anchor: "top-right"|…,
-//   width?, variant: "card"|"float"|"bubble" }  — decorative layer, z-9999.
+//   width?, offsetX?, offsetY?, frameless?, textTone?,
+//   variant: "card"|"float"|"bubble" }  — decorative layer, z-9999.
 ```
 
 `TutorialAction` (interpreted in `tutorialActions.ts`):
@@ -184,7 +185,7 @@ attribute to the outermost wrapper of a target; no logic change.
 | `ai-chatbot-launcher` / `ai-chatbot-panel` | chatbot/ChatbotPanel.tsx |
 | `agent-session-list` / `agent-main-chat` / `run-optimization-button` | app/(app)/agent-actions/page.tsx |
 | `agent-execution-timeline` / `simulation-agent-block` / `prediction-agent-block` / `control-agent-block` / `policy-engine-block` / `action-queue` / `approval-card` | tutorial/TutorialAgentTimeline.tsx |
-| `validation-summary-cards` / `validation-timeseries-chart` / `validation-metric-selector` / `validation-el-nino-toggle` | simulation/CampaignWhatIf.tsx |
+| `validation-summary-cards` / `validation-timeseries-chart` / `validation-metric-controls` / `validation-metric-selector` / `validation-el-nino-toggle` | simulation/CampaignWhatIf.tsx |
 | `building-semantic-report-button` | app/(app)/simulation-baseline/page.tsx |
 
 Current full-frame 3D steps intentionally target `digital-twin-viewer` /
