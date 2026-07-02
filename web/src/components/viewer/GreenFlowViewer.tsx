@@ -582,12 +582,14 @@ export default function GreenFlowViewer({ heightClass = "h-[560px]" }: { heightC
         return;
       }
     }
+    const fastTechnicalMove = tutorialCameraPreset === "technical-close-electrical" ||
+      tutorialCameraPreset === "technical-close-hvac";
     flyToTutorialCameraPreset(
       viewer,
       objectMapRef.current,
       modelsRef.current,
       tutorialCameraPreset,
-      1.1,
+      fastTechnicalMove ? 0.58 : 1.1,
     );
   }, [tutorialCameraPreset, ready, selectedEntityKey]);
 
@@ -743,6 +745,14 @@ function flyToTutorialCameraPreset(
     "technical-stack": {
       eye: [cx - diag * 0.58, lift(0.72), cz + diag * 0.66],
       look: [cx, cy + dy * 0.18, cz],
+    },
+    "technical-close-electrical": {
+      eye: [cx - diag * 0.28, lift(0.34), cz + diag * 0.42],
+      look: [cx + dx * 0.08, cy + dy * 0.22, cz - dz * 0.06],
+    },
+    "technical-close-hvac": {
+      eye: [cx + diag * 0.38, lift(0.38), cz - diag * 0.28],
+      look: [cx - dx * 0.08, cy + dy * 0.24, cz + dz * 0.04],
     },
   };
 

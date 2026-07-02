@@ -55,6 +55,75 @@ function runLayerShowcase() {
   });
 }
 
+function runSystemHeatmapShowcase() {
+  const my = ++showcaseToken;
+  const app = useAppStore.getState();
+  const tut = useTutorialStore.getState();
+  const baseLayers = {
+    architecture: true,
+    spaces: false,
+    fenestration: true,
+    structural: false,
+    hvac: true,
+    electrical: true,
+  };
+  const frames: Array<{
+    delay: number;
+    layers: Record<string, boolean>;
+    electricalHeat: boolean;
+    hvacHeat: boolean;
+    camera: CameraPreset;
+  }> = [
+    {
+      delay: 0,
+      layers: { ...baseLayers, electrical: false, hvac: true },
+      electricalHeat: false,
+      hvacHeat: true,
+      camera: "technical-close-hvac",
+    },
+    {
+      delay: 680,
+      layers: { ...baseLayers, electrical: true, hvac: false },
+      electricalHeat: true,
+      hvacHeat: false,
+      camera: "technical-close-electrical",
+    },
+    {
+      delay: 1360,
+      layers: baseLayers,
+      electricalHeat: true,
+      hvacHeat: true,
+      camera: "layer-electrical",
+    },
+    {
+      delay: 2040,
+      layers: baseLayers,
+      electricalHeat: true,
+      hvacHeat: true,
+      camera: "layer-hvac",
+    },
+    {
+      delay: 2720,
+      layers: baseLayers,
+      electricalHeat: true,
+      hvacHeat: true,
+      camera: "technical-stack",
+    },
+  ];
+
+  app.setMetric("none");
+  tut.setViewerSpin(false);
+  frames.forEach((frame) => {
+    setTimeout(() => {
+      if (showcaseToken !== my) return;
+      app.setLayers(frame.layers);
+      app.setTechHeatmap("electrical", frame.electricalHeat);
+      app.setTechHeatmap("hvac", frame.hvacHeat);
+      tut.setCameraPreset(frame.camera);
+    }, frame.delay);
+  });
+}
+
 // Auto-cycle the selected zone (drives the 3D highlight + the zone-table row) on
 // a loop; cancelled on any step transition like the layer showcase.
 let zoneToken = 0;
@@ -120,6 +189,9 @@ export function runTutorialActions(
         break;
       case "showcaseLayers":
         runLayerShowcase();
+        break;
+      case "showcaseSystemHeatmaps":
+        runSystemHeatmapShowcase();
         break;
       case "setViewerSpin":
         tut.setViewerSpin(action.on);

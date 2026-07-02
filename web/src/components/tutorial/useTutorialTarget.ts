@@ -18,6 +18,7 @@ export function useTutorialTarget(
   targetId: string | undefined,
   stepKey: string,
   block: ScrollLogicalPosition = "center",
+  scrollTargetId?: string,
 ): TargetState {
   const [state, setState] = useState<TargetState>({
     rect: null,
@@ -36,6 +37,7 @@ export function useTutorialTarget(
     let last = "";
     const settleTimers: ReturnType<typeof setTimeout>[] = [];
     const selector = `[data-tour-id="${targetId}"]`;
+    const scrollSelector = scrollTargetId ? `[data-tour-id="${scrollTargetId}"]` : selector;
 
     const measure = () => {
       if (!el || cancelled) return;
@@ -52,7 +54,8 @@ export function useTutorialTarget(
       el = document.querySelector<HTMLElement>(selector);
       if (el) {
         try {
-          el.scrollIntoView({ behavior: "smooth", block, inline: "center" });
+          const scrollEl = document.querySelector<HTMLElement>(scrollSelector) ?? el;
+          scrollEl.scrollIntoView({ behavior: "smooth", block, inline: "center" });
         } catch {
           /* older browsers */
         }
@@ -78,7 +81,7 @@ export function useTutorialTarget(
       window.removeEventListener("resize", onChange);
       window.removeEventListener("scroll", onChange, true);
     };
-  }, [targetId, stepKey, block]);
+  }, [targetId, stepKey, block, scrollTargetId]);
 
   return state;
 }

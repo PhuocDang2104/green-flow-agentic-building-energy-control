@@ -19,6 +19,8 @@ export type CameraPreset =
   | "layer-hvac"
   | "layer-spaces"
   | "technical-stack"
+  | "technical-close-electrical"
+  | "technical-close-hvac"
   | null;
 
 export type ZoneMetric = "none" | "energy" | "comfort" | "faults";
@@ -47,6 +49,7 @@ export type TutorialAction =
   | { type: "setValidationMetric"; metric: ValidationMetric }
   | { type: "toggleElNino"; on: boolean }
   | { type: "setViewerSpin"; on: boolean }   // continuous dashboard 3D orbit
+  | { type: "showcaseSystemHeatmaps" }        // fast HVAC/electrical camera sweep
   | { type: "cycleZones" }                    // auto-select a different zone on a loop
   // ---- electrical (tab 2) showcase bridge ----
   | { type: "setElectricalColorMode"; mode: ElectricalColorMode }
@@ -81,6 +84,8 @@ export interface TutorialStep {
   target?: string;
   /** how the primary target is scrolled into view (default "center"). */
   scrollBlock?: ScrollLogicalPosition;
+  /** optional data-tour-id to scroll into view while measuring a different target. */
+  scrollTarget?: string;
   /** extra targets to also cut a bright box around (e.g. 3D viewer + table). */
   spotlights?: string[];
   /** floating illustrative image/caption cards for this step. */

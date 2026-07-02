@@ -63,6 +63,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
   const selectedEntityKey = useAppStore((state) => state.selectedEntityKey);
   const selectEntity = useAppStore((state) => state.selectEntity);
   const activeRowRef = useRef<HTMLTableRowElement | null>(null);
+  const tableScrollRef = useRef<HTMLDivElement | null>(null);
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [comfortFilter, setComfortFilter] = useState<RiskFilter>("all");
@@ -135,7 +136,18 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
 
   const selectRow = (entityKey: string) => selectEntity(entityKey);
   useEffect(() => {
-    activeRowRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+    const row = activeRowRef.current;
+    const scroller = tableScrollRef.current;
+    if (!row || !scroller) return;
+    const rowTop = row.offsetTop;
+    const rowBottom = rowTop + row.offsetHeight;
+    const viewTop = scroller.scrollTop;
+    const viewBottom = viewTop + scroller.clientHeight;
+    if (rowTop >= viewTop && rowBottom <= viewBottom) return;
+    scroller.scrollTo({
+      top: Math.max(0, rowTop - scroller.clientHeight / 2 + row.offsetHeight / 2),
+      behavior: "smooth",
+    });
   }, [selectedEntityKey]);
 
   const onRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, entityKey: string) => {
@@ -206,7 +218,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
         </div>
       </div>
 
-      <div className="max-h-[300px] overflow-auto overscroll-contain">
+      <div ref={tableScrollRef} className="max-h-[300px] overflow-auto overscroll-contain">
         <table className="w-full min-w-[920px] text-[13px]">
           <thead className="sticky top-0 z-10 bg-white/95 shadow-[0_1px_0_rgba(226,232,240,0.95)] backdrop-blur">
             <tr className="text-left text-xs">

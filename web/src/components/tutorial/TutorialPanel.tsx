@@ -107,7 +107,7 @@ export default function TutorialPanel({
         initial={reduceMotion ? false : { opacity: 0, y: 10, scale: 0.985 }}
         animate={{ opacity: 1, y: 0, scale: 1 }}
         transition={{ duration: 0.28, ease: [0.22, 1, 0.36, 1] }}
-        className="pointer-events-auto fixed left-1/2 top-1/2 z-[10000] flex w-[min(980px,calc(100vw-48px))] -translate-x-1/2 -translate-y-1/2 flex-col items-end gap-5"
+        className="pointer-events-auto fixed left-1/2 top-1/2 z-[10000] flex w-[min(1120px,calc(100vw-32px))] -translate-x-1/2 -translate-y-1/2 flex-col items-center gap-4"
       >
         <h2 id="gf-tut-title" className="sr-only">{step.title}</h2>
         <p id="gf-tut-body" className="sr-only">{step.body}</p>
@@ -115,9 +115,9 @@ export default function TutorialPanel({
           src="/assets/tutorial/step_1.png"
           alt=""
           draggable={false}
-          className="w-full select-none rounded-[28px] shadow-[0_32px_90px_rgba(0,0,0,0.34)]"
+          className="max-h-[calc(100vh-148px)] w-full select-none object-contain"
         />
-        <div className="flex flex-wrap justify-end gap-2.5">
+        <div className="flex flex-wrap justify-center gap-2.5">
           <button
             ref={nextRef}
             onClick={onNext}

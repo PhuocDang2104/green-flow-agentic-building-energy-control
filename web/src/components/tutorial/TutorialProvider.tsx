@@ -42,6 +42,7 @@ export default function TutorialProvider({ children }: { children: React.ReactNo
     running ? step?.target : undefined,
     step?.id ?? "",
     step?.scrollBlock ?? "center",
+    running ? step?.scrollTarget : undefined,
   );
   const secondaryRects = useSecondaryRects(
     running ? step?.spotlights : undefined,
