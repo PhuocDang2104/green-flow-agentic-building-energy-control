@@ -185,13 +185,16 @@ attribute to the outermost wrapper of a target; no logic change.
 | `ai-chatbot-launcher` / `ai-chatbot-panel` | chatbot/ChatbotPanel.tsx |
 | `agent-session-list` / `agent-main-chat` / `run-optimization-button` | app/(app)/agent-actions/page.tsx |
 | `agent-execution-timeline` / `simulation-agent-block` / `prediction-agent-block` / `control-agent-block` / `policy-engine-block` / `action-queue` / `approval-card` | tutorial/TutorialAgentTimeline.tsx |
-| `validation-summary-cards` / `validation-timeseries-chart` / `validation-metric-controls` / `validation-metric-selector` / `validation-el-nino-toggle` | simulation/CampaignWhatIf.tsx |
+| `validation-summary-cards` / `validation-timeseries-chart` / `validation-metric-controls` / `validation-metric-selector` / `validation-el-nino-toggle` / `validation-energy-saved-value` / `validation-co2-value` | simulation/CampaignWhatIf.tsx |
 | `building-semantic-report-button` | app/(app)/simulation-baseline/page.tsx |
 
 Current full-frame 3D steps intentionally target `digital-twin-viewer` /
 `electrical-graph-canvas` even when the copy talks about layers, heatmaps, mode
 buttons, or links. The smaller control IDs remain useful for future narrower
 steps, but are not used for the main graph spotlights.
+
+When multiple `spotlights` are close enough to touch, `TutorialOverlay` merges
+them into one visible ring so adjacent controls do not render stacked boxes.
 
 If a target never mounts (data-dependent, e.g. CCTV needs a camera-bearing zone),
 the step degrades gracefully to a centered card.

@@ -212,11 +212,11 @@ function MetricHelp({ text }: { text: string }) {
   );
 }
 
-function MetricReadout({ label, value, sub, tone = "text-text-primary", help }: {
-  label: string; value: string; sub?: string; tone?: string; help: string;
+function MetricReadout({ label, value, sub, tone = "text-text-primary", help, tourId }: {
+  label: string; value: string; sub?: string; tone?: string; help: string; tourId?: string;
 }) {
   return (
-    <div className="group/readout rounded-lg px-2 py-1.5 transition hover:bg-white/70">
+    <div data-tour-id={tourId} className="group/readout rounded-lg px-2 py-1.5 transition hover:bg-white/70">
       <div className="flex items-center gap-1.5 text-[11px] font-medium text-text-secondary">
         <span>{label}</span>
         <MetricHelp text={help} />
@@ -309,12 +309,14 @@ function MetricComparisonCard({ metric, baseline, optimized, delta, deltaPercent
             <span>{metric.summary}</span>
             <MetricHelp text={metric.meaning} />
           </div>
-          <p className={`mt-1.5 text-[34px] font-bold leading-none tracking-tight tabular-nums ${
-            positive ? "text-success" : "text-amber-700"
-          }`}>
-            {deltaText.replace(metric.unit, "")}
-          </p>
-          <p className="mt-1 text-[14px] font-medium text-text-muted">{metric.unit.trim()}</p>
+          <div data-tour-id="validation-energy-saved-value">
+            <p className={`mt-1.5 text-[34px] font-bold leading-none tracking-tight tabular-nums ${
+              positive ? "text-success" : "text-amber-700"
+            }`}>
+              {deltaText.replace(metric.unit, "")}
+            </p>
+            <p className="mt-1 text-[14px] font-medium text-text-muted">{metric.unit.trim()}</p>
+          </div>
           {deltaPercentText && <p className="mt-2 text-[11px] font-semibold text-emerald-700">{deltaPercentText}</p>}
         </div>
       </div>
@@ -365,6 +367,7 @@ function ImpactCard({ costSaving, co2Avoided, aiAddedComfort, baselineComfort, d
             value={co2Avoided != null ? `${formatNumber(Math.round(co2Avoided))} kg` : "."}
             tone={co2Avoided != null && co2Avoided < 0 ? "text-amber-700" : "text-blue-600"}
             help="Estimated emissions impact derived from saved energy."
+            tourId="validation-co2-value"
           />
         </div>
       </div>

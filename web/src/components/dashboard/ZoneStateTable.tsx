@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState, type KeyboardEvent } from "react";
+import { useEffect, useMemo, useRef, useState, type KeyboardEvent } from "react";
 import { ArrowDown, ArrowUp, ArrowUpDown, RotateCcw, Search } from "lucide-react";
 import { fmtKw, fmtTemp, titleCase } from "@/lib/format";
 import StatusPill from "@/components/shared/StatusPill";
@@ -62,6 +62,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
   const zoneStates = useAppStore((state) => state.zoneStates);
   const selectedEntityKey = useAppStore((state) => state.selectedEntityKey);
   const selectEntity = useAppStore((state) => state.selectEntity);
+  const activeRowRef = useRef<HTMLTableRowElement | null>(null);
   const [query, setQuery] = useState("");
   const [typeFilter, setTypeFilter] = useState("all");
   const [comfortFilter, setComfortFilter] = useState<RiskFilter>("all");
@@ -133,6 +134,10 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
   };
 
   const selectRow = (entityKey: string) => selectEntity(entityKey);
+  useEffect(() => {
+    activeRowRef.current?.scrollIntoView({ block: "center", behavior: "smooth" });
+  }, [selectedEntityKey]);
+
   const onRowKeyDown = (event: KeyboardEvent<HTMLTableRowElement>, entityKey: string) => {
     if (event.key === "Enter" || event.key === " ") {
       event.preventDefault();
@@ -244,6 +249,7 @@ export default function ZoneStateTable({ zones }: { zones: Zone[] }) {
               const active = selectedEntityKey === zone.entity_key;
               return (
                 <tr key={zone.entity_key} tabIndex={0}
+                  ref={active ? activeRowRef : undefined}
                   aria-selected={active}
                   onClick={() => selectRow(zone.entity_key)}
                   onKeyDown={(event) => onRowKeyDown(event, zone.entity_key)}
