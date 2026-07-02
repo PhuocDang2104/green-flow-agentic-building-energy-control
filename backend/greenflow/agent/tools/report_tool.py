@@ -20,6 +20,9 @@ SLATE = (15, 23, 42)
 GRAY = (100, 116, 139)
 LIGHT_GRAY = (226, 232, 240)
 MUTED = (148, 163, 184)
+PALE_TEAL = (232, 246, 244)
+PALE_AMBER = (255, 248, 235)
+AMBER = (180, 83, 9)
 
 
 def save_report(building_id: str, report_type: str, title: str,
@@ -185,7 +188,7 @@ def _emit_line_chart(pdf: FPDF, chart: dict) -> None:
               and p.get("optimized") is not None]
     if len(points) < 2:
         return
-    if pdf.get_y() + 62 > pdf.h - pdf.b_margin:
+    if pdf.get_y() + 76 > pdf.h - pdf.b_margin:
         pdf.add_page()
 
     title = _latin(str(chart.get("title") or "Chart"))
@@ -193,19 +196,26 @@ def _emit_line_chart(pdf: FPDF, chart: dict) -> None:
     x = pdf.l_margin
     y = pdf.get_y() + 2
     w = pdf.w - pdf.l_margin - pdf.r_margin
-    h = 52
+    h = 68
     plot_x = x + 10
     plot_y = y + 11
     plot_w = w - 16
-    plot_h = h - 22
+    plot_h = h - 25
 
     vals = [float(p["baseline"]) for p in points] + [float(p["optimized"]) for p in points]
-    vmin, vmax = min(vals), max(vals)
+    y_domain = chart.get("y_domain") or []
+    domain_min = y_domain[0] if len(y_domain) > 0 else None
+    domain_max = y_domain[1] if len(y_domain) > 1 else None
+    vmin = float(domain_min) if isinstance(domain_min, (int, float)) else min(vals)
+    vmax = float(domain_max) if isinstance(domain_max, (int, float)) else max(vals)
     if abs(vmax - vmin) < 1e-9:
         vmax = vmin + 1
-    pad = (vmax - vmin) * 0.08
-    vmin -= pad
-    vmax += pad
+    if not isinstance(domain_min, (int, float)) or not isinstance(domain_max, (int, float)):
+        pad = (vmax - vmin) * 0.08
+        if not isinstance(domain_min, (int, float)):
+            vmin -= pad
+        if not isinstance(domain_max, (int, float)):
+            vmax += pad
     if chart.get("min_zero"):
         vmin = max(0.0, vmin)
 
@@ -223,28 +233,58 @@ def _emit_line_chart(pdf: FPDF, chart: dict) -> None:
     pdf.set_xy(x + 3, y + 2)
     pdf.cell(w - 6, 5, title, new_x="LMARGIN", new_y="NEXT")
 
-    pdf.set_font("Helvetica", "", 7.2)
-    pdf.set_text_color(*GRAY)
-    pdf.set_xy(x + 3, y + h - 7)
-    first = _latin(str(points[0].get("label", "")))
-    last = _latin(str(points[-1].get("label", "")))
-    pdf.cell(w / 2, 4, first)
-    pdf.cell(w / 2 - 6, 4, last, align="R")
-
     for i in range(4):
         gy = plot_y + plot_h * i / 3
         pdf.set_draw_color(241, 245, 249)
         pdf.line(plot_x, gy, plot_x + plot_w, gy)
 
+    el_nino_from = str(chart.get("el_nino_from") or "")
+    if el_nino_from:
+        start_idx = _first_point_on_or_after(points, el_nino_from)
+        if start_idx is not None:
+            band_x = sx(start_idx)
+            pdf.set_fill_color(*PALE_AMBER)
+            pdf.set_draw_color(253, 211, 77)
+            pdf.rect(band_x, plot_y, plot_x + plot_w - band_x, plot_h, "DF")
+            pdf.set_font("Helvetica", "", 6.5)
+            pdf.set_text_color(*AMBER)
+            pdf.set_xy(plot_x + plot_w - 18, plot_y + 1)
+            pdf.cell(16, 3, "El Nino", align="R")
+
+    band = chart.get("band") or {}
+    if band.get("y1") is not None and band.get("y2") is not None:
+        by1 = sy(float(band["y1"]))
+        by2 = sy(float(band["y2"]))
+        top, bottom = min(by1, by2), max(by1, by2)
+        pdf.set_fill_color(229, 250, 247)
+        pdf.set_draw_color(204, 251, 241)
+        pdf.rect(plot_x, top, plot_w, bottom - top, "DF")
+        pdf.set_font("Helvetica", "", 6.5)
+        pdf.set_text_color(*TEAL)
+        pdf.set_xy(plot_x + 2, top + 1)
+        pdf.cell(30, 3, _latin(str(band.get("label") or "")))
+
+    for threshold in chart.get("thresholds") or []:
+        ty = sy(float(threshold))
+        pdf.set_draw_color(245, 158, 11)
+        _draw_dashed_line(pdf, plot_x, ty, plot_x + plot_w, ty, dash_len=1.8, gap_len=1.2)
+        pdf.set_font("Helvetica", "", 6.5)
+        pdf.set_text_color(*AMBER)
+        pdf.set_xy(plot_x + plot_w - 10, ty - 2.5)
+        pdf.cell(9, 3, f"{threshold:g}%")
+
+    _draw_area_under_series(pdf, points, "optimized", sx, sy, plot_y + plot_h)
+
     def draw_series(key: str, color: tuple[int, int, int], dashed: bool = False) -> None:
         pdf.set_draw_color(*color)
-        pdf.set_line_width(0.45 if dashed else 0.55)
+        pdf.set_line_width(0.40 if dashed else 0.58)
         prev: tuple[float, float] | None = None
         for idx, point in enumerate(points):
             current = (sx(idx), sy(float(point[key])))
             if prev:
                 if dashed:
-                    _draw_dashed_line(pdf, prev[0], prev[1], current[0], current[1])
+                    _draw_dashed_line(pdf, prev[0], prev[1], current[0], current[1],
+                                      dash_len=1.6, gap_len=1.2)
                 else:
                     pdf.line(prev[0], prev[1], current[0], current[1])
             prev = current
@@ -270,10 +310,70 @@ def _emit_line_chart(pdf: FPDF, chart: dict) -> None:
     pdf.cell(14, 4, "With AI")
     pdf.set_text_color(*GRAY)
     pdf.set_xy(x + 3, y + 7)
-    pdf.cell(0, 4, f"{vmax:.1f} {unit}")
-    pdf.set_xy(x + 3, y + h - 13)
-    pdf.cell(0, 4, f"{vmin:.1f} {unit}")
+    pdf.cell(0, 4, _axis_label(vmax, unit))
+    pdf.set_xy(x + 3, y + h - 16)
+    pdf.cell(0, 4, _axis_label(vmin, unit))
+
+    pdf.set_font("Helvetica", "", 6.8)
+    pdf.set_text_color(*MUTED)
+    for idx in _date_tick_indexes(points):
+        label = _latin(str(points[idx].get("label", "")))
+        tx = sx(idx)
+        pdf.set_xy(tx - 4, y + h - 8)
+        pdf.cell(12, 3.5, label, align="C")
     pdf.set_y(y + h + 2)
+
+
+def _draw_area_under_series(pdf: FPDF, points: list[dict], key: str, sx, sy,
+                            bottom_y: float) -> None:
+    """Approximate the web chart area fill without creating huge PDF polygons."""
+    stride = max(1, len(points) // 260)
+    pdf.set_draw_color(*PALE_TEAL)
+    pdf.set_line_width(0.15)
+    for idx in range(0, len(points), stride):
+        px = sx(idx)
+        py = sy(float(points[idx][key]))
+        pdf.line(px, py, px, bottom_y)
+    pdf.set_line_width(0.2)
+
+
+def _axis_label(value: float, unit: str) -> str:
+    if abs(value) >= 1000:
+        text = f"{value:,.0f}"
+    elif abs(value) >= 100:
+        text = f"{value:,.0f}"
+    else:
+        text = f"{value:,.1f}".rstrip("0").rstrip(".")
+    return _latin(f"{text} {unit}".strip())
+
+
+def _date_key(point: dict) -> str:
+    raw = str(point.get("x") or point.get("label") or "")
+    return raw.split("T", 1)[0]
+
+
+def _first_point_on_or_after(points: list[dict], date_value: str) -> int | None:
+    for idx, point in enumerate(points):
+        if _date_key(point) >= date_value:
+            return idx
+    return None
+
+
+def _date_tick_indexes(points: list[dict]) -> list[int]:
+    first_by_date: list[int] = []
+    prev = None
+    for idx, point in enumerate(points):
+        key = _date_key(point)
+        if key != prev:
+            first_by_date.append(idx)
+            prev = key
+    if len(first_by_date) <= 9:
+        return first_by_date
+    stride = max(1, len(first_by_date) // 8)
+    selected = first_by_date[::stride]
+    if first_by_date[-1] not in selected:
+        selected.append(first_by_date[-1])
+    return selected[:10]
 
 
 def _draw_dashed_line(pdf: FPDF, x1: float, y1: float, x2: float, y2: float,

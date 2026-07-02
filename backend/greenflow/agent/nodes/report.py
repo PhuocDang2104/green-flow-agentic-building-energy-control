@@ -147,12 +147,16 @@ def _max(values: list[float | None]) -> float | None:
 
 
 def _short_date(value: str) -> str:
-    parts = str(value).split("-")
+    parts = str(value).split("T", 1)[0].split("-")
     return f"{parts[2]}/{parts[1]}" if len(parts) == 3 else str(value)[:10]
 
 
 def _chart_directive(title: str, unit: str, rows: list[dict],
-                     base_key: str, opt_key: str) -> str:
+                     base_key: str, opt_key: str, *,
+                     label_key: str = "date",
+                     y_domain: list[float | str] | None = None,
+                     band: dict | None = None,
+                     thresholds: list[float] | None = None) -> str:
     points = []
     for row in rows:
         base = row.get(base_key)
@@ -160,7 +164,8 @@ def _chart_directive(title: str, unit: str, rows: list[dict],
         if base is None or opt is None:
             continue
         points.append({
-            "label": _short_date(row.get("date")),
+            "label": _short_date(row.get(label_key) or row.get("date")),
+            "x": row.get(label_key) or row.get("date"),
             "baseline": round(_num(base), 4),
             "optimized": round(_num(opt), 4),
         })
@@ -168,6 +173,10 @@ def _chart_directive(title: str, unit: str, rows: list[dict],
         "title": title,
         "unit": unit,
         "min_zero": unit in {"kWh", "kW", "%"},
+        "y_domain": y_domain,
+        "band": band,
+        "thresholds": thresholds or [],
+        "el_nino_from": "2024-04-01",
         "points": points,
     }, separators=(",", ":"))
     return f"[[gf_chart {payload}]]\n\n" if len(points) >= 2 else ""
@@ -184,7 +193,7 @@ def _validation_charts_md() -> str:
             date_to="2024-05-01",
             horizon_steps=8,
             top_k=4,
-            resolution="daily",
+            resolution="timestep",
         )
     except Exception as exc:  # noqa: BLE001 - report should still export on cache miss
         return ("\n## Validation experiment charts\n\n"
@@ -192,6 +201,8 @@ def _validation_charts_md() -> str:
                 f"could not be embedded in this export. Reason: {_cell(exc, 180)}\n\n")
 
     daily = replay.get("daily") or []
+    chart_rows = replay.get("series") or daily
+    chart_label_key = "timestamp" if replay.get("series") else "date"
     kpi = replay.get("kpi") or {}
     metadata = replay.get("metadata") or {}
     if not daily:
@@ -246,14 +257,21 @@ def _validation_charts_md() -> str:
            f"HVAC {_fmt(kpi.get('hvac_saving_kwh'), ' kWh')} |\n\n")
 
     chart_specs = [
-        ("Energy Use - baseline vs AI", "kWh", "baseline_kwh", "optimized_kwh"),
-        ("Power / Demand - baseline vs AI", "kW", "peak_baseline_kw", "peak_optimized_kw"),
-        ("Comfort / Indoor Temperature", "C", "baseline_temperature_c", "optimized_temperature_c"),
-        ("HVAC Control / Setpoint", "C", "baseline_setpoint_c", "optimized_setpoint_c"),
-        ("Electrical Loading", "%", "baseline_loading_pct", "optimized_loading_pct"),
+        ("Energy Use - baseline vs AI", "kWh", "baseline_kwh", "optimized_kwh", [0, "auto"], None, None),
+        ("Power / Demand - baseline vs AI", "kW", "peak_baseline_kw", "peak_optimized_kw", [0, "auto"], None, None),
+        ("Comfort / Indoor Temperature", "C", "baseline_temperature_c", "optimized_temperature_c",
+         [20, 30], {"y1": 23, "y2": 26, "label": "comfort band"}, None),
+        ("HVAC Control / Setpoint", "C", "baseline_setpoint_c", "optimized_setpoint_c", [22, 28], None, None),
+        ("Electrical Loading", "%", "baseline_loading_pct", "optimized_loading_pct", [0, 105], None, [80, 90, 100]),
     ]
-    for title, unit, base_key, opt_key in chart_specs:
-        md += _chart_directive(title, unit, daily, base_key, opt_key)
+    for title, unit, base_key, opt_key, y_domain, band, thresholds in chart_specs:
+        md += _chart_directive(
+            title, unit, chart_rows, base_key, opt_key,
+            label_key=chart_label_key,
+            y_domain=y_domain,
+            band=band,
+            thresholds=thresholds,
+        )
 
     md += "### Chart-level improvement summary\n\n"
     md += "| Chart | Baseline summary | With AI summary | Improvement signal |\n"
