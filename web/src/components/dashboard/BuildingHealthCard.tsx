@@ -7,7 +7,6 @@ import {
   CircleHelp,
   Cloud,
   Clock,
-  Leaf,
   Thermometer,
   Waves,
   Wrench,
@@ -402,13 +401,6 @@ export default function BuildingHealthCard({
 
   return (
     <section data-tour-id="dashboard-health-index" className="space-y-6" aria-label="GreenFlow Building Performance Index">
-      <div className="gf-bpi-heading flex flex-wrap items-center gap-4">
-        <Leaf size={28} fill="#0BAE27" strokeWidth={1.8} className="gf-bpi-leaf text-[#087A3E]" aria-hidden="true" />
-        <h2 className="text-[23px] font-bold tracking-[-0.03em] text-[#0F172A] md:text-[26px]">
-          <span className="mr-3 text-[#087A3E]">GreenFlow</span>
-          Building Performance Index
-        </h2>
-      </div>
       <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-5">
         {panels.map((panel, index) => (
           <ScorePanel key={panel.title} panel={panel} index={index} />
